@@ -125,10 +125,31 @@ class OpcPackage:
         for part_elem in root.findall(f".//{{{FLAT_OPC}}}part"):
             pkg._parse_flat_opc_part(part_elem)
 
+        # Associate .rels parts with their main parts (e.g., word/_rels/document.xml.rels -> word/document.xml)
+        pkg._associate_rels_parts()
+
         # Load package-level relationships
         pkg._load_package_relationships_flat_opc(root)
 
         return pkg
+
+    def _associate_rels_parts(self) -> None:
+        """Associate .rels parts with their corresponding main parts."""
+        for name, part in list(self._parts.items()):
+            if name.endswith(".rels"):
+                # This is a relationships part, find the corresponding main part
+                # e.g., word/_rels/document.xml.rels -> word/document.xml
+                # e.g., word/document.xml.rels -> word/document.xml
+                rels_name = name[:-5]  # Remove .rels
+                if "/_rels/" in rels_name:
+                    # Handle word/_rels/document.xml -> word/document.xml
+                    main_part_name = rels_name.replace("/_rels/", "/")
+                else:
+                    main_part_name = rels_name
+                
+                if main_part_name in self._parts:
+                    main_part = self._parts[main_part_name]
+                    main_part.relationships = part.relationships
 
     def _load_package_relationships_flat_opc(self, root: etree._Element) -> None:
         """Load package-level relationships from Flat OPC."""
@@ -208,7 +229,16 @@ class OpcPackage:
         part = PackagePart(path=name, content_type=content_type, data=data)
         self._parts[name] = part
 
-        # Check for relationships in the part
+        # Check for relationships in the part's xmlData
+        xml_data_elem = part_elem.find(f".//{{{FLAT_OPC}}}xmlData")
+        if xml_data_elem is not None and len(xml_data_elem) > 0:
+            # Check if the first child is a Relationships element
+            first_child = xml_data_elem[0]
+            if first_child.tag.endswith("}Relationships"):
+                rels_data = etree.tostring(first_child, encoding="utf-8")
+                part.relationships = Relationships.from_xml(rels_data)
+
+        # Also check for relationships element directly in the part (fallback)
         rels_elem = part_elem.find(f".//{{{FLAT_OPC}}}relationships")
         if rels_elem is not None:
             rels_data = etree.tostring(rels_elem, encoding="utf-8")
@@ -229,8 +259,17 @@ class OpcPackage:
         else:
             self._package_relationships = Relationships()
 
-    def get_part(self, path: str) -> PackagePart | None:
-        """Get a part by its path (e.g., 'word/document.xml')."""
+    def get_part(self, path: str, base_path: str = "") -> PackagePart | None:
+        """Get a part by its path (e.g., 'word/document.xml').
+        
+        If path is relative (starts with ../ or ./), resolve it against base_path.
+        """
+        # Handle relative paths
+        if base_path and path.startswith(("../", "./")):
+            import os
+            base_dir = os.path.dirname(base_path) if base_path else ""
+            path = os.path.normpath(os.path.join(base_dir, path))
+        
         return self._parts.get(path)
 
     def get_relationship(self, rel_id: str) -> Relationships | None:

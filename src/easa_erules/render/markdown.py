@@ -203,9 +203,18 @@ class MarkdownRenderer:
             self._render_node(child, buf, level + 1)
 
     def _render_paragraph(self, node: ParagraphNode, buf: StringIO, level: int) -> None:
+        # First render inline children (text content)
         text = self._render_inline_children(node)
         if text.strip():
             buf.write(f"{text}\n\n")
+
+        # Then render any block-level children (figures, etc.)
+        for child in node.children:
+            if child.type not in (NodeType.TEXT, NodeType.BOLD, NodeType.ITALIC, 
+                                   NodeType.SUPERSCRIPT, NodeType.SUBSCRIPT,
+                                   NodeType.HYPERLINK, NodeType.INTERNAL_REFERENCE,
+                                   NodeType.LINE_BREAK):
+                self._render_node(child, buf, level)
 
     def _render_heading(self, node: HeadingNode, buf: StringIO, level: int) -> None:
         heading_level = min(level, 6)

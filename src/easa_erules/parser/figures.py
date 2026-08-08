@@ -6,12 +6,16 @@ from lxml import etree
 
 from ..input.namespaces import (
     DRAWING,
+    OFFICE_DOC_REL,
     PIC,
-    REL,
     W,
     qname,
 )
 from ..model import Asset, FigureNode
+
+
+# WordprocessingDrawing namespace
+WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
 
 
 class FigureParser:
@@ -29,7 +33,7 @@ class FigureParser:
             blip = drawing_elem.find(f".//{{{PIC}}}blip")
 
         if blip is not None:
-            embed_rel = blip.get(qname(REL, "embed"))
+            embed_rel = blip.get(f"{{{OFFICE_DOC_REL}}}embed")
             if embed_rel:
                 self._create_figure_from_rel(embed_rel, parent, drawing_elem)
 
@@ -47,8 +51,11 @@ class FigureParser:
         if not rel or not rel.target:
             return
 
-        # Get image data from package
-        image_part = self.parser.package.get_part(rel.target)
+        # Get image data from package (resolve relative path against the .rels file location)
+        # The .rels file is at word/_rels/document.xml.rels for word/document.xml
+        doc_part_path = self.parser.doc_part.path
+        rels_path = doc_part_path.replace("/document.xml", "/_rels/document.xml.rels")
+        image_part = self.parser.package.get_part(rel.target, base_path=rels_path)
         if not image_part:
             return
 
@@ -95,24 +102,38 @@ class FigureParser:
 
     def _extract_caption(self, drawing_elem: etree._Element) -> str:
         """Extract caption from drawing element or nearby."""
-        # Check for docPr (drawing properties) with title
+        # Check for docPr (drawing properties) with title - in WP namespace
+        doc_pr = drawing_elem.find(f".//{{{WP}}}docPr")
+        if doc_pr is not None:
+            title = doc_pr.get("title") or doc_pr.get("descr")
+            if title:
+                return title
+
+        # Also check in DRAWING namespace (for some documents)
         doc_pr = drawing_elem.find(f".//{{{DRAWING}}}docPr")
         if doc_pr is not None:
             title = doc_pr.get("title") or doc_pr.get("descr")
             if title:
                 return title
 
-        # Could also check for nearby caption paragraphs
-        # (would require parent context)
         return ""
 
     def _extract_alt_text(self, drawing_elem: etree._Element) -> str:
         """Extract alt text from drawing."""
+        # Check in WP namespace first
+        doc_pr = drawing_elem.find(f".//{{{WP}}}docPr")
+        if doc_pr is not None:
+            descr = doc_pr.get("descr")
+            if descr:
+                return descr
+
+        # Also check in DRAWING namespace
         doc_pr = drawing_elem.find(f".//{{{DRAWING}}}docPr")
         if doc_pr is not None:
             descr = doc_pr.get("descr")
             if descr:
                 return descr
+
         return ""
 
     def extract_all_images(self) -> list[Asset]:
