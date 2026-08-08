@@ -1,6 +1,6 @@
 """EASA Parser package."""
 
-from .document import EasaDocumentParser, parse_easa_document
+from .document import EasaDocumentParser, ParseResult, parse_easa_document
 from .figures import FigureParser
 from .hyperlinks import HyperlinkParser
 from .lists import ListParser
@@ -16,6 +16,7 @@ __all__ = [
     "ListParser",
     "MetadataParser",
     "ParagraphParser",
+    "ParseResult",
     "TableParser",
     "TopicParser",
     "parse_easa_document",

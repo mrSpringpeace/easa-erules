@@ -14,8 +14,8 @@ Univerzální, deterministický nástroj pro práci s EASA Easy Access Rules / e
 
 ### Plánováno (ještě není v MVP)
 
-- Lokální vyhledávání (SQLite FTS5 / `query`)
 - HTML renderer
+- `refs` command (reference graph)
 
 ## Instalace
 
@@ -36,10 +36,12 @@ easa-erules inspect cs-vla              # z cache
 easa-erules convert cs-vla -o ./out --split
 easa-erules convert ./CS-VLA.xml -o ./out --split
 easa-erules extract cs-vla CS-VLA.303 --format json
+easa-erules query cs-vla "factor of safety" --json
 easa-erules validate ./out
 ```
 
-Cache root: `~/.cache/easa-erules/` (override: `EASA_ERULES_CACHE`).
+Cache root: `~/.cache/easa-erules/` (override: `EASA_ERULES_CACHE`).  
+Search index: `~/.cache/easa-erules/<doc>/search.sqlite` (auto-built on first `query`).
 
 ### Výstup `convert --split -o ./out`
 

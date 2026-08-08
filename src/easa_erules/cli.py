@@ -423,6 +423,89 @@ def extract(
             console.print(content)
 
 
+@app.command()
+def query(
+    source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
+    search_text: str = typer.Argument(..., help="Search query (e.g. 'factor of safety')"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Maximum number of hits"),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable JSON output"),
+    rebuild: bool = typer.Option(
+        False, "--rebuild", help="Force rebuild of the SQLite search index"
+    ),
+    version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
+    fetch_if_missing: bool = typer.Option(
+        False,
+        "--fetch",
+        help="Fetch from EASA if document ID is not in local cache",
+    ),
+):
+    """Search a regulation using a local SQLite FTS5 index."""
+    from .search import ensure_index, search as run_search
+    from .sources import resolve_local_source
+
+    try:
+        source_path = resolve_local_source(
+            source, version=version, auto_fetch=fetch_if_missing
+        )
+    except FileNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    except KeyError:
+        console.print(f"[red]Unknown source: {source}[/red]")
+        raise typer.Exit(1)
+
+    # Document key for index path: registry id when known, else file stem
+    document_key = source_path.stem
+    try:
+        from .sources.registry import resolve_source_id
+
+        document_key = resolve_source_id(source)
+    except KeyError:
+        pass
+
+    with console.status("Indexing (if needed)..."):
+        db_path = ensure_index(
+            source_path,
+            document_key=document_key,
+            force=rebuild,
+        )
+
+    result = run_search(
+        db_path,
+        search_text,
+        limit=limit,
+        document_key=document_key,
+    )
+
+    if json_out:
+        console.print(JSON.from_data(result.to_dict()))
+        return
+
+    console.print(
+        f"[bold]{result.title or result.document_id or document_key}[/bold] "
+        f"— query: [cyan]{search_text}[/cyan] "
+        f"({result.total} hit(s))"
+    )
+    if not result.hits:
+        console.print("[dim]No matches.[/dim]")
+        return
+
+    table = Table(show_lines=False)
+    table.add_column("Rule", style="cyan", no_wrap=True)
+    table.add_column("Type", style="yellow")
+    table.add_column("Title", style="green")
+    table.add_column("Snippet", style="dim")
+
+    for hit in result.hits:
+        table.add_row(
+            hit.designation or hit.erules_id or hit.node_id,
+            hit.topic_type,
+            (hit.title or "")[:60],
+            (hit.snippet or hit.text_preview or "").replace("\n", " ")[:100],
+        )
+    console.print(table)
+
+
 def _find_rule(node: Any, designation: str) -> Any | None:
     """Find a rule by designation (case-insensitive)."""
     needle = designation.replace(" ", "-").upper()
