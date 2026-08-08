@@ -37,37 +37,35 @@ app = typer.Typer(
 console = Console()
 
 
-def _load_package(source: str) -> tuple[OpcPackage, str]:
-    """Load an OOXML/Flat OPC package from a local path.
+def _load_package(
+    source: str,
+    *,
+    version: str | None = None,
+    auto_fetch: bool = False,
+) -> tuple[OpcPackage, str]:
+    """Load an OOXML/Flat OPC package from a path or cached document id.
 
-    Returns (package, stem_id). Document IDs from the registry are not
-    downloadable yet (fetch lands in a later milestone); only local paths work.
+    Returns (package, stem_id).
     """
-    path = Path(source)
-    if path.exists():
-        return OpcPackage.from_file(path), path.stem
+    from .sources import resolve_local_source
 
-    # Friendly message if the user passed a registry id (fetch not implemented)
     try:
-        from .sources.registry import get_source
+        path = resolve_local_source(source, version=version, auto_fetch=auto_fetch)
+    except FileNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    except KeyError as exc:
+        console.print(f"[red]Unknown source: {source}[/red]")
+        console.print("Use 'easa-erules list' to see available documents.")
+        raise typer.Exit(1) from exc
 
-        info = get_source(source)
-        console.print(
-            f"[red]Source '{info['id']}' is registered but not available locally.[/red]"
-        )
-        console.print(
-            "Pass a path to a local XML/DOCX file. "
-            "`easa-erules fetch` will be available in a later release."
-        )
-    except KeyError:
-        console.print(f"[red]File not found: {source}[/red]")
-    raise typer.Exit(1)
+    return OpcPackage.from_file(path), path.stem
 
 
 @app.command("list")
-def list_sources():
+def list_sources_cmd():
     """List available built-in regulation sources."""
-    from .sources.registry import REGISTRY
+    from .sources import list_sources as _list
 
     table = Table(title="EASA Regulation Sources")
     table.add_column("ID", style="cyan")
@@ -75,9 +73,9 @@ def list_sources():
     table.add_column("Type", style="yellow")
     table.add_column("Aliases", style="dim")
 
-    for key, source in REGISTRY.items():
+    for source in _list():
         table.add_row(
-            key,
+            source["id"],
             source["title"],
             source["type"],
             ", ".join(source.get("aliases", [])),
@@ -89,7 +87,9 @@ def list_sources():
 @app.command()
 def info(doc_id: str):
     """Show information about a regulation source (ID or alias)."""
-    from .sources.registry import get_source
+    from .sources import get_source
+    from .sources.cache import default_cache_root
+    from .sources.downloader import EasaDownloader
 
     try:
         source = get_source(doc_id)
@@ -107,13 +107,69 @@ def info(doc_id: str):
     if source.get("aliases"):
         console.print(f"  Aliases: {', '.join(source['aliases'])}")
 
+    downloader = EasaDownloader()
+    try:
+        cached = downloader.local_source_path(source["id"])
+    finally:
+        downloader.close()
+    if cached:
+        console.print(f"  Cached: {cached}")
+    else:
+        console.print(f"  Cached: [dim]not in {default_cache_root()}[/dim]")
+
+
+@app.command()
+def fetch(
+    doc_id: str = typer.Argument(..., help="Document ID or alias (e.g. cs-vla, vla)"),
+    version: str | None = typer.Option(
+        None, "--version", "-V", help="Pin a version label (e.g. 'Amendment 1')"
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Re-download even if cached"),
+    json_out: bool = typer.Option(False, "--json", help="Print machine-readable result"),
+):
+    """Download an EASA Easy Access Rules publication into the local cache."""
+    from .sources import EasaDownloader, get_source
+
+    try:
+        get_source(doc_id)
+    except KeyError:
+        console.print(f"[red]Unknown document: {doc_id}[/red]")
+        console.print("Use 'easa-erules list' to see available documents.")
+        raise typer.Exit(1)
+
+    try:
+        with EasaDownloader() as downloader:
+            with console.status(f"Fetching {doc_id}..."):
+                result = downloader.fetch(doc_id, version=version, force=force)
+    except LookupError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    except Exception as exc:
+        console.print(f"[red]Fetch failed: {exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    if json_out:
+        console.print(JSON.from_data(result.to_dict()))
+        return
+
+    origin = "cache" if result.from_cache else "download"
+    console.print(f"[green]Fetched {result.document_id}[/green] ({origin})")
+    console.print(f"  Version: {result.version_label} [{result.version_slug}]")
+    console.print(f"  Path: {result.source_path}")
+    console.print(f"  SHA256: {result.sha256}")
+    console.print(f"  Size: {result.size} bytes")
+    console.print(f"  Landing page: {result.landing_page}")
+    console.print(f"  Download URL: {result.download_url}")
+    console.print(f"  Metadata: {result.meta_path}")
+
 
 @app.command()
 def inspect(
-    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
+    version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
 ):
     """Inspect an EASA XML document structure."""
-    package, _ = _load_package(source)
+    package, _ = _load_package(source, version=version)
 
     parser = EasaDocumentParser(package)
     try:
@@ -228,16 +284,22 @@ def _write_metadata_yaml(output: Path, doc: RegulationDocument) -> None:
 
 @app.command()
 def convert(
-    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
     output: Path | None = typer.Option(None, "-o", "--output", help="Output directory"),
     split: bool = typer.Option(False, "--split", help="Split output by rule/topic"),
     format: str = typer.Option(
         "markdown", "--format", "-f", help="Output format: markdown, json"
     ),
     asset_prefix: str = typer.Option("assets", "--assets", help="Asset path prefix"),
+    version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
+    fetch_if_missing: bool = typer.Option(
+        False,
+        "--fetch",
+        help="Fetch from EASA if document ID is not in local cache",
+    ),
 ):
     """Convert EASA XML to Markdown or JSON."""
-    package, doc_id = _load_package(source)
+    package, doc_id = _load_package(source, version=version, auto_fetch=fetch_if_missing)
 
     parser = EasaDocumentParser(package)
     with console.status("Parsing document..."):
@@ -331,14 +393,20 @@ def convert(
 
 @app.command()
 def extract(
-    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
     rule: str = typer.Argument(..., help="Rule designation (e.g., CS-VLA.303)"),
     format: str = typer.Option(
         "json", "--format", "-f", help="Output format: json, markdown"
     ),
+    version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
+    fetch_if_missing: bool = typer.Option(
+        False,
+        "--fetch",
+        help="Fetch from EASA if document ID is not in local cache",
+    ),
 ):
     """Extract a single rule by designation."""
-    package, _ = _load_package(source)
+    package, _ = _load_package(source, version=version, auto_fetch=fetch_if_missing)
     doc = parse_easa_document(package)
 
     target = _find_rule(doc, rule)

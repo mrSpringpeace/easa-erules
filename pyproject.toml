@@ -36,6 +36,9 @@ easa-erules = "easa_erules.cli:app"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+easa_erules = ["sources/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

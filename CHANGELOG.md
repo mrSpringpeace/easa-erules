@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Milestone 3: Asset extraction and image parsing.
 - Milestone 4: Validation framework skeleton and conversion report.
 - Milestone 6: Real validation package (`structure`, `links`, `assets`, `output`, `report`), richer `conversion-report.json`, source topic-count check, golden tests under `tests/golden/`.
+- Milestone 7: YAML source catalog (`sources/easa.yaml`), `EasaSourceResolver` (landing-page discovery), `fetch` CLI with cache + sha256 metadata, unified path/doc-id resolution for convert/inspect/extract.
 
 ### Fixed (Milestone 5)
 - `extract` CLI no longer crashes (`parse_easa_document` import).

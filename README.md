@@ -5,18 +5,17 @@ Univerzální, deterministický nástroj pro práci s EASA Easy Access Rules / e
 ## Funkce (aktuální stav)
 
 - Načtení EASA XML / Flat OPC a OOXML (`.docx`) balíčků
+- Stažení z EASA landing pages (`fetch`) + lokální cache s integrity metadata
 - Konverze do kanonického `Regulation AST`
 - Deterministický export do **Markdown** a **JSON**
 - Extrakce jednotlivých požadavků podle označení / ERulesID
-- Validace s `conversion-report.json` (základ)
-- Vestavěný katalog zdrojů (`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`)
+- Validace s `conversion-report.json`
+- Vestavěný katalog zdrojů v `sources/easa.yaml` (`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`)
 
 ### Plánováno (ještě není v MVP)
 
-- `fetch` / source resolver (stažení z EASA landing pages)
-- Lokální vyhledávání (SQLite FTS5)
+- Lokální vyhledávání (SQLite FTS5 / `query`)
 - HTML renderer
-- Cache `~/.cache/easa-erules/`
 
 ## Instalace
 
@@ -30,12 +29,17 @@ uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
 
 ```bash
 easa-erules list
-easa-erules info vla          # alias funguje
-easa-erules inspect ./CS-VLA.xml
+easa-erules info vla                    # alias funguje
+easa-erules fetch cs-vla                # latest XML → ~/.cache/easa-erules/
+easa-erules fetch cs-vla --version "Amendment 1"
+easa-erules inspect cs-vla              # z cache
+easa-erules convert cs-vla -o ./out --split
 easa-erules convert ./CS-VLA.xml -o ./out --split
-easa-erules extract ./CS-VLA.xml CS-VLA.303 --format json
+easa-erules extract cs-vla CS-VLA.303 --format json
 easa-erules validate ./out
 ```
+
+Cache root: `~/.cache/easa-erules/` (override: `EASA_ERULES_CACHE`).
 
 ### Výstup `convert --split -o ./out`
 
