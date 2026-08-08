@@ -343,19 +343,19 @@ class MarkdownRenderer:
         if node.type == NodeType.TEXT:
             return node.text
         elif node.type == NodeType.BOLD:
-            return f"**{node.text}**"
+            return f"**{self._render_inline_children(node)}**"
         elif node.type == NodeType.ITALIC:
-            return f"*{node.text}*"
+            return f"*{self._render_inline_children(node)}*"
         elif node.type == NodeType.SUPERSCRIPT:
-            return f"<sup>{node.text}</sup>"
+            return f"<sup>{self._render_inline_children(node)}</sup>"
         elif node.type == NodeType.SUBSCRIPT:
-            return f"<sub>{node.text}</sub>"
+            return f"<sub>{self._render_inline_children(node)}</sub>"
         elif node.type == NodeType.HYPERLINK:
-            return f"[{node.text}]({node.url})"
+            return f"[{self._render_inline_children(node)}]({node.url})"
         elif node.type == NodeType.INTERNAL_REFERENCE:
             if node.target_id:
-                return f"[{node.text}](#{node.target_id})"
-            return f"[{node.text}]"
+                return f"[{self._render_inline_children(node)}](#{node.target_id})"
+            return f"[{self._render_inline_children(node)}]"
         elif node.type == NodeType.LINE_BREAK:
             return "\n"
         else:

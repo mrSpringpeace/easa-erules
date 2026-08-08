@@ -11,6 +11,10 @@ from easa_erules.model import (
     ParagraphNode,
     HeadingNode,
     TextNode,
+    BoldNode,
+    ItalicNode,
+    SuperscriptNode,
+    SubscriptNode,
 )
 
 
@@ -24,6 +28,18 @@ def sample_package():
 def parsed_document(sample_package):
     """Parse the sample document."""
     return parse_easa_document(sample_package)
+
+
+@pytest.fixture
+def formatting_package():
+    """Load the inline formatting test package."""
+    return OpcPackage.from_file("tests/fixtures/inline-formatting.xml")
+
+
+@pytest.fixture
+def formatting_document(formatting_package):
+    """Parse the formatting test document."""
+    return parse_easa_document(formatting_package)
 
 
 def test_package_loads(sample_package):
@@ -141,6 +157,75 @@ def test_render_json(parsed_document):
     assert result["document"]["type"] == "document"
     assert result["document"]["title"] == "Easy Access Rules for Very Light Aeroplanes"
     assert len(result["document"]["children"]) == 2
+
+
+def test_inline_formatting_bold(formatting_document):
+    """Test bold inline formatting."""
+    req = formatting_document.children[0]
+    para = req.children[0]
+    
+    bold_nodes = [c for c in para.children if isinstance(c, BoldNode)]
+    assert len(bold_nodes) == 1
+    assert bold_nodes[0].text == "bold text"
+
+
+def test_inline_formatting_italic(formatting_document):
+    """Test italic inline formatting."""
+    req = formatting_document.children[0]
+    para = req.children[0]
+    
+    italic_nodes = [c for c in para.children if isinstance(c, ItalicNode)]
+    assert len(italic_nodes) == 1
+    assert italic_nodes[0].text == "italic text"
+
+
+def test_inline_formatting_superscript(formatting_document):
+    """Test superscript inline formatting."""
+    req = formatting_document.children[0]
+    para = req.children[1]
+    
+    sup_nodes = [c for c in para.children if isinstance(c, SuperscriptNode)]
+    assert len(sup_nodes) == 1
+    assert sup_nodes[0].text == "2"
+
+
+def test_inline_formatting_subscript(formatting_document):
+    """Test subscript inline formatting."""
+    req = formatting_document.children[0]
+    para = req.children[1]
+    
+    sub_nodes = [c for c in para.children if isinstance(c, SubscriptNode)]
+    assert len(sub_nodes) == 1
+    assert sub_nodes[0].text == "1"
+
+
+def test_inline_formatting_combined(formatting_document):
+    """Test combined bold+italic inline formatting."""
+    req = formatting_document.children[0]
+    para = req.children[2]
+    
+    # Should have bold wrapping italic (or vice versa)
+    italic_nodes = [c for c in para.children if isinstance(c, ItalicNode)]
+    assert len(italic_nodes) == 1
+    # The text should be "bold and italic" 
+    assert italic_nodes[0].text == "bold and italic"
+    # And it should have a bold child
+    bold_children = [c for c in italic_nodes[0].children if isinstance(c, BoldNode)]
+    assert len(bold_children) == 1
+
+
+def test_render_markdown_inline_formatting(formatting_document):
+    """Test Markdown rendering with inline formatting."""
+    from easa_erules.render import render_markdown
+    
+    files = render_markdown(formatting_document)
+    content = list(files.values())[0]
+    
+    assert "**bold text**" in content
+    assert "*italic text*" in content
+    assert "<sup>2</sup>" in content
+    assert "<sub>1</sub>" in content
+    assert "***bold and italic***" in content
 
 
 if __name__ == "__main__":

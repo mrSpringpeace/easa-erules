@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from lxml import etree
 
-from .namespaces import REL, REL_ID, REL_TARGET, REL_TARGET_MODE, REL_TYPE
+from .namespaces import REL
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,11 +35,12 @@ class Relationships:
         """Parse relationships from XML bytes."""
         root = etree.fromstring(xml_bytes)
         rels = {}
+        # Attributes in OOXML relationships are in no namespace (unprefixed)
         for elem in root.findall(f".//{{{REL}}}Relationship"):
-            rel_id = elem.get(REL_ID)
-            rel_type = elem.get(REL_TYPE)
-            target = elem.get(REL_TARGET)
-            target_mode = elem.get(REL_TARGET_MODE, "Internal")
+            rel_id = elem.get("Id")
+            rel_type = elem.get("Type")
+            target = elem.get("Target")
+            target_mode = elem.get("TargetMode", "Internal")
             if rel_id and rel_type and target:
                 rels[rel_id] = Relationship(rel_id, rel_type, target, target_mode)
         return cls(rels)

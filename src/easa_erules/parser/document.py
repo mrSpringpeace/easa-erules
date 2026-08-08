@@ -53,6 +53,9 @@ class EasaDocumentParser:
         self.document = RegulationDocument()
         self.document.metadata = {}
 
+        # Parse numbering definitions for list formatting
+        self.list_parser.parse_numbering_definitions()
+
         # Parse document metadata first
         self.metadata_parser.parse(self.doc_part.xml())
 

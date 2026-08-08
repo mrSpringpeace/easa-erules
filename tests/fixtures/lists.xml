@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+  <pkg:part pkg:name="/[Content_Types].xml" pkg:contentType="application/xml" pkg:padding="512">
+    <pkg:xmlData>
+      <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+        <Default Extension="xml" ContentType="application/xml"/>
+        <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+        <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
+      </Types>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml" pkg:padding="256">
+    <pkg:xmlData>
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+        <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="word/numbering.xml"/>
+      </Relationships>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/word/numbering.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml" pkg:padding="512">
+    <pkg:xmlData>
+      <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:abstractNum w:abstractNumId="0">
+          <w:lvl w:ilvl="0">
+            <w:numFmt w:val="decimal"/>
+            <w:lvlText w:val="%1."/>
+            <w:lvlJc w:val="left"/>
+            <w:pPr>
+              <w:ind w:left="720" w:hanging="360"/>
+            </w:pPr>
+          </w:lvl>
+        </w:abstractNum>
+        <w:abstractNum w:abstractNumId="1">
+          <w:lvl w:ilvl="0">
+            <w:numFmt w:val="bullet"/>
+            <w:lvlText w:val="•"/>
+            <w:lvlJc w:val="left"/>
+            <w:pPr>
+              <w:ind w:left="720" w:hanging="360"/>
+            </w:pPr>
+          </w:lvl>
+        </w:abstractNum>
+        <w:num w:numId="1">
+          <w:abstractNumId w:val="0"/>
+        </w:num>
+        <w:num w:numId="2">
+          <w:abstractNumId w:val="1"/>
+        </w:num>
+      </w:numbering>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" pkg:padding="512">
+    <pkg:xmlData>
+      <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                  xmlns:erules="http://www.easa.europa.eu/erules">
+        <w:body>
+          <erules:metadata>
+            <erules:id>ERULES-TEST-LIST-001</erules:id>
+            <erules:title>Test Document with Lists</erules:title>
+            <erules:regulatorySource>CS-TEST</erules:regulatorySource>
+            <erules:regulatorySubject>Test</erules:regulatorySubject>
+            <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+            <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            <erules:aircraftCategory>Aeroplanes</erules:aircraftCategory>
+            <erules:aircraftUse>Test</erules:aircraftUse>
+            <erules:applicabilityDate>2024-01-01</erules:applicabilityDate>
+          </erules:metadata>
+          <erules:topic>
+            <erules:id>CS-TEST.200</erules:id>
+            <erules:title>CS-TEST.200 List test</erules:title>
+            <erules:metadata>
+              <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+              <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            </erules:metadata>
+            <w:p>
+              <w:r>
+                <w:t>Ordered list:</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:pPr>
+                <w:numPr>
+                  <w:ilvl w:val="0"/>
+                  <w:numId w:val="1"/>
+                </w:numPr>
+              </w:pPr>
+              <w:r>
+                <w:t>First item</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:pPr>
+                <w:numPr>
+                  <w:ilvl w:val="0"/>
+                  <w:numId w:val="1"/>
+                </w:numPr>
+              </w:pPr>
+              <w:r>
+                <w:t>Second item</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:r>
+                <w:t>Bullet list:</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:pPr>
+                <w:numPr>
+                  <w:ilvl w:val="0"/>
+                  <w:numId w:val="2"/>
+                </w:numPr>
+              </w:pPr>
+              <w:r>
+                <w:t>Bullet item one</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:pPr>
+                <w:numPr>
+                  <w:ilvl w:val="0"/>
+                  <w:numId w:val="2"/>
+                </w:numPr>
+              </w:pPr>
+              <w:r>
+                <w:t>Bullet item two</w:t>
+              </w:r>
+            </w:p>
+          </erules:topic>
+        </w:body>
+      </w:document>
+    </pkg:xmlData>
+  </pkg:part>
+</pkg:package>

@@ -118,6 +118,17 @@ class ParagraphParser:
                 return True
         return False
 
+    def _get_list_num_id(self, elem: etree._Element) -> str:
+        """Get the numId for a list item."""
+        ppr = elem.find(qname(W, "pPr"))
+        if ppr is not None:
+            numpr = ppr.find(qname(W, "numPr"))
+            if numpr is not None:
+                num_id = numpr.find(qname(W, "numId"))
+                if num_id is not None:
+                    return num_id.get(qname(W, "val"))
+        return "1"
+
     def _parse_list_item(self, elem: etree._Element, parent: Any) -> ListItemNode:
         """Parse a list item paragraph."""
         item = ListItemNode()
@@ -132,13 +143,16 @@ class ParagraphParser:
                 if ilvl is not None:
                     item.metadata["list_level"] = ilvl.get(qname(W, "val"))
 
+        # Get numId for list formatting
+        num_id = self._get_list_num_id(elem)
+
         # Find or create parent list
-        list_node = self._find_or_create_parent_list(parent, item)
+        list_node = self._find_or_create_parent_list(parent, item, num_id)
         list_node.add_child(item)
 
         return item
 
-    def _find_or_create_parent_list(self, parent: Any, item: ListItemNode) -> ListNode:
+    def _find_or_create_parent_list(self, parent: Any, item: ListItemNode, num_id: str = "1") -> ListNode:
         """Find existing list or create new one."""
         # Check if last child is a list at same level
         if parent.children and isinstance(parent.children[-1], ListNode):
@@ -147,8 +161,9 @@ class ParagraphParser:
             # Simplified: assume same level belongs to same list
             return last_list
 
-        # Create new list
-        list_node = ListNode(ordered=True)
+        # Create new list with proper ordering
+        ordered = self.parser.list_parser.is_ordered(num_id)
+        list_node = ListNode(ordered=ordered)
         parent.add_child(list_node)
         return list_node
 
@@ -239,23 +254,27 @@ class ParagraphParser:
 
     def _apply_formatting(self, text: str, formatting: dict) -> Any:
         """Apply formatting to text, creating appropriate inline nodes."""
+        # Build nested formatting nodes (innermost first)
         node: Any = TextNode(text=text)
 
-        if formatting["bold"]:
-            node = BoldNode(text=text, children=[node])
-        if formatting["italic"]:
-            node = ItalicNode(text=text, children=[node])
+        # Apply in order: superscript, subscript, bold, italic
+        # (Order matters for nesting, but all should preserve text)
         if formatting["superscript"]:
             node = SuperscriptNode(text=text, children=[node])
         if formatting["subscript"]:
             node = SubscriptNode(text=text, children=[node])
+        if formatting["bold"]:
+            node = BoldNode(text=text, children=[node])
+        if formatting["italic"]:
+            node = ItalicNode(text=text, children=[node])
 
         return node
 
     def _parse_hyperlink(self, elem: etree._Element, parent: Any) -> None:
         """Parse a hyperlink."""
-        # Relationship ID
-        rel_id = elem.get(qname(W, "hyperlink", "r:id"))  # This might not work directly
+        # Relationship ID (r:id is in the office document relationships namespace)
+        from ..input.namespaces import OFFICE_DOC_REL
+        rel_id = elem.get(f"{{{OFFICE_DOC_REL}}}id")
 
         # Get link text
         link_text = ""
@@ -269,7 +288,11 @@ class ParagraphParser:
         url = self._resolve_hyperlink_url(rel_id)
 
         if link_text and url:
+            from ..model import TextNode
             node = HyperlinkNode(text=link_text, url=url)
+            # Add text as child for proper rendering
+            text_node = TextNode(text=link_text)
+            node.add_child(text_node)
             parent.add_child(node)
 
     def _resolve_hyperlink_url(self, rel_id: str | None) -> str | None:
@@ -277,13 +300,18 @@ class ParagraphParser:
         if not rel_id or not self.parser.doc_part:
             return None
 
+        # First check document part relationships
         rels = self.parser.doc_part.relationships
-        if not rels:
-            return None
+        if rels:
+            rel = rels.get(rel_id)
+            if rel and rel.type == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink":
+                return rel.target
 
-        rel = rels.get(rel_id)
-        if rel and rel.type == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink":
-            return rel.target
+        # Fallback to package-level relationships (for Flat OPC)
+        if self.parser.package._package_relationships:
+            rel = self.parser.package._package_relationships.get(rel_id)
+            if rel and rel.type == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink":
+                return rel.target
 
         return None
 

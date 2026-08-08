@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+  <pkg:part pkg:name="/[Content_Types].xml" pkg:contentType="application/xml" pkg:padding="512">
+    <pkg:xmlData>
+      <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+        <Default Extension="xml" ContentType="application/xml"/>
+        <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+      </Types>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml" pkg:padding="256">
+    <pkg:xmlData>
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+        <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://www.easa.europa.eu" TargetMode="External"/>
+      </Relationships>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" pkg:padding="512">
+    <pkg:xmlData>
+      <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                  xmlns:erules="http://www.easa.europa.eu/erules"
+                  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <w:body>
+          <erules:metadata>
+            <erules:id>ERULES-TEST-LINKS-001</erules:id>
+            <erules:title>Test Document with Links</erules:title>
+            <erules:regulatorySource>CS-TEST</erules:regulatorySource>
+            <erules:regulatorySubject>Test</erules:regulatorySubject>
+            <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+            <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            <erules:aircraftCategory>Aeroplanes</erules:aircraftCategory>
+            <erules:aircraftUse>Test</erules:aircraftUse>
+            <erules:applicabilityDate>2024-01-01</erules:applicabilityDate>
+          </erules:metadata>
+          <erules:topic>
+            <erules:id>CS-TEST.300</erules:id>
+            <erules:title>CS-TEST.300 Links test</erules:title>
+            <erules:metadata>
+              <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+              <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            </erules:metadata>
+            <w:p>
+              <w:r>
+                <w:t>External link to </w:t>
+              </w:r>
+              <w:hyperlink r:id="rId2">
+                <w:r>
+                  <w:t>EASA website</w:t>
+                </w:r>
+              </w:hyperlink>
+              <w:r>
+                <w:t>.</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:r>
+                <w:t>Internal reference to </w:t>
+              </w:r>
+              <w:r>
+                <w:t>CS-TEST.305</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:r>
+                <w:t>Reference to </w:t>
+              </w:r>
+              <w:r>
+                <w:t>AMC1 CS-TEST.300</w:t>
+              </w:r>
+            </w:p>
+          </erules:topic>
+          <erules:topic>
+            <erules:id>CS-TEST.305</erules:id>
+            <erules:title>CS-TEST.305 Target rule</erules:title>
+            <erules:metadata>
+              <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+              <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            </erules:metadata>
+            <w:p>
+              <w:r>
+                <w:t>This is the target rule.</w:t>
+              </w:r>
+            </w:p>
+          </erules:topic>
+        </w:body>
+      </w:document>
+    </pkg:xmlData>
+  </pkg:part>
+</pkg:package>

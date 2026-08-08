@@ -117,11 +117,6 @@ ERULES_AIRCRAFT_USE = qname(ERULES, "aircraftUse")
 ERULES_APPLICABILITY_DATE = qname(ERULES, "applicabilityDate")
 ERULES_AMENDED_BY = qname(ERULES, "amendedBy")
 
-REL_ID = qname(REL, "Id")
-REL_TYPE = qname(REL, "Type")
-REL_TARGET = qname(REL, "Target")
-REL_TARGET_MODE = qname(REL, "TargetMode")
-
 CT_TYPES = qname(CT, "Types")
 CT_DEFAULT = qname(CT, "Default")
 CT_OVERRIDE = qname(CT, "Override")

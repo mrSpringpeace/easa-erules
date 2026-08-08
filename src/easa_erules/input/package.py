@@ -132,13 +132,15 @@ class OpcPackage:
 
     def _load_package_relationships_flat_opc(self, root: etree._Element) -> None:
         """Load package-level relationships from Flat OPC."""
-        rels_part = root.find(f".//{{{FLAT_OPC}}}part[@name='_rels/.rels']")
-        if rels_part is not None:
-            xml_data = rels_part.find(f".//{{{FLAT_OPC}}}xmlData")
-            if xml_data is not None and len(xml_data) > 0:
-                rels_data = etree.tostring(xml_data[0], encoding="utf-8")
-                self._package_relationships = Relationships.from_xml(rels_data)
-                return
+        # Find the _rels/.rels part (with or without leading slash)
+        for part_elem in root.findall(f".//{{{FLAT_OPC}}}part"):
+            name = part_elem.get(f"{{{FLAT_OPC}}}name", "")
+            if name.lstrip("/") == "_rels/.rels":
+                xml_data = part_elem.find(f".//{{{FLAT_OPC}}}xmlData")
+                if xml_data is not None and len(xml_data) > 0:
+                    rels_data = etree.tostring(xml_data[0], encoding="utf-8")
+                    self._package_relationships = Relationships.from_xml(rels_data)
+                    return
 
         # Also check for Relationships element directly in package
         rels_elem = root.find(f".//{{{REL}}}Relationships")

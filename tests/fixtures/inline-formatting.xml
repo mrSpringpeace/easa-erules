@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">
+  <pkg:part pkg:name="/[Content_Types].xml" pkg:contentType="application/xml" pkg:padding="512">
+    <pkg:xmlData>
+      <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+        <Default Extension="xml" ContentType="application/xml"/>
+        <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+      </Types>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml" pkg:padding="256">
+    <pkg:xmlData>
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+      </Relationships>
+    </pkg:xmlData>
+  </pkg:part>
+  <pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" pkg:padding="512">
+    <pkg:xmlData>
+      <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                  xmlns:erules="http://www.easa.europa.eu/erules">
+        <w:body>
+          <erules:metadata>
+            <erules:id>ERULES-TEST-001</erules:id>
+            <erules:title>Test Document with Formatting</erules:title>
+            <erules:regulatorySource>CS-TEST</erules:regulatorySource>
+            <erules:regulatorySubject>Test</erules:regulatorySubject>
+            <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+            <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            <erules:aircraftCategory>Aeroplanes</erules:aircraftCategory>
+            <erules:aircraftUse>Test</erules:aircraftUse>
+            <erules:applicabilityDate>2024-01-01</erules:applicabilityDate>
+          </erules:metadata>
+          <erules:topic>
+            <erules:id>CS-TEST.100</erules:id>
+            <erules:title>CS-TEST.100 Formatting test</erules:title>
+            <erules:metadata>
+              <erules:typeOfContent>Certification Specification</erules:typeOfContent>
+              <erules:technicalSubjectMatter>General</erules:technicalSubjectMatter>
+            </erules:metadata>
+            <w:p>
+              <w:r>
+                <w:t>This paragraph has </w:t>
+              </w:r>
+              <w:r>
+                <w:rPr>
+                  <w:b/>
+                </w:rPr>
+                <w:t>bold text</w:t>
+              </w:r>
+              <w:r>
+                <w:t> and </w:t>
+              </w:r>
+              <w:r>
+                <w:rPr>
+                  <w:i/>
+                </w:rPr>
+                <w:t>italic text</w:t>
+              </w:r>
+              <w:r>
+                <w:t>.</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:r>
+                <w:t>Superscript: </w:t>
+              </w:r>
+              <w:r>
+                <w:rPr>
+                  <w:vertAlign w:val="superscript"/>
+                </w:rPr>
+                <w:t>2</w:t>
+              </w:r>
+              <w:r>
+                <w:t> and subscript: </w:t>
+              </w:r>
+              <w:r>
+                <w:rPr>
+                  <w:vertAlign w:val="subscript"/>
+                </w:rPr>
+                <w:t>1</w:t>
+              </w:r>
+            </w:p>
+            <w:p>
+              <w:r>
+                <w:t>Combined: </w:t>
+              </w:r>
+              <w:r>
+                <w:rPr>
+                  <w:b/>
+                  <w:i/>
+                </w:rPr>
+                <w:t>bold and italic</w:t>
+              </w:r>
+            </w:p>
+          </erules:topic>
+        </w:body>
+      </w:document>
+    </pkg:xmlData>
+  </pkg:part>
+</pkg:package>
