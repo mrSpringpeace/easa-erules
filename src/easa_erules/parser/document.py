@@ -28,6 +28,7 @@ class ParseResult:
     references: ReferenceIndex
     warnings: list[dict[str, Any]]
     unknown_elements: list[dict[str, Any]]
+    source_topic_count: int = 0
 
 
 class EasaDocumentParser:
@@ -54,6 +55,7 @@ class EasaDocumentParser:
         self.references = ReferenceIndex()
         self.warnings: list[dict[str, Any]] = []
         self.unknown_elements: list[dict[str, Any]] = []
+        self.source_topic_count = 0
         self._element_handlers: dict[str, callable] = {}
 
     def parse(self) -> ParseResult:
@@ -68,11 +70,17 @@ class EasaDocumentParser:
         # Parse numbering definitions for list formatting
         self.list_parser.parse_numbering_definitions()
 
+        root_xml = self.doc_part.xml()
+
+        # Count source topics before parse (content-loss baseline)
+        from ..input.namespaces import ERULES
+        self.source_topic_count = len(root_xml.findall(f".//{{{ERULES}}}topic"))
+
         # Parse document metadata first
-        self.metadata_parser.parse(self.doc_part.xml())
+        self.metadata_parser.parse(root_xml)
 
         # Parse document body
-        body = self.doc_part.xml().find(".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}body")
+        body = root_xml.find(".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}body")
         if body is not None:
             self._parse_body(body)
 
@@ -89,6 +97,7 @@ class EasaDocumentParser:
             references=self.references,
             warnings=self.warnings,
             unknown_elements=self.unknown_elements,
+            source_topic_count=self.source_topic_count,
         )
 
     def _parse_body(self, body: etree._Element) -> None:

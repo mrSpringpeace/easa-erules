@@ -1,0 +1,222 @@
+{
+  "document": {
+    "type": "document",
+    "id": "ERULES-TEST-LIST-001",
+    "metadata": {
+      "easa": {
+        "erules_id": "ERULES-TEST-LIST-001",
+        "regulatory_source": [
+          "CS-TEST"
+        ],
+        "regulatory_subject": [
+          "Test"
+        ],
+        "type_of_content": [
+          "Certification Specification"
+        ],
+        "technical_subject_matter": [
+          "General"
+        ],
+        "aircraft_category": [
+          "Aeroplanes"
+        ],
+        "aircraft_use": [
+          "Test"
+        ],
+        "applicability_date": "2024-01-01",
+        "amended_by": [],
+        "source_title": "Test Document with Lists",
+        "raw_attributes": {
+          "id": "ERULES-TEST-LIST-001",
+          "title": "Test Document with Lists",
+          "regulatorySource": "CS-TEST",
+          "regulatorySubject": "Test",
+          "typeOfContent": "Certification Specification",
+          "technicalSubjectMatter": "General",
+          "aircraftCategory": "Aeroplanes",
+          "aircraftUse": "Test",
+          "applicabilityDate": "2024-01-01"
+        }
+      }
+    },
+    "title": "Test Document with Lists",
+    "authority": "",
+    "version": null,
+    "document_id": "ERULES-TEST-LIST-001",
+    "easa_metadata": {
+      "erules_id": "ERULES-TEST-LIST-001",
+      "regulatory_source": [
+        "CS-TEST"
+      ],
+      "regulatory_subject": [
+        "Test"
+      ],
+      "type_of_content": [
+        "Certification Specification"
+      ],
+      "technical_subject_matter": [
+        "General"
+      ],
+      "aircraft_category": [
+        "Aeroplanes"
+      ],
+      "aircraft_use": [
+        "Test"
+      ],
+      "applicability_date": "2024-01-01",
+      "amended_by": [],
+      "source_title": "Test Document with Lists",
+      "raw_attributes": {
+        "id": "ERULES-TEST-LIST-001",
+        "title": "Test Document with Lists",
+        "regulatorySource": "CS-TEST",
+        "regulatorySubject": "Test",
+        "typeOfContent": "Certification Specification",
+        "technicalSubjectMatter": "General",
+        "aircraftCategory": "Aeroplanes",
+        "aircraftUse": "Test",
+        "applicabilityDate": "2024-01-01"
+      }
+    },
+    "children": [
+      {
+        "type": "requirement",
+        "id": "CS-TEST.200",
+        "metadata": {
+          "easa": {
+            "type_of_content": [
+              "Certification Specification"
+            ],
+            "technical_subject_matter": [
+              "General"
+            ],
+            "erules_id": "CS-TEST.200",
+            "source_title": "CS-TEST.200 List test"
+          }
+        },
+        "designation": "CS-TEST.200",
+        "title": "CS-TEST.200 List test",
+        "erules_id": "CS-TEST.200",
+        "requirement_type": "",
+        "children": [
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.200/paragraph-0001",
+            "metadata": {},
+            "text": "Ordered list:",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.200/paragraph-0001/text-0001",
+                "metadata": {},
+                "text": "Ordered list:"
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "id": "CS-TEST.200/list-0001",
+            "metadata": {},
+            "ordered": true,
+            "start_number": 1,
+            "children": [
+              {
+                "type": "list_item",
+                "id": "CS-TEST.200/list-0001/list_item-0001",
+                "metadata": {
+                  "list_level": "0"
+                },
+                "number": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.200/list-0001/list_item-0001/text-0002",
+                    "metadata": {},
+                    "text": "First item"
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "id": "CS-TEST.200/list-0001/list_item-0002",
+                "metadata": {
+                  "list_level": "0"
+                },
+                "number": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.200/list-0001/list_item-0002/text-0003",
+                    "metadata": {},
+                    "text": "Second item"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.200/paragraph-0002",
+            "metadata": {},
+            "text": "Bullet list:",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.200/paragraph-0002/text-0004",
+                "metadata": {},
+                "text": "Bullet list:"
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "id": "CS-TEST.200/list-0002",
+            "metadata": {},
+            "ordered": false,
+            "start_number": 1,
+            "children": [
+              {
+                "type": "list_item",
+                "id": "CS-TEST.200/list-0002/list_item-0003",
+                "metadata": {
+                  "list_level": "0"
+                },
+                "number": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.200/list-0002/list_item-0003/text-0005",
+                    "metadata": {},
+                    "text": "Bullet item one"
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "id": "CS-TEST.200/list-0002/list_item-0004",
+                "metadata": {
+                  "list_level": "0"
+                },
+                "number": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.200/list-0002/list_item-0004/text-0006",
+                    "metadata": {},
+                    "text": "Bullet item two"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "assets": {},
+  "references": {
+    "by_source": {},
+    "by_target": {},
+    "by_designation": {}
+  }
+}

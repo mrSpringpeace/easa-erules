@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "parser_version": "0.1.0",
+  "topics": 2,
+  "paragraphs": 4,
+  "tables": 0,
+  "images": 0,
+  "lists": 0,
+  "requirements": 2,
+  "sections": 0,
+  "guidance": 0,
+  "amc": 0,
+  "headings": 0,
+  "hyperlinks": 1,
+  "internal_references": 2,
+  "unique_erules_ids": 2,
+  "duplicate_erules_ids": [],
+  "source_topic_count": 2,
+  "topic_count_mismatch": false,
+  "unresolved_references": [
+    {
+      "source_id": "CS-TEST.300/paragraph-0003/internal_reference-0002",
+      "target_designation": "AMC1 CS-TEST.300",
+      "text": "AMC1 CS-TEST.300",
+      "status": "unresolved"
+    }
+  ],
+  "missing_images": [],
+  "unresolved_relationships": [],
+  "empty_text_nodes": 0,
+  "unknown_elements": [],
+  "warnings": [
+    {
+      "type": "unresolved_reference",
+      "source_id": "CS-TEST.300/paragraph-0003/internal_reference-0002",
+      "target_designation": "AMC1 CS-TEST.300",
+      "text": "AMC1 CS-TEST.300",
+      "status": "unresolved"
+    }
+  ],
+  "errors": []
+}

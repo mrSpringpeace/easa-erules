@@ -1,0 +1,5 @@
+{
+  "fixture": "tests/fixtures/cs-vla-sample.xml",
+  "split": false,
+  "document_id": "ERULES-CS-VLA-001"
+}

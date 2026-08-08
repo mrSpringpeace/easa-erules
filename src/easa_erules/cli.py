@@ -26,7 +26,7 @@ from .model import (
 )
 from .parser import EasaDocumentParser, parse_easa_document
 from .render import render_json, render_markdown
-from .validation import validate_document
+from .validation import build_conversion_report, validate_document
 
 app = typer.Typer(
     name="easa-erules",
@@ -252,6 +252,7 @@ def convert(
             result.references,
             parse_warnings=result.warnings,
             unknown_elements=result.unknown_elements,
+            source_topic_count=result.source_topic_count,
         )
 
     with console.status("Rendering output..."):
@@ -286,6 +287,17 @@ def convert(
 
         written = _write_assets(output, result.assets, asset_prefix)
 
+        # Re-build report including on-disk asset checks
+        validation_report = build_conversion_report(
+            doc,
+            assets=result.assets,
+            references=result.references,
+            parse_warnings=result.warnings,
+            unknown_elements=result.unknown_elements,
+            source_topic_count=result.source_topic_count,
+            output_dir=output,
+        )
+
         report_path = output / "conversion-report.json"
         report_path.write_text(
             json.dumps(validation_report.to_dict(), indent=2),
@@ -296,6 +308,13 @@ def convert(
         if written:
             console.print(f"[green]Assets written: {written} file(s) under {asset_prefix}/[/green]")
         console.print(f"[green]Conversion report written to {report_path}[/green]")
+        if not validation_report.ok:
+            console.print(
+                f"[yellow]Validation reported issues "
+                f"({len(validation_report.errors)} error(s), "
+                f"{len(validation_report.warnings)} warning(s)). "
+                f"See {report_path}[/yellow]"
+            )
     else:
         if split and len(files) > 1:
             console.print(
@@ -372,11 +391,16 @@ def validate(
     with console.status("Validating..."):
         report = validate_conversion(path)
 
-    console.print(f"[bold]Validation Report for {source}[/bold]")
+    status = "[green]OK[/green]" if report.ok else "[red]FAILED[/red]"
+    console.print(f"[bold]Validation Report for {source}[/bold] — {status}")
     console.print(f"  Topics: {report.topics}")
+    console.print(f"  Requirements: {report.requirements}")
     console.print(f"  Paragraphs: {report.paragraphs}")
     console.print(f"  Tables: {report.tables}")
     console.print(f"  Images: {report.images}")
+    console.print(f"  Unique ERulesIds: {report.unique_erules_ids}")
+    if report.source_topic_count is not None:
+        console.print(f"  Source topics: {report.source_topic_count}")
 
     if report.missing_images:
         console.print(
@@ -385,9 +409,17 @@ def validate(
         for m in report.missing_images:
             console.print(f"  - {m}")
 
+    if report.unresolved_references:
+        console.print(
+            f"\n[bold yellow]Unresolved references "
+            f"({len(report.unresolved_references)}):[/bold yellow]"
+        )
+        for ref in report.unresolved_references[:20]:
+            console.print(f"  - {ref}")
+
     if report.warnings:
         console.print(f"\n[bold yellow]Warnings ({len(report.warnings)}):[/bold yellow]")
-        for w in report.warnings:
+        for w in report.warnings[:30]:
             console.print(f"  - {w}")
 
     if report.errors:
@@ -395,7 +427,7 @@ def validate(
         for e in report.errors:
             console.print(f"  - {e}")
 
-    if report.errors or report.missing_images:
+    if not report.ok:
         raise typer.Exit(1)
 
 

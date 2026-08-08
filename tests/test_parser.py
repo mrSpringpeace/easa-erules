@@ -437,10 +437,13 @@ def test_validate_document_topics(sample_package):
         result.references,
         parse_warnings=result.warnings,
         unknown_elements=result.unknown_elements,
+        source_topic_count=result.source_topic_count,
     )
     assert report.requirements == 2
     assert report.topics == 2
     assert report.paragraphs >= 2
+    assert report.source_topic_count == 2
+    assert report.ok
 
 
 def test_unknown_elements_reported():

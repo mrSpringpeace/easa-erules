@@ -1,0 +1,250 @@
+{
+  "document": {
+    "type": "document",
+    "id": "ERULES-TEST-001",
+    "metadata": {
+      "easa": {
+        "erules_id": "ERULES-TEST-001",
+        "regulatory_source": [
+          "CS-TEST"
+        ],
+        "regulatory_subject": [
+          "Test"
+        ],
+        "type_of_content": [
+          "Certification Specification"
+        ],
+        "technical_subject_matter": [
+          "General"
+        ],
+        "aircraft_category": [
+          "Aeroplanes"
+        ],
+        "aircraft_use": [
+          "Test"
+        ],
+        "applicability_date": "2024-01-01",
+        "amended_by": [],
+        "source_title": "Test Document with Formatting",
+        "raw_attributes": {
+          "id": "ERULES-TEST-001",
+          "title": "Test Document with Formatting",
+          "regulatorySource": "CS-TEST",
+          "regulatorySubject": "Test",
+          "typeOfContent": "Certification Specification",
+          "technicalSubjectMatter": "General",
+          "aircraftCategory": "Aeroplanes",
+          "aircraftUse": "Test",
+          "applicabilityDate": "2024-01-01"
+        }
+      }
+    },
+    "title": "Test Document with Formatting",
+    "authority": "",
+    "version": null,
+    "document_id": "ERULES-TEST-001",
+    "easa_metadata": {
+      "erules_id": "ERULES-TEST-001",
+      "regulatory_source": [
+        "CS-TEST"
+      ],
+      "regulatory_subject": [
+        "Test"
+      ],
+      "type_of_content": [
+        "Certification Specification"
+      ],
+      "technical_subject_matter": [
+        "General"
+      ],
+      "aircraft_category": [
+        "Aeroplanes"
+      ],
+      "aircraft_use": [
+        "Test"
+      ],
+      "applicability_date": "2024-01-01",
+      "amended_by": [],
+      "source_title": "Test Document with Formatting",
+      "raw_attributes": {
+        "id": "ERULES-TEST-001",
+        "title": "Test Document with Formatting",
+        "regulatorySource": "CS-TEST",
+        "regulatorySubject": "Test",
+        "typeOfContent": "Certification Specification",
+        "technicalSubjectMatter": "General",
+        "aircraftCategory": "Aeroplanes",
+        "aircraftUse": "Test",
+        "applicabilityDate": "2024-01-01"
+      }
+    },
+    "children": [
+      {
+        "type": "requirement",
+        "id": "CS-TEST.100",
+        "metadata": {
+          "easa": {
+            "type_of_content": [
+              "Certification Specification"
+            ],
+            "technical_subject_matter": [
+              "General"
+            ],
+            "erules_id": "CS-TEST.100",
+            "source_title": "CS-TEST.100 Formatting test"
+          }
+        },
+        "designation": "CS-TEST.100",
+        "title": "CS-TEST.100 Formatting test",
+        "erules_id": "CS-TEST.100",
+        "requirement_type": "",
+        "children": [
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.100/paragraph-0001",
+            "metadata": {},
+            "text": "This paragraph has bold text and italic text.",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0001/text-0001",
+                "metadata": {},
+                "text": "This paragraph has "
+              },
+              {
+                "type": "bold",
+                "id": "CS-TEST.100/paragraph-0001/bold-0001",
+                "metadata": {},
+                "text": "bold text",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.100/paragraph-0001/bold-0001/text-0002",
+                    "metadata": {},
+                    "text": "bold text"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0001/text-0003",
+                "metadata": {},
+                "text": " and "
+              },
+              {
+                "type": "italic",
+                "id": "CS-TEST.100/paragraph-0001/italic-0001",
+                "metadata": {},
+                "text": "italic text",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.100/paragraph-0001/italic-0001/text-0004",
+                    "metadata": {},
+                    "text": "italic text"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0001/text-0005",
+                "metadata": {},
+                "text": "."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.100/paragraph-0002",
+            "metadata": {},
+            "text": "Superscript: 2 and subscript: 1",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0002/text-0006",
+                "metadata": {},
+                "text": "Superscript: "
+              },
+              {
+                "type": "superscript",
+                "id": "CS-TEST.100/paragraph-0002/superscript-0001",
+                "metadata": {},
+                "text": "2",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.100/paragraph-0002/superscript-0001/text-0007",
+                    "metadata": {},
+                    "text": "2"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0002/text-0008",
+                "metadata": {},
+                "text": " and subscript: "
+              },
+              {
+                "type": "subscript",
+                "id": "CS-TEST.100/paragraph-0002/subscript-0001",
+                "metadata": {},
+                "text": "1",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.100/paragraph-0002/subscript-0001/text-0009",
+                    "metadata": {},
+                    "text": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.100/paragraph-0003",
+            "metadata": {},
+            "text": "Combined: bold and italic",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.100/paragraph-0003/text-0010",
+                "metadata": {},
+                "text": "Combined: "
+              },
+              {
+                "type": "italic",
+                "id": "CS-TEST.100/paragraph-0003/italic-0002",
+                "metadata": {},
+                "text": "bold and italic",
+                "children": [
+                  {
+                    "type": "bold",
+                    "id": "CS-TEST.100/paragraph-0003/italic-0002/bold-0002",
+                    "metadata": {},
+                    "text": "bold and italic",
+                    "children": [
+                      {
+                        "type": "text",
+                        "id": "CS-TEST.100/paragraph-0003/italic-0002/bold-0002/text-0011",
+                        "metadata": {},
+                        "text": "bold and italic"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "assets": {},
+  "references": {
+    "by_source": {},
+    "by_target": {},
+    "by_designation": {}
+  }
+}

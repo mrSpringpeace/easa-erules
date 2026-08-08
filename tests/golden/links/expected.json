@@ -1,0 +1,295 @@
+{
+  "document": {
+    "type": "document",
+    "id": "ERULES-TEST-LINKS-001",
+    "metadata": {
+      "easa": {
+        "erules_id": "ERULES-TEST-LINKS-001",
+        "regulatory_source": [
+          "CS-TEST"
+        ],
+        "regulatory_subject": [
+          "Test"
+        ],
+        "type_of_content": [
+          "Certification Specification"
+        ],
+        "technical_subject_matter": [
+          "General"
+        ],
+        "aircraft_category": [
+          "Aeroplanes"
+        ],
+        "aircraft_use": [
+          "Test"
+        ],
+        "applicability_date": "2024-01-01",
+        "amended_by": [],
+        "source_title": "Test Document with Links",
+        "raw_attributes": {
+          "id": "ERULES-TEST-LINKS-001",
+          "title": "Test Document with Links",
+          "regulatorySource": "CS-TEST",
+          "regulatorySubject": "Test",
+          "typeOfContent": "Certification Specification",
+          "technicalSubjectMatter": "General",
+          "aircraftCategory": "Aeroplanes",
+          "aircraftUse": "Test",
+          "applicabilityDate": "2024-01-01"
+        }
+      }
+    },
+    "title": "Test Document with Links",
+    "authority": "",
+    "version": null,
+    "document_id": "ERULES-TEST-LINKS-001",
+    "easa_metadata": {
+      "erules_id": "ERULES-TEST-LINKS-001",
+      "regulatory_source": [
+        "CS-TEST"
+      ],
+      "regulatory_subject": [
+        "Test"
+      ],
+      "type_of_content": [
+        "Certification Specification"
+      ],
+      "technical_subject_matter": [
+        "General"
+      ],
+      "aircraft_category": [
+        "Aeroplanes"
+      ],
+      "aircraft_use": [
+        "Test"
+      ],
+      "applicability_date": "2024-01-01",
+      "amended_by": [],
+      "source_title": "Test Document with Links",
+      "raw_attributes": {
+        "id": "ERULES-TEST-LINKS-001",
+        "title": "Test Document with Links",
+        "regulatorySource": "CS-TEST",
+        "regulatorySubject": "Test",
+        "typeOfContent": "Certification Specification",
+        "technicalSubjectMatter": "General",
+        "aircraftCategory": "Aeroplanes",
+        "aircraftUse": "Test",
+        "applicabilityDate": "2024-01-01"
+      }
+    },
+    "children": [
+      {
+        "type": "requirement",
+        "id": "CS-TEST.300",
+        "metadata": {
+          "easa": {
+            "type_of_content": [
+              "Certification Specification"
+            ],
+            "technical_subject_matter": [
+              "General"
+            ],
+            "erules_id": "CS-TEST.300",
+            "source_title": "CS-TEST.300 Links test"
+          }
+        },
+        "designation": "CS-TEST.300",
+        "title": "CS-TEST.300 Links test",
+        "erules_id": "CS-TEST.300",
+        "requirement_type": "",
+        "children": [
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.300/paragraph-0001",
+            "metadata": {},
+            "text": "External link to EASA website.",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.300/paragraph-0001/text-0001",
+                "metadata": {},
+                "text": "External link to "
+              },
+              {
+                "type": "hyperlink",
+                "id": "CS-TEST.300/paragraph-0001/hyperlink-0001",
+                "metadata": {},
+                "text": "EASA website",
+                "url": "https://www.easa.europa.eu",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.300/paragraph-0001/hyperlink-0001/text-0002",
+                    "metadata": {},
+                    "text": "EASA website"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "CS-TEST.300/paragraph-0001/text-0003",
+                "metadata": {},
+                "text": "."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.300/paragraph-0002",
+            "metadata": {},
+            "text": "Internal reference to CS-TEST.305",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.300/paragraph-0002/text-0004",
+                "metadata": {},
+                "text": "Internal reference to "
+              },
+              {
+                "type": "internal_reference",
+                "id": "CS-TEST.300/paragraph-0002/internal_reference-0001",
+                "metadata": {},
+                "text": "CS-TEST.305",
+                "target_id": "CS-TEST.305",
+                "target_designation": "CS-TEST.305",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.300/paragraph-0002/internal_reference-0001/text-0005",
+                    "metadata": {},
+                    "text": "CS-TEST.305"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.300/paragraph-0003",
+            "metadata": {},
+            "text": "Reference to AMC1 CS-TEST.300",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.300/paragraph-0003/text-0006",
+                "metadata": {},
+                "text": "Reference to "
+              },
+              {
+                "type": "internal_reference",
+                "id": "CS-TEST.300/paragraph-0003/internal_reference-0002",
+                "metadata": {},
+                "text": "AMC1 CS-TEST.300",
+                "target_id": "",
+                "target_designation": "AMC1 CS-TEST.300",
+                "children": [
+                  {
+                    "type": "text",
+                    "id": "CS-TEST.300/paragraph-0003/internal_reference-0002/text-0007",
+                    "metadata": {},
+                    "text": "AMC1 CS-TEST.300"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "requirement",
+        "id": "CS-TEST.305",
+        "metadata": {
+          "easa": {
+            "type_of_content": [
+              "Certification Specification"
+            ],
+            "technical_subject_matter": [
+              "General"
+            ],
+            "erules_id": "CS-TEST.305",
+            "source_title": "CS-TEST.305 Target rule"
+          }
+        },
+        "designation": "CS-TEST.305",
+        "title": "CS-TEST.305 Target rule",
+        "erules_id": "CS-TEST.305",
+        "requirement_type": "",
+        "children": [
+          {
+            "type": "paragraph",
+            "id": "CS-TEST.305/paragraph-0004",
+            "metadata": {},
+            "text": "This is the target rule.",
+            "children": [
+              {
+                "type": "text",
+                "id": "CS-TEST.305/paragraph-0004/text-0008",
+                "metadata": {},
+                "text": "This is the target rule."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "assets": {},
+  "references": {
+    "by_source": {
+      "": [
+        {
+          "source_id": "",
+          "target_id": "CS-TEST.305",
+          "target_designation": "CS-TEST.305",
+          "reference_type": "internal",
+          "context": "",
+          "raw_text": "CS-TEST.305",
+          "resolved": true
+        },
+        {
+          "source_id": "",
+          "target_id": "",
+          "target_designation": "AMC1 CS-TEST.300",
+          "reference_type": "internal",
+          "context": "",
+          "raw_text": "AMC1 CS-TEST.300",
+          "resolved": false
+        }
+      ]
+    },
+    "by_target": {
+      "CS-TEST.305": [
+        {
+          "source_id": "",
+          "target_id": "CS-TEST.305",
+          "target_designation": "CS-TEST.305",
+          "reference_type": "internal",
+          "context": "",
+          "raw_text": "CS-TEST.305",
+          "resolved": true
+        }
+      ]
+    },
+    "by_designation": {
+      "CS-TEST.305": {
+        "source_id": "",
+        "target_id": "CS-TEST.305",
+        "target_designation": "CS-TEST.305",
+        "reference_type": "internal",
+        "context": "",
+        "raw_text": "CS-TEST.305",
+        "resolved": true
+      },
+      "AMC1 CS-TEST.300": {
+        "source_id": "",
+        "target_id": "",
+        "target_designation": "AMC1 CS-TEST.300",
+        "reference_type": "internal",
+        "context": "",
+        "raw_text": "AMC1 CS-TEST.300",
+        "resolved": false
+      }
+    }
+  }
+}

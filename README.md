@@ -51,11 +51,21 @@ out/
     └── cs-vla-303-fig-01.png
 ```
 
+## Validace
+
+```bash
+easa-erules convert ./CS-VLA.xml -o ./out --split
+easa-erules validate ./out
+# conversion-report.json obsahuje počty, duplicate ERulesId, missing images,
+# unresolved references a porovnání source topic count vs AST
+```
+
 ## Vývoj
 
 ```bash
 pytest
 ruff check src tests
+# Golden testy: tests/golden/<case>/{expected.md,expected.json,expected-report.json}
 ```
 
 ## Licence

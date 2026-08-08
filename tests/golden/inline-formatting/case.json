@@ -1,0 +1,5 @@
+{
+  "fixture": "tests/fixtures/inline-formatting.xml",
+  "split": false,
+  "document_id": "ERULES-TEST-001"
+}

@@ -1,237 +1,98 @@
-"""Validation module."""
+"""Validation package — parse-time and output integrity checks."""
 
-from dataclasses import dataclass, field
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 
-import yaml
+from .. import __version__
+from .assets import check_figure_assets, check_output_assets
+from .links import check_internal_references
+from .output import validate_conversion
+from .report import ValidationReport
+from .structure import check_source_topic_count, count_and_check_structure
+
+__all__ = [
+    "ValidationReport",
+    "validate_document",
+    "validate_conversion",
+    "build_conversion_report",
+]
 
 
-@dataclass
-class ValidationReport:
-    """Report from validation."""
-    topics: int = 0
-    paragraphs: int = 0
-    tables: int = 0
-    images: int = 0
-    requirements: int = 0
-    sections: int = 0
-    unique_erules_ids: int = 0
-    duplicate_erules_ids: list[str] = field(default_factory=list)
-    unresolved_references: list[dict[str, Any]] = field(default_factory=list)
-    missing_images: list[str] = field(default_factory=list)
-    unknown_elements: list[dict[str, Any]] = field(default_factory=list)
-    warnings: list[dict[str, Any]] = field(default_factory=list)
-    errors: list[dict[str, Any]] = field(default_factory=list)
+def validate_document(
+    doc: Any,
+    assets: Any = None,
+    references: Any = None,
+    parse_warnings: list[dict[str, Any]] | None = None,
+    unknown_elements: list[dict[str, Any]] | None = None,
+    source_topic_count: int | None = None,
+) -> ValidationReport:
+    """Validate a parsed document for integrity (content-loss checks).
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "topics": self.topics,
-            "paragraphs": self.paragraphs,
-            "tables": self.tables,
-            "images": self.images,
-            "requirements": self.requirements,
-            "sections": self.sections,
-            "unique_erules_ids": self.unique_erules_ids,
-            "duplicate_erules_ids": self.duplicate_erules_ids,
-            "unresolved_references": self.unresolved_references,
-            "missing_images": self.missing_images,
-            "unknown_elements": self.unknown_elements,
-            "warnings": self.warnings,
-            "errors": self.errors,
-        }
+    Checks:
+    - unique ERulesIds
+    - structural counts (topics, paragraphs, tables, figures, …)
+    - figure assets present in the collection
+    - internal references resolved or flagged
+    - source topic count vs AST (when provided)
+    - unknown XML elements reported
+    """
+    report = ValidationReport(parser_version=__version__)
 
+    count_and_check_structure(doc, report)
+    check_source_topic_count(report, source_topic_count)
+    check_figure_assets(doc, report, assets)
+    check_internal_references(doc, report, references)
 
-def validate_conversion(output_dir: Path) -> ValidationReport:
-    """Validate a conversion output directory."""
-    report = ValidationReport()
-
-    # Find index.md or main markdown file
-    index_file = output_dir / "index.md"
-    if not index_file.exists():
-        # Try single file
-        md_files = list(output_dir.glob("*.md"))
-        if md_files:
-            index_file = md_files[0]
-
-    if index_file.exists():
-        _validate_markdown_file(index_file, report)
-
-    # Check assets
-    assets_dir = output_dir / "assets"
-    if assets_dir.exists():
-        asset_files = [p for p in assets_dir.iterdir() if p.is_file()]
-        report.images = len(asset_files)
-
-    # Check rules directory
-    rules_dir = output_dir / "rules"
-    if rules_dir.exists():
-        report.topics = len(list(rules_dir.glob("*.md")))
-
-    # Flag markdown image references with missing files
-    for md_file in output_dir.rglob("*.md"):
-        content = md_file.read_text(encoding="utf-8")
-        import re
-        for match in re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", content):
-            rel = match.group(1)
-            if rel.startswith(("http://", "https://")):
-                continue
-            target = (md_file.parent / rel).resolve()
-            if not target.exists():
-                report.missing_images.append(str(rel))
-                report.warnings.append({
-                    "type": "missing_image",
-                    "file": str(md_file.relative_to(output_dir)),
-                    "path": rel,
-                })
-
-    return report
-
-
-def _validate_markdown_file(filepath: Path, report: ValidationReport) -> None:
-    """Validate a single markdown file."""
-    content = filepath.read_text(encoding="utf-8")
-
-    # Count elements
-    lines = content.split("\n")
-    in_frontmatter = False
-    frontmatter_lines = []
-    body_lines = []
-
-    for line in lines:
-        if line.strip() == "---":
-            if not in_frontmatter:
-                in_frontmatter = True
-            else:
-                in_frontmatter = False
-            continue
-
-        if in_frontmatter:
-            frontmatter_lines.append(line)
-        else:
-            body_lines.append(line)
-
-    body = "\n".join(body_lines)
-
-    # Count paragraphs (non-empty lines not starting with #, -, *, |, >)
-    paragraphs = 0
-    for line in body_lines:
-        stripped = line.strip()
-        if stripped and not stripped.startswith(("#", "-", "*", "|", ">", "!", "[", "**", "<")):
-            paragraphs += 1
-
-    report.paragraphs = paragraphs
-
-    # Count tables
-    report.tables = body.count("|") // 2  # rough estimate
-
-    # Count figures
-    report.images = body.count("!(")
-
-    # Check for unresolved references
-    if "[[]" in body or "]( #" in body:
-        report.warnings.append({
-            "type": "unresolved_reference",
-            "file": str(filepath),
-        })
-
-    # Check frontmatter
-    if frontmatter_lines:
-        try:
-            fm = yaml.safe_load("\n".join(frontmatter_lines))
-            if not fm.get("id"):
-                report.warnings.append({
-                    "type": "missing_id",
-                    "file": str(filepath),
-                })
-        except yaml.YAMLError:
-            report.warnings.append({
-                "type": "invalid_frontmatter",
-                "file": str(filepath),
-            })
-
-
-# Parse-time validation
-def validate_document(doc, assets=None, references=None, parse_warnings=None, unknown_elements=None) -> ValidationReport:
-    """Validate a parsed document for integrity."""
-    report = ValidationReport()
-    
-    seen_erules_ids = set()
-    duplicate_ids = set()
-    
-    def check_node(node):
-        # Count nodes
-        from easa_erules.model import (
-            RegulationDocument, RegulationSection, RegulationRequirement,
-            ParagraphNode, HeadingNode, TableNode, FigureNode,
-            ReferenceNode, InternalReferenceNode
-        )
-        
-        if isinstance(node, RegulationRequirement):
-            report.requirements += 1
-            report.topics += 1
-        elif isinstance(node, RegulationSection):
-            report.sections += 1
-            report.topics += 1
-        elif type(node).__name__ in ("GuidanceNode", "AcceptableMeansOfComplianceNode"):
-            report.topics += 1
-        elif isinstance(node, ParagraphNode):
-            report.paragraphs += 1
-        elif isinstance(node, HeadingNode):
-            pass  # counted as part of parent
-        elif isinstance(node, TableNode):
-            report.tables += 1
-        elif isinstance(node, FigureNode):
-            report.images += 1
-        
-        # Check ERulesId uniqueness
-        if hasattr(node, 'erules_id') and node.erules_id:
-            if node.erules_id in seen_erules_ids:
-                duplicate_ids.add(node.erules_id)
-            else:
-                seen_erules_ids.add(node.erules_id)
-        
-        # Check unresolved internal references
-        if isinstance(node, InternalReferenceNode):
-            if not node.target_id:
-                report.unresolved_references.append({
-                    "source_id": getattr(node, 'id', ''),
-                    "target_designation": node.target_designation,
-                    "text": node.text,
-                })
-        
-        # Recurse
-        for child in getattr(node, 'children', []):
-            check_node(child)
-    
-    check_node(doc)
-    
-    report.unique_erules_ids = len(seen_erules_ids)
-    report.duplicate_erules_ids = list(duplicate_ids)
-    
-    # Add warnings for duplicates
-    for dup_id in duplicate_ids:
-        report.warnings.append({
-            "type": "duplicate_erules_id",
-            "erules_id": dup_id,
-        })
-    
-    # Check references
-    if references:
-        for ref in references.by_designation.values():
-            if not ref.resolved:
-                report.unresolved_references.append({
-                    "source_id": ref.source_id,
-                    "target_designation": ref.target_designation,
-                    "raw_text": ref.raw_text,
-                })
-    
-    # Include parse warnings
     if parse_warnings:
-        report.warnings.extend(parse_warnings)
-    
-    # Include unknown elements
+        for w in parse_warnings:
+            if isinstance(w, dict):
+                report.warnings.append(w if "type" in w else {"type": "parse_warning", **w})
+            else:
+                report.warnings.append({"type": "parse_warning", "message": str(w)})
+
     if unknown_elements:
         report.unknown_elements.extend(unknown_elements)
-    
-    return report
+        report.warnings.append({
+            "type": "unknown_elements",
+            "count": len(unknown_elements),
+            "message": f"{len(unknown_elements)} unknown XML element(s) encountered",
+        })
+
+    return report.finalize()
+
+
+def build_conversion_report(
+    doc: Any,
+    assets: Any = None,
+    references: Any = None,
+    parse_warnings: list[dict[str, Any]] | None = None,
+    unknown_elements: list[dict[str, Any]] | None = None,
+    source_topic_count: int | None = None,
+    output_dir: Path | None = None,
+) -> ValidationReport:
+    """Build a full conversion report, optionally including on-disk checks."""
+    report = validate_document(
+        doc,
+        assets=assets,
+        references=references,
+        parse_warnings=parse_warnings,
+        unknown_elements=unknown_elements,
+        source_topic_count=source_topic_count,
+    )
+
+    if output_dir is not None:
+        # Merge disk asset checks into the same report
+        disk = ValidationReport()
+        check_output_assets(Path(output_dir), disk)
+        for path in disk.missing_images:
+            if path not in report.missing_images:
+                report.missing_images.append(path)
+        for err in disk.errors:
+            report.errors.append(err)
+        # Prefer on-disk image count when assets were written
+        if disk.images:
+            report.images = max(report.images, disk.images)
+
+    return report.finalize()
