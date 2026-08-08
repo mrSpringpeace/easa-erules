@@ -25,7 +25,7 @@ from .model import (
     TableNode,
 )
 from .parser import EasaDocumentParser, parse_easa_document
-from .render import render_json, render_markdown
+from .render import render_html, render_json, render_markdown
 from .validation import build_conversion_report, validate_document
 
 app = typer.Typer(
@@ -288,7 +288,10 @@ def convert(
     output: Path | None = typer.Option(None, "-o", "--output", help="Output directory"),
     split: bool = typer.Option(False, "--split", help="Split output by rule/topic"),
     format: str = typer.Option(
-        "markdown", "--format", "-f", help="Output format: markdown, json"
+        "markdown",
+        "--format",
+        "-f",
+        help="Output format: markdown, json, html",
     ),
     asset_prefix: str = typer.Option("assets", "--assets", help="Asset path prefix"),
     version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
@@ -327,6 +330,8 @@ def convert(
                     result_json, indent=2, ensure_ascii=False
                 )
             }
+        elif format == "html":
+            files = render_html(doc, asset_prefix=asset_prefix)
         else:
             console.print(f"[red]Unknown format: {format}[/red]")
             raise typer.Exit(1)
@@ -338,8 +343,8 @@ def convert(
             filepath.parent.mkdir(parents=True, exist_ok=True)
             filepath.write_text(content, encoding="utf-8")
 
-        # Always emit full JSON AST alongside markdown when converting to MD
-        if format == "markdown":
+        # Always emit full JSON AST + metadata for document-oriented formats
+        if format in ("markdown", "html"):
             doc_json = render_json(doc, result.assets, result.references)
             (output / "document.json").write_text(
                 json.dumps(doc_json, indent=2, ensure_ascii=False),
@@ -421,6 +426,37 @@ def extract(
         files = render_markdown(target)
         for content in files.values():
             console.print(content)
+
+
+@app.command()
+def refs(
+    source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
+    rule: str = typer.Argument(..., help="Rule designation (e.g. CS-VLA.303)"),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable JSON"),
+    version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
+    fetch_if_missing: bool = typer.Option(
+        False,
+        "--fetch",
+        help="Fetch from EASA if document ID is not in local cache",
+    ),
+):
+    """Show outgoing and incoming references for a rule."""
+    from .model.graph import lookup_refs
+
+    package, _ = _load_package(source, version=version, auto_fetch=fetch_if_missing)
+    result = EasaDocumentParser(package).parse()
+    node = lookup_refs(result.document, rule)
+    if not node:
+        console.print(f"[red]Rule not found: {rule}[/red]")
+        raise typer.Exit(1)
+
+    if json_out:
+        console.print(JSON.from_data(node.to_dict()))
+        return
+
+    console.print(node.to_text_tree())
+    if node.title:
+        console.print(f"[dim]{node.title}[/dim]")
 
 
 @app.command()

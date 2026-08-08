@@ -88,6 +88,10 @@ class EasaDocumentParser:
         from ..util.ids import assign_deterministic_ids
         assign_deterministic_ids(self.document)
 
+        # Normalize AST (whitespace, headings, list numbers, ref designations)
+        from ..normalize import normalize_document
+        normalize_document(self.document)
+
         # Post-process: resolve references and update inline nodes
         self._resolve_references()
 

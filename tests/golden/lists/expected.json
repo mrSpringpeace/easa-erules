@@ -126,7 +126,7 @@
                 "metadata": {
                   "list_level": "0"
                 },
-                "number": null,
+                "number": 1,
                 "children": [
                   {
                     "type": "text",
@@ -142,7 +142,7 @@
                 "metadata": {
                   "list_level": "0"
                 },
-                "number": null,
+                "number": 2,
                 "children": [
                   {
                     "type": "text",

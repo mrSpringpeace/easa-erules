@@ -6,16 +6,12 @@ Univerzální, deterministický nástroj pro práci s EASA Easy Access Rules / e
 
 - Načtení EASA XML / Flat OPC a OOXML (`.docx`) balíčků
 - Stažení z EASA landing pages (`fetch`) + lokální cache s integrity metadata
-- Konverze do kanonického `Regulation AST`
-- Deterministický export do **Markdown** a **JSON**
-- Extrakce jednotlivých požadavků podle označení / ERulesID
+- Konverze do kanonického `Regulation AST` + normalizace
+- Deterministický export do **Markdown**, **JSON** a **HTML**
+- Extrakce požadavků, lokální FTS5 `query`, graf odkazů `refs`
 - Validace s `conversion-report.json`
-- Vestavěný katalog zdrojů v `sources/easa.yaml` (`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`)
-
-### Plánováno (ještě není v MVP)
-
-- HTML renderer
-- `refs` command (reference graph)
+- Vestavěný katalog v `sources/easa.yaml`
+- Tenké LLM skills v `skills/` (generic, codex, claude-code, opencode)
 
 ## Instalace
 
@@ -37,6 +33,8 @@ easa-erules convert cs-vla -o ./out --split
 easa-erules convert ./CS-VLA.xml -o ./out --split
 easa-erules extract cs-vla CS-VLA.303 --format json
 easa-erules query cs-vla "factor of safety" --json
+easa-erules refs cs-vla CS-VLA.303 --json
+easa-erules convert ./CS-VLA.xml -o ./out --format html
 easa-erules validate ./out
 ```
 
