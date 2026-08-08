@@ -20,8 +20,9 @@ from .model import (
     RegulationSection,
     TableNode,
 )
-from .parser import parse_easa_document
+from .parser import EasaDocumentParser
 from .render import render_json, render_markdown
+from .validation import validate_document, ValidationReport
 
 app = typer.Typer(
     name="easa-erules",
@@ -85,11 +86,14 @@ def inspect(
         raise typer.Exit(1)
 
     # Parse
+    parser = EasaDocumentParser(package)
     try:
-        doc = parse_easa_document(package)
+        result = parser.parse()
     except Exception as e:
         console.print(f"[red]Parse error: {e}[/red]")
         raise typer.Exit(1)
+
+    doc = result.document
 
     # Collect statistics
     stats = _collect_stats(doc)
@@ -114,10 +118,16 @@ def inspect(
         console.print(JSON.from_data(doc.metadata["easa"]))
 
     # Show warnings
-    if hasattr(package, 'warnings') and package.warnings:
+    if result.warnings:
         console.print("\n[bold yellow]Warnings:[/bold yellow]")
-        for w in package.warnings:
+        for w in result.warnings:
             console.print(f"  - {w}")
+
+    # Show unknown elements
+    if result.unknown_elements:
+        console.print("\n[bold red]Unknown Elements:[/bold red]")
+        for u in result.unknown_elements:
+            console.print(f"  - {u}")
 
 
 def _collect_stats(doc: RegulationDocument) -> dict:
@@ -179,16 +189,27 @@ def convert(
         raise typer.Exit(1)
 
     # Parse
+    parser = EasaDocumentParser(package)
     with console.status("Parsing document..."):
-        doc = parse_easa_document(package)
+        result = parser.parse()
+
+    doc = result.document
+
+    # Validate document
+    with console.status("Validating document..."):
+        validation_report = validate_document(
+            doc, result.assets, result.references,
+            parse_warnings=result.warnings,
+            unknown_elements=result.unknown_elements,
+        )
 
     # Render
     with console.status("Rendering output..."):
         if format == "markdown":
             files = render_markdown(doc, split_by_rule=split, asset_prefix=asset_prefix)
         elif format == "json":
-            result = render_json(doc)
-            files = {f"{doc_id}.json": json.dumps(result, indent=2, ensure_ascii=False)}
+            result_json = render_json(doc, result.assets, result.references)
+            files = {f"{doc_id}.json": json.dumps(result_json, indent=2, ensure_ascii=False)}
         else:
             console.print(f"[red]Unknown format: {format}[/red]")
             raise typer.Exit(1)
@@ -200,7 +221,13 @@ def convert(
             filepath = output / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
             filepath.write_text(content, encoding="utf-8")
+
+        # Write conversion report
+        report_path = output / "conversion-report.json"
+        report_path.write_text(json.dumps(validation_report.to_dict(), indent=2), encoding="utf-8")
+
         console.print(f"[green]Output written to {output}[/green]")
+        console.print(f"[green]Conversion report written to {report_path}[/green]")
     else:
         # Print to stdout (first file only for split)
         if split and len(files) > 1:

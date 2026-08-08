@@ -1,5 +1,6 @@
 """EASA document parser - main entry point."""
 
+from dataclasses import dataclass
 from typing import Any
 
 from lxml import etree
@@ -17,6 +18,16 @@ from .metadata import MetadataParser
 from .paragraphs import ParagraphParser
 from .tables import TableParser
 from .topics import TopicParser
+
+
+@dataclass
+class ParseResult:
+    """Result of parsing an EASA document."""
+    document: RegulationDocument
+    assets: AssetCollection
+    references: ReferenceIndex
+    warnings: list[dict[str, Any]]
+    unknown_elements: list[dict[str, Any]]
 
 
 class EasaDocumentParser:
@@ -42,9 +53,10 @@ class EasaDocumentParser:
         self.assets = AssetCollection()
         self.references = ReferenceIndex()
         self.warnings: list[dict[str, Any]] = []
+        self.unknown_elements: list[dict[str, Any]] = []
         self._element_handlers: dict[str, callable] = {}
 
-    def parse(self) -> RegulationDocument:
+    def parse(self) -> ParseResult:
         """Parse the entire document into a RegulationDocument AST."""
         if not self.doc_part:
             raise ValueError("No main document part found in package")
@@ -67,7 +79,13 @@ class EasaDocumentParser:
         # Post-process: resolve references
         self._resolve_references()
 
-        return self.document
+        return ParseResult(
+            document=self.document,
+            assets=self.assets,
+            references=self.references,
+            warnings=self.warnings,
+            unknown_elements=self.unknown_elements,
+        )
 
     def _parse_body(self, body: etree._Element) -> None:
         """Parse the document body element by element."""
@@ -108,7 +126,7 @@ class EasaDocumentParser:
             # Already parsed at document level, but could be nested
             self.metadata_parser.parse_nested(elem, parent)
         else:
-            self._add_warning(f"Unknown EASA element: {local}", elem)
+            self._add_unknown_element(f"Unknown EASA element: {local}", elem)
 
     def _add_warning(self, message: str, elem: etree._Element | None = None) -> None:
         warning = {"message": message}
@@ -116,6 +134,13 @@ class EasaDocumentParser:
             warning["element"] = etree.QName(elem.tag).localname
             warning["xpath"] = self._get_xpath(elem)
         self.warnings.append(warning)
+
+    def _add_unknown_element(self, message: str, elem: etree._Element | None = None) -> None:
+        warning = {"message": message}
+        if elem is not None:
+            warning["element"] = etree.QName(elem.tag).localname
+            warning["xpath"] = self._get_xpath(elem)
+        self.unknown_elements.append(warning)
 
     def _get_xpath(self, elem: etree._Element) -> str:
         """Generate XPath-like path for debugging."""
@@ -152,4 +177,5 @@ class EasaDocumentParser:
 def parse_easa_document(package: OpcPackage) -> RegulationDocument:
     """Convenience function to parse an EASA document."""
     parser = EasaDocumentParser(package)
-    return parser.parse()
+    result = parser.parse()
+    return result.document

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -14,6 +14,13 @@ class ValidationReport:
     paragraphs: int = 0
     tables: int = 0
     images: int = 0
+    requirements: int = 0
+    sections: int = 0
+    unique_erules_ids: int = 0
+    duplicate_erules_ids: list[str] = field(default_factory=list)
+    unresolved_references: list[dict[str, Any]] = field(default_factory=list)
+    missing_images: list[str] = field(default_factory=list)
+    unknown_elements: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[dict[str, Any]] = field(default_factory=list)
     errors: list[dict[str, Any]] = field(default_factory=list)
 
@@ -23,6 +30,13 @@ class ValidationReport:
             "paragraphs": self.paragraphs,
             "tables": self.tables,
             "images": self.images,
+            "requirements": self.requirements,
+            "sections": self.sections,
+            "unique_erules_ids": self.unique_erules_ids,
+            "duplicate_erules_ids": self.duplicate_erules_ids,
+            "unresolved_references": self.unresolved_references,
+            "missing_images": self.missing_images,
+            "unknown_elements": self.unknown_elements,
             "warnings": self.warnings,
             "errors": self.errors,
         }
@@ -117,3 +131,85 @@ def _validate_markdown_file(filepath: Path, report: ValidationReport) -> None:
                 "type": "invalid_frontmatter",
                 "file": str(filepath),
             })
+
+
+# Parse-time validation
+def validate_document(doc, assets=None, references=None, parse_warnings=None, unknown_elements=None) -> ValidationReport:
+    """Validate a parsed document for integrity."""
+    report = ValidationReport()
+    
+    seen_erules_ids = set()
+    duplicate_ids = set()
+    
+    def check_node(node):
+        # Count nodes
+        from easa_erules.model import (
+            RegulationDocument, RegulationSection, RegulationRequirement,
+            ParagraphNode, HeadingNode, TableNode, FigureNode,
+            ReferenceNode, InternalReferenceNode
+        )
+        
+        if isinstance(node, RegulationRequirement):
+            report.requirements += 1
+        elif isinstance(node, RegulationSection):
+            report.sections += 1
+        elif isinstance(node, ParagraphNode):
+            report.paragraphs += 1
+        elif isinstance(node, HeadingNode):
+            pass  # counted as part of parent
+        elif isinstance(node, TableNode):
+            report.tables += 1
+        elif isinstance(node, FigureNode):
+            report.images += 1
+        
+        # Check ERulesId uniqueness
+        if hasattr(node, 'erules_id') and node.erules_id:
+            if node.erules_id in seen_erules_ids:
+                duplicate_ids.add(node.erules_id)
+            else:
+                seen_erules_ids.add(node.erules_id)
+        
+        # Check unresolved internal references
+        if isinstance(node, InternalReferenceNode):
+            if not node.target_id:
+                report.unresolved_references.append({
+                    "source_id": getattr(node, 'id', ''),
+                    "target_designation": node.target_designation,
+                    "text": node.text,
+                })
+        
+        # Recurse
+        for child in getattr(node, 'children', []):
+            check_node(child)
+    
+    check_node(doc)
+    
+    report.unique_erules_ids = len(seen_erules_ids)
+    report.duplicate_erules_ids = list(duplicate_ids)
+    
+    # Add warnings for duplicates
+    for dup_id in duplicate_ids:
+        report.warnings.append({
+            "type": "duplicate_erules_id",
+            "erules_id": dup_id,
+        })
+    
+    # Check references
+    if references:
+        for ref in references.by_designation.values():
+            if not ref.resolved:
+                report.unresolved_references.append({
+                    "source_id": ref.source_id,
+                    "target_designation": ref.target_designation,
+                    "raw_text": ref.raw_text,
+                })
+    
+    # Include parse warnings
+    if parse_warnings:
+        report.warnings.extend(parse_warnings)
+    
+    # Include unknown elements
+    if unknown_elements:
+        report.unknown_elements.extend(unknown_elements)
+    
+    return report
