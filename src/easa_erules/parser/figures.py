@@ -9,9 +9,9 @@ from ..input.namespaces import (
     OFFICE_DOC_REL,
     PIC,
     W,
-    qname,
 )
 from ..model import Asset, FigureNode
+from ..util.slugify import slugify_rule
 
 
 # WordprocessingDrawing namespace
@@ -24,6 +24,7 @@ class FigureParser:
     def __init__(self, parser):
         self.parser = parser
         self.figure_counter = 0
+        self._per_rule_counters: dict[str, int] = {}
 
     def parse_inline_drawing(self, drawing_elem: etree._Element, parent: Any) -> None:
         """Parse an inline drawing element (from within a paragraph/run)."""
@@ -41,9 +42,26 @@ class FigureParser:
         """Parse a standalone drawing element."""
         self.parse_inline_drawing(drawing_elem, parent)
 
+    def _ancestor_rule_slug(self, parent: Any) -> str:
+        """Walk parent chain for a rule designation to use in asset names."""
+        node = parent
+        while node is not None:
+            designation = getattr(node, "designation", "") or ""
+            erules_id = getattr(node, "erules_id", "") or ""
+            for candidate in (designation, erules_id):
+                if candidate and not candidate.upper().startswith("ERULES"):
+                    return slugify_rule(candidate)
+            node = getattr(node, "parent", None)
+
+        doc = getattr(self.parser, "document", None)
+        if doc is not None:
+            doc_id = getattr(doc, "document_id", "") or ""
+            if doc_id:
+                return slugify_rule(doc_id)
+        return "doc"
+
     def _create_figure_from_rel(self, rel_id: str, parent: Any, drawing_elem: etree._Element) -> None:
         """Create a figure node from a relationship ID."""
-        # Resolve relationship to get image part
         if not self.parser.doc_part or not self.parser.doc_part.relationships:
             return
 
@@ -51,21 +69,20 @@ class FigureParser:
         if not rel or not rel.target:
             return
 
-        # Get image data from package (resolve relative path against the .rels file location)
-        # The .rels file is at word/_rels/document.xml.rels for word/document.xml
-        doc_part_path = self.parser.doc_part.path
-        rels_path = doc_part_path.replace("/document.xml", "/_rels/document.xml.rels")
-        image_part = self.parser.package.get_part(rel.target, base_path=rels_path)
+        # Resolve target against the document part (OPC) with fallbacks
+        image_part = self.parser.package.resolve_part(
+            rel.target,
+            source_part_path=self.parser.doc_part.path,
+        )
         if not image_part:
             return
 
-        # Generate deterministic name
+        rule_slug = self._ancestor_rule_slug(parent)
+        self._per_rule_counters[rule_slug] = self._per_rule_counters.get(rule_slug, 0) + 1
         self.figure_counter += 1
-        doc_id = getattr(self.parser.document, 'document_id', 'doc')
         ext = self._get_extension(image_part.content_type)
-        det_name = f"{doc_id}-fig-{self.figure_counter:02d}.{ext}"
+        det_name = f"{rule_slug}-fig-{self._per_rule_counters[rule_slug]:02d}.{ext}"
 
-        # Create asset
         asset = Asset(
             original_path=rel.target,
             content_type=image_part.content_type,
@@ -73,15 +90,13 @@ class FigureParser:
             deterministic_name=det_name,
             relationship_id=rel_id,
         )
-        self.parser.assets.add(asset)
+        stored = self.parser.assets.add(asset)
 
-        # Extract caption from drawing properties or nearby text
         caption = self._extract_caption(drawing_elem)
         alt_text = self._extract_alt_text(drawing_elem)
 
-        # Create figure node
         figure = FigureNode(
-            image_path=det_name,
+            image_path=stored.deterministic_name,
             caption=caption,
             alt_text=alt_text,
         )
@@ -102,14 +117,12 @@ class FigureParser:
 
     def _extract_caption(self, drawing_elem: etree._Element) -> str:
         """Extract caption from drawing element or nearby."""
-        # Check for docPr (drawing properties) with title - in WP namespace
         doc_pr = drawing_elem.find(f".//{{{WP}}}docPr")
         if doc_pr is not None:
             title = doc_pr.get("title") or doc_pr.get("descr")
             if title:
                 return title
 
-        # Also check in DRAWING namespace (for some documents)
         doc_pr = drawing_elem.find(f".//{{{DRAWING}}}docPr")
         if doc_pr is not None:
             title = doc_pr.get("title") or doc_pr.get("descr")
@@ -120,14 +133,12 @@ class FigureParser:
 
     def _extract_alt_text(self, drawing_elem: etree._Element) -> str:
         """Extract alt text from drawing."""
-        # Check in WP namespace first
         doc_pr = drawing_elem.find(f".//{{{WP}}}docPr")
         if doc_pr is not None:
             descr = doc_pr.get("descr")
             if descr:
                 return descr
 
-        # Also check in DRAWING namespace
         doc_pr = drawing_elem.find(f".//{{{DRAWING}}}docPr")
         if doc_pr is not None:
             descr = doc_pr.get("descr")
@@ -138,12 +149,11 @@ class FigureParser:
 
     def extract_all_images(self) -> list[Asset]:
         """Extract all images from the document."""
-        images = []
+        images: list[Asset] = []
 
         if not self.parser.doc_part:
             return images
 
-        # Find all drawing elements in document
         doc_xml = self.parser.doc_part.xml()
         for drawing in doc_xml.findall(f".//{{{W}}}drawing"):
             self._extract_images_from_drawing(drawing, images)
@@ -153,12 +163,12 @@ class FigureParser:
     def _extract_images_from_drawing(self, drawing_elem: etree._Element, images: list[Asset]) -> None:
         """Recursively extract images from drawing element."""
         for blip in drawing_elem.findall(f".//{{{DRAWING}}}blip"):
-            embed_rel = blip.get(qname(REL, "embed"))
+            embed_rel = blip.get(f"{{{OFFICE_DOC_REL}}}embed")
             if embed_rel:
                 self._add_image_from_rel(embed_rel, images)
 
         for blip in drawing_elem.findall(f".//{{{PIC}}}blip"):
-            embed_rel = blip.get(qname(REL, "embed"))
+            embed_rel = blip.get(f"{{{OFFICE_DOC_REL}}}embed")
             if embed_rel:
                 self._add_image_from_rel(embed_rel, images)
 
@@ -171,17 +181,21 @@ class FigureParser:
         if not rel or not rel.target:
             return
 
-        image_part = self.parser.package.get_part(rel.target)
+        image_part = self.parser.package.resolve_part(
+            rel.target,
+            source_part_path=self.parser.doc_part.path,
+        )
         if not image_part:
             return
 
-        # Check if already added
+        import hashlib
+        content_hash = hashlib.sha256(image_part.data).hexdigest()
         for existing in images:
-            if existing.sha256 == image_part.data.__hash__():
+            if existing.sha256 == content_hash:
                 return
 
         ext = self._get_extension(image_part.content_type)
-        det_name = f"image-{len(images)+1:03d}.{ext}"
+        det_name = f"image-{len(images) + 1:03d}.{ext}"
 
         asset = Asset(
             original_path=rel.target,

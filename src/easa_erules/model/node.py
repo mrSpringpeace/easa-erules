@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Union
-from uuid import uuid4
 
 
 class NodeType(str, Enum):
@@ -37,7 +36,8 @@ class NodeType(str, Enum):
 class Node:
     """Base class for all AST nodes."""
     type: NodeType = field(default=None, init=False)  # type: ignore
-    id: str = field(default_factory=lambda: str(uuid4()))
+    # Empty by default; assign_deterministic_ids() fills stable IDs after parse.
+    id: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     children: list[Node] = field(default_factory=list)
     parent: Node | None = None

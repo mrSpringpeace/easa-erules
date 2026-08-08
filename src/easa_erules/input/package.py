@@ -1,5 +1,6 @@
 """Flat OPC / OOXML Package reader."""
 
+import os
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 from lxml import etree
 
 from .namespaces import CT, FLAT_OPC, REL
-from .relationships import Relationships, RelTypes
+from .relationships import Relationship, Relationships, RelTypes
 
 
 @dataclass(slots=True)
@@ -27,6 +28,24 @@ class PackagePart:
         return self.data.decode(encoding)
 
 
+def _normalize_part_path(path: str) -> str:
+    """Normalize a package part path (no leading slash, forward slashes)."""
+    return path.replace("\\", "/").lstrip("/")
+
+
+def rels_path_for_part(part_path: str) -> str:
+    """Return the OPC relationships part path for a given part.
+
+    ``word/document.xml`` -> ``word/_rels/document.xml.rels``
+    """
+    part_path = _normalize_part_path(part_path)
+    directory = os.path.dirname(part_path)
+    basename = os.path.basename(part_path)
+    if directory:
+        return f"{directory}/_rels/{basename}.rels"
+    return f"_rels/{basename}.rels"
+
+
 class OpcPackage:
     """
     Flat OPC / OOXML Package reader.
@@ -39,6 +58,7 @@ class OpcPackage:
         self._parts: dict[str, PackagePart] = {}
         self._content_types: dict[str, str] = {}  # extension/override -> content-type
         self._default_content_types: dict[str, str] = {}  # extension -> content-type
+        self._package_relationships = Relationships()
 
     @classmethod
     def from_file(cls, path: str | Path) -> "OpcPackage":
@@ -245,15 +265,26 @@ class OpcPackage:
             part.relationships = Relationships.from_xml(rels_data)
 
     def _load_relationships_from_zip(self, zf: zipfile.ZipFile) -> None:
-        """Load .rels files for all parts."""
-        for part_name in list(self._parts.keys()):
-            rels_name = f"{part_name}.rels"
-            if rels_name in zf.namelist():
-                rels_data = zf.read(rels_name)
-                self._parts[part_name].relationships = Relationships.from_xml(rels_data)
+        """Load .rels files for all parts using OPC path conventions."""
+        names = set(zf.namelist())
 
-        # Also load package-level relationships
-        if "_rels/.rels" in zf.namelist():
+        for part_name in list(self._parts.keys()):
+            if part_name.endswith(".rels"):
+                continue
+
+            # OPC standard: word/_rels/document.xml.rels for word/document.xml
+            candidates = [
+                rels_path_for_part(part_name),
+                f"{part_name}.rels",  # rare non-standard layout
+            ]
+            for rels_name in candidates:
+                if rels_name in names:
+                    rels_data = zf.read(rels_name)
+                    self._parts[part_name].relationships = Relationships.from_xml(rels_data)
+                    break
+
+        # Package-level relationships
+        if "_rels/.rels" in names:
             rels_data = zf.read("_rels/.rels")
             self._package_relationships = Relationships.from_xml(rels_data)
         else:
@@ -261,18 +292,52 @@ class OpcPackage:
 
     def get_part(self, path: str, base_path: str = "") -> PackagePart | None:
         """Get a part by its path (e.g., 'word/document.xml').
-        
-        If path is relative (starts with ../ or ./), resolve it against base_path.
-        """
-        # Handle relative paths
-        if base_path and path.startswith(("../", "./")):
-            import os
-            base_dir = os.path.dirname(base_path) if base_path else ""
-            path = os.path.normpath(os.path.join(base_dir, path))
-        
-        return self._parts.get(path)
 
-    def get_relationship(self, rel_id: str) -> Relationships | None:
+        If ``base_path`` is given, also try resolving ``path`` relative to it
+        (source part directory and its ``_rels`` directory).
+        """
+        return self.resolve_part(path, source_part_path=base_path)
+
+    def resolve_part(self, target: str, source_part_path: str = "") -> PackagePart | None:
+        """Resolve a relationship target to a package part.
+
+        Tries absolute package paths and relative resolution against the
+        source part directory (OPC) and the relationships directory
+        (some producers use ``../media/...`` relative to ``_rels``).
+        """
+        target = _normalize_part_path(target)
+        candidates: list[str] = [target]
+
+        if source_part_path:
+            source = _normalize_part_path(source_part_path)
+            # If base is a .rels path, treat its parent package part dir correctly
+            if source.endswith(".rels"):
+                # word/_rels/document.xml.rels -> source part dir is word/
+                rels_dir = os.path.dirname(source)  # word/_rels
+                source_dir = os.path.dirname(rels_dir) if rels_dir.endswith("_rels") else rels_dir
+                candidates.append(_normalize_part_path(os.path.normpath(os.path.join(rels_dir, target))))
+                candidates.append(_normalize_part_path(os.path.normpath(os.path.join(source_dir, target))))
+            else:
+                source_dir = os.path.dirname(source)
+                candidates.append(
+                    _normalize_part_path(os.path.normpath(os.path.join(source_dir, target)))
+                )
+                rels_dir = f"{source_dir}/_rels" if source_dir else "_rels"
+                candidates.append(
+                    _normalize_part_path(os.path.normpath(os.path.join(rels_dir, target)))
+                )
+
+        seen: set[str] = set()
+        for candidate in candidates:
+            if not candidate or candidate in seen:
+                continue
+            seen.add(candidate)
+            part = self._parts.get(candidate)
+            if part is not None:
+                return part
+        return None
+
+    def get_relationship(self, rel_id: str) -> Relationship | None:
         """Get relationship by ID from package-level relationships."""
         return self._package_relationships.get(rel_id)
 

@@ -5,13 +5,17 @@ from pathlib import Path
 from typing import Any
 
 import typer
+import yaml
 from rich.console import Console
 from rich.json import JSON
 from rich.table import Table
 
+from . import __version__
 from .input.package import OpcPackage
 from .model import (
+    AcceptableMeansOfComplianceNode,
     FigureNode,
+    GuidanceNode,
     HeadingNode,
     ListNode,
     ParagraphNode,
@@ -20,9 +24,9 @@ from .model import (
     RegulationSection,
     TableNode,
 )
-from .parser import EasaDocumentParser
+from .parser import EasaDocumentParser, parse_easa_document
 from .render import render_json, render_markdown
-from .validation import validate_document, ValidationReport
+from .validation import validate_document
 
 app = typer.Typer(
     name="easa-erules",
@@ -31,6 +35,33 @@ app = typer.Typer(
 )
 
 console = Console()
+
+
+def _load_package(source: str) -> tuple[OpcPackage, str]:
+    """Load an OOXML/Flat OPC package from a local path.
+
+    Returns (package, stem_id). Document IDs from the registry are not
+    downloadable yet (fetch lands in a later milestone); only local paths work.
+    """
+    path = Path(source)
+    if path.exists():
+        return OpcPackage.from_file(path), path.stem
+
+    # Friendly message if the user passed a registry id (fetch not implemented)
+    try:
+        from .sources.registry import get_source
+
+        info = get_source(source)
+        console.print(
+            f"[red]Source '{info['id']}' is registered but not available locally.[/red]"
+        )
+        console.print(
+            "Pass a path to a local XML/DOCX file. "
+            "`easa-erules fetch` will be available in a later release."
+        )
+    except KeyError:
+        console.print(f"[red]File not found: {source}[/red]")
+    raise typer.Exit(1)
 
 
 @app.command("list")
@@ -45,25 +76,30 @@ def list_sources():
     table.add_column("Aliases", style="dim")
 
     for key, source in REGISTRY.items():
-        table.add_row(key, source["title"], source["type"], ", ".join(source.get("aliases", [])))
+        table.add_row(
+            key,
+            source["title"],
+            source["type"],
+            ", ".join(source.get("aliases", [])),
+        )
 
     console.print(table)
 
 
 @app.command()
 def info(doc_id: str):
-    """Show information about a regulation source."""
-    from .sources.registry import REGISTRY
+    """Show information about a regulation source (ID or alias)."""
+    from .sources.registry import get_source
 
-    doc_id = doc_id.lower()
-    if doc_id not in REGISTRY:
+    try:
+        source = get_source(doc_id)
+    except KeyError:
         console.print(f"[red]Unknown document: {doc_id}[/red]")
         console.print("Use 'easa-erules list' to see available documents.")
         raise typer.Exit(1)
 
-    source = REGISTRY[doc_id]
     console.print(f"[bold cyan]{source['title']}[/bold cyan]")
-    console.print(f"  ID: {doc_id}")
+    console.print(f"  ID: {source['id']}")
     console.print(f"  Type: {source['type']}")
     console.print(f"  Authority: {source['authority']}")
     console.print(f"  Landing page: {source['landing_page']}")
@@ -74,18 +110,11 @@ def info(doc_id: str):
 
 @app.command()
 def inspect(
-    source: str = typer.Argument(..., help="Path to XML file or document ID"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
 ):
     """Inspect an EASA XML document structure."""
-    # Load package
-    if Path(source).exists():
-        package = OpcPackage.from_file(source)
-        doc_id = Path(source).stem
-    else:
-        console.print(f"[red]File not found: {source}[/red]")
-        raise typer.Exit(1)
+    package, _ = _load_package(source)
 
-    # Parse
     parser = EasaDocumentParser(package)
     try:
         result = parser.parse()
@@ -94,8 +123,6 @@ def inspect(
         raise typer.Exit(1)
 
     doc = result.document
-
-    # Collect statistics
     stats = _collect_stats(doc)
 
     console.print(f"[bold]Document:[/bold] {doc.title}")
@@ -112,18 +139,15 @@ def inspect(
 
     console.print(table)
 
-    # Show EASA metadata
     if doc.metadata.get("easa"):
         console.print("\n[bold]EASA Metadata:[/bold]")
         console.print(JSON.from_data(doc.metadata["easa"]))
 
-    # Show warnings
     if result.warnings:
         console.print("\n[bold yellow]Warnings:[/bold yellow]")
         for w in result.warnings:
             console.print(f"  - {w}")
 
-    # Show unknown elements
     if result.unknown_elements:
         console.print("\n[bold red]Unknown Elements:[/bold red]")
         for u in result.unknown_elements:
@@ -144,14 +168,14 @@ def _collect_stats(doc: RegulationDocument) -> dict:
         "Lists": 0,
     }
 
-    def count(node):
+    def count(node: Any) -> None:
         if isinstance(node, RegulationSection):
             stats["Topics/Sections"] += 1
         elif isinstance(node, RegulationRequirement):
             stats["Requirements"] += 1
-        elif type(node).__name__ == "GuidanceNode":
+        elif isinstance(node, GuidanceNode):
             stats["Guidance"] += 1
-        elif type(node).__name__ == "AcceptableMeansOfComplianceNode":
+        elif isinstance(node, AcceptableMeansOfComplianceNode):
             stats["AMC"] += 1
         elif isinstance(node, ParagraphNode):
             stats["Paragraphs"] += 1
@@ -164,57 +188,86 @@ def _collect_stats(doc: RegulationDocument) -> dict:
         elif isinstance(node, ListNode):
             stats["Lists"] += 1
 
-        for child in getattr(node, 'children', []):
+        for child in getattr(node, "children", []):
             count(child)
 
     count(doc)
     return stats
 
 
+def _write_assets(output: Path, assets: Any, asset_dir_name: str = "assets") -> int:
+    """Write extracted binary assets to disk. Returns count written."""
+    if not assets or not getattr(assets, "assets", None):
+        return 0
+
+    assets_dir = output / asset_dir_name
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    count = 0
+    for name, asset in assets.assets.items():
+        path = assets_dir / name
+        path.write_bytes(asset.data)
+        count += 1
+    return count
+
+
+def _write_metadata_yaml(output: Path, doc: RegulationDocument) -> None:
+    """Write metadata.yaml sidecar for split/single conversions."""
+    meta = {
+        "document_id": doc.document_id,
+        "title": doc.title,
+        "authority": doc.authority or "EASA",
+        "version": doc.version,
+        "parser_version": __version__,
+        "easa": doc.metadata.get("easa") or doc.easa_metadata,
+    }
+    (output / "metadata.yaml").write_text(
+        yaml.dump(meta, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+
+
 @app.command()
 def convert(
-    source: str = typer.Argument(..., help="Path to XML file or document ID"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
     output: Path | None = typer.Option(None, "-o", "--output", help="Output directory"),
     split: bool = typer.Option(False, "--split", help="Split output by rule/topic"),
-    format: str = typer.Option("markdown", "--format", "-f", help="Output format: markdown, json"),
+    format: str = typer.Option(
+        "markdown", "--format", "-f", help="Output format: markdown, json"
+    ),
     asset_prefix: str = typer.Option("assets", "--assets", help="Asset path prefix"),
 ):
     """Convert EASA XML to Markdown or JSON."""
-    # Load package
-    if Path(source).exists():
-        package = OpcPackage.from_file(source)
-        doc_id = Path(source).stem
-    else:
-        console.print(f"[red]File not found: {source}[/red]")
-        raise typer.Exit(1)
+    package, doc_id = _load_package(source)
 
-    # Parse
     parser = EasaDocumentParser(package)
     with console.status("Parsing document..."):
         result = parser.parse()
 
     doc = result.document
 
-    # Validate document
     with console.status("Validating document..."):
         validation_report = validate_document(
-            doc, result.assets, result.references,
+            doc,
+            result.assets,
+            result.references,
             parse_warnings=result.warnings,
             unknown_elements=result.unknown_elements,
         )
 
-    # Render
     with console.status("Rendering output..."):
         if format == "markdown":
             files = render_markdown(doc, split_by_rule=split, asset_prefix=asset_prefix)
         elif format == "json":
             result_json = render_json(doc, result.assets, result.references)
-            files = {f"{doc_id}.json": json.dumps(result_json, indent=2, ensure_ascii=False)}
+            files = {
+                f"{doc.document_id or doc_id}.json": json.dumps(
+                    result_json, indent=2, ensure_ascii=False
+                )
+            }
         else:
             console.print(f"[red]Unknown format: {format}[/red]")
             raise typer.Exit(1)
 
-    # Write output
     if output:
         output.mkdir(parents=True, exist_ok=True)
         for filename, content in files.items():
@@ -222,16 +275,32 @@ def convert(
             filepath.parent.mkdir(parents=True, exist_ok=True)
             filepath.write_text(content, encoding="utf-8")
 
-        # Write conversion report
+        # Always emit full JSON AST alongside markdown when converting to MD
+        if format == "markdown":
+            doc_json = render_json(doc, result.assets, result.references)
+            (output / "document.json").write_text(
+                json.dumps(doc_json, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            _write_metadata_yaml(output, doc)
+
+        written = _write_assets(output, result.assets, asset_prefix)
+
         report_path = output / "conversion-report.json"
-        report_path.write_text(json.dumps(validation_report.to_dict(), indent=2), encoding="utf-8")
+        report_path.write_text(
+            json.dumps(validation_report.to_dict(), indent=2),
+            encoding="utf-8",
+        )
 
         console.print(f"[green]Output written to {output}[/green]")
+        if written:
+            console.print(f"[green]Assets written: {written} file(s) under {asset_prefix}/[/green]")
         console.print(f"[green]Conversion report written to {report_path}[/green]")
     else:
-        # Print to stdout (first file only for split)
         if split and len(files) > 1:
-            console.print(f"[yellow]Split output has {len(files)} files. Use --output to save.[/yellow]")
+            console.print(
+                f"[yellow]Split output has {len(files)} files. Use --output to save.[/yellow]"
+            )
             for fname in list(files)[:5]:
                 console.print(f"  {fname}")
             if len(files) > 5:
@@ -243,46 +312,48 @@ def convert(
 
 @app.command()
 def extract(
-    source: str = typer.Argument(..., help="Path to XML file"),
+    source: str = typer.Argument(..., help="Path to XML/DOCX file"),
     rule: str = typer.Argument(..., help="Rule designation (e.g., CS-VLA.303)"),
-    format: str = typer.Option("json", "--format", "-f", help="Output format: json, markdown"),
+    format: str = typer.Option(
+        "json", "--format", "-f", help="Output format: json, markdown"
+    ),
 ):
     """Extract a single rule by designation."""
-    if not Path(source).exists():
-        console.print(f"[red]File not found: {source}[/red]")
-        raise typer.Exit(1)
-
-    package = OpcPackage.from_file(source)
+    package, _ = _load_package(source)
     doc = parse_easa_document(package)
 
-    # Find rule
     target = _find_rule(doc, rule)
     if not target:
         console.print(f"[red]Rule not found: {rule}[/red]")
         raise typer.Exit(1)
 
     if format == "json":
-        from .render import render_json
         result = render_json(target)
         console.print(JSON.from_data(result))
     else:
-        from .render import render_markdown
         files = render_markdown(target)
         for content in files.values():
             console.print(content)
 
 
 def _find_rule(node: Any, designation: str) -> Any | None:
-    """Find a rule by designation."""
-    if hasattr(node, 'designation') and node.designation == designation:
-        return node
-    if hasattr(node, 'erules_id') and node.erules_id == designation:
+    """Find a rule by designation (case-insensitive)."""
+    needle = designation.replace(" ", "-").upper()
+
+    def matches(n: Any) -> bool:
+        for attr in ("designation", "erules_id"):
+            val = getattr(n, attr, None)
+            if val and val.replace(" ", "-").upper() == needle:
+                return True
+        return False
+
+    if matches(node):
         return node
 
-    for child in getattr(node, 'children', []):
-        result = _find_rule(child, designation)
-        if result:
-            return result
+    for child in getattr(node, "children", []):
+        found = _find_rule(child, designation)
+        if found:
+            return found
     return None
 
 
@@ -307,6 +378,13 @@ def validate(
     console.print(f"  Tables: {report.tables}")
     console.print(f"  Images: {report.images}")
 
+    if report.missing_images:
+        console.print(
+            f"\n[bold yellow]Missing images ({len(report.missing_images)}):[/bold yellow]"
+        )
+        for m in report.missing_images:
+            console.print(f"  - {m}")
+
     if report.warnings:
         console.print(f"\n[bold yellow]Warnings ({len(report.warnings)}):[/bold yellow]")
         for w in report.warnings:
@@ -317,7 +395,7 @@ def validate(
         for e in report.errors:
             console.print(f"  - {e}")
 
-    if report.errors:
+    if report.errors or report.missing_images:
         raise typer.Exit(1)
 
 

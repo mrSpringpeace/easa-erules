@@ -20,6 +20,7 @@ from ..model import (
     RegulationSection,
     TableNode,
 )
+from ..util.ids import rule_file_slug
 from .frontmatter import (
     generate_document_frontmatter,
     generate_requirement_frontmatter,
@@ -36,6 +37,10 @@ class MarkdownRenderer:
         self.output_files: dict[str, str] = {}
         self.current_file: StringIO | None = None
         self.heading_offset = 0
+        # designation -> relative markdown path (for split mode links)
+        self._rule_paths: dict[str, str] = {}
+        # Active relative asset path for the file currently being rendered
+        self._active_asset_prefix = asset_prefix
 
     def render(self, doc: RegulationDocument) -> dict[str, str]:
         """Render document to Markdown.
@@ -44,16 +49,54 @@ class MarkdownRenderer:
         If split_by_rule is True, returns multiple files.
         """
         self.output_files = {}
+        self._rule_paths = {}
 
         if self.split_by_rule:
+            self._build_rule_path_index(doc)
             self._render_split(doc)
         else:
             self._render_single(doc)
 
         return self.output_files
 
+    def render_requirement(self, req: RegulationRequirement) -> dict[str, str]:
+        """Render a single requirement as one Markdown file."""
+        self.output_files = {}
+        self._rule_paths = {}
+        buf = StringIO()
+        easa_meta = None
+        if req.metadata.get("easa"):
+            easa_meta = EasaMetadata.from_dict(req.metadata["easa"])
+        buf.write(generate_requirement_frontmatter(req, easa_meta))
+        buf.write("\n\n")
+        buf.write(f"# {req.designation}: {req.title}\n\n")
+        if req.erules_id:
+            buf.write(f"**ERules ID:** {req.erules_id}\n\n")
+        for child in req.children:
+            self._render_node(child, buf, level=2)
+        slug = rule_file_slug(req)
+        self.output_files[f"{slug}.md"] = buf.getvalue()
+        return self.output_files
+
+    def _build_rule_path_index(self, doc: RegulationDocument) -> None:
+        for child in doc.children:
+            if isinstance(
+                child,
+                (RegulationRequirement, GuidanceNode, AcceptableMeansOfComplianceNode),
+            ):
+                path = f"rules/{rule_file_slug(child)}.md"
+                if child.designation:
+                    self._rule_paths[child.designation] = path
+                if child.erules_id:
+                    self._rule_paths[child.erules_id] = path
+            elif isinstance(child, RegulationSection):
+                path = f"sections/{rule_file_slug(child)}.md"
+                if child.designation:
+                    self._rule_paths[child.designation] = path
+
     def _render_single(self, doc: RegulationDocument) -> None:
         """Render as single Markdown file."""
+        self._active_asset_prefix = self.asset_prefix
         buf = StringIO()
 
         # Frontmatter
@@ -75,7 +118,8 @@ class MarkdownRenderer:
 
     def _render_split(self, doc: RegulationDocument) -> None:
         """Render split by rule/topic."""
-        # Main index file
+        # Main index file (lives at output root → assets/ is sibling)
+        self._active_asset_prefix = self.asset_prefix
         index_buf = StringIO()
         easa_meta = None
         if doc.metadata.get("easa"):
@@ -107,8 +151,9 @@ class MarkdownRenderer:
 
     def _render_rule_file(self, rule: Any, doc: RegulationDocument, index_buf: StringIO) -> None:
         """Render a single rule to its own file."""
-        rule_id = rule.designation.lower().replace(".", "-").replace(" ", "-")
-        filename = f"rules/{rule_id}.md"
+        filename = f"rules/{rule_file_slug(rule)}.md"
+        # Rule files live under rules/ → assets are one level up
+        self._active_asset_prefix = f"../{self.asset_prefix}"
 
         buf = StringIO()
 
@@ -131,20 +176,18 @@ class MarkdownRenderer:
             self._render_node(child, buf, level=2)
 
         self.output_files[filename] = buf.getvalue()
+        self._active_asset_prefix = self.asset_prefix
 
         # Add to index
         index_buf.write(f"- [{rule.designation}: {rule.title}]({filename})\n")
 
     def _render_section_file(self, section: RegulationSection, doc: RegulationDocument, index_buf: StringIO) -> None:
         """Render a section to its own file."""
-        sec_id = section.designation.lower().replace(".", "-").replace(" ", "-")
-        filename = f"sections/{sec_id}.md"
+        filename = f"sections/{rule_file_slug(section)}.md"
+        self._active_asset_prefix = f"../{self.asset_prefix}"
 
         buf = StringIO()
 
-        easa_meta = None
-        if section.metadata.get("easa"):
-            easa_meta = EasaMetadata.from_dict(section.metadata["easa"])
         buf.write(generate_section_frontmatter(section))
         buf.write("\n\n")
 
@@ -155,6 +198,7 @@ class MarkdownRenderer:
             self._render_node(child, buf, level=heading_level + 1)
 
         self.output_files[filename] = buf.getvalue()
+        self._active_asset_prefix = self.asset_prefix
 
         index_buf.write(f"- [{section.designation}: {section.title}]({filename})\n")
 
@@ -329,7 +373,7 @@ class MarkdownRenderer:
             return self._render_inline_children(cell)
 
     def _render_figure(self, node: FigureNode, buf: StringIO, level: int) -> None:
-        asset_path = f"{self.asset_prefix}/{node.image_path}"
+        asset_path = f"{self._active_asset_prefix}/{node.image_path}"
         alt = node.alt_text or node.caption or "Figure"
         buf.write(f"![{alt}]({asset_path})\n")
         if node.caption:
@@ -362,9 +406,16 @@ class MarkdownRenderer:
         elif node.type == NodeType.HYPERLINK:
             return f"[{self._render_inline_children(node)}]({node.url})"
         elif node.type == NodeType.INTERNAL_REFERENCE:
+            label = self._render_inline_children(node) or node.text or node.target_designation
+            # Prefer split-mode rule file links when available
+            path = self._rule_paths.get(node.target_designation) if node.target_designation else None
+            if path:
+                return f"[{label}]({path})"
             if node.target_id:
-                return f"[{self._render_inline_children(node)}](#{node.target_id})"
-            return f"[{self._render_inline_children(node)}]"
+                return f"[{label}](#{node.target_id})"
+            if node.target_designation:
+                return f"[{label}]"
+            return f"[{label}]"
         elif node.type == NodeType.LINE_BREAK:
             return "\n"
         else:
@@ -372,7 +423,15 @@ class MarkdownRenderer:
             return self._render_inline_children(node)
 
 
-def render_markdown(doc: RegulationDocument, split_by_rule: bool = False, asset_prefix: str = "assets") -> dict[str, str]:
-    """Convenience function to render document to Markdown."""
+def render_markdown(
+    doc: RegulationDocument | RegulationRequirement,
+    split_by_rule: bool = False,
+    asset_prefix: str = "assets",
+) -> dict[str, str]:
+    """Convenience function to render document (or single requirement) to Markdown."""
     renderer = MarkdownRenderer(split_by_rule=split_by_rule, asset_prefix=asset_prefix)
-    return renderer.render(doc)
+    if isinstance(doc, RegulationDocument):
+        return renderer.render(doc)
+    if isinstance(doc, RegulationRequirement):
+        return renderer.render_requirement(doc)
+    raise TypeError(f"Unsupported node type for markdown render: {type(doc)!r}")

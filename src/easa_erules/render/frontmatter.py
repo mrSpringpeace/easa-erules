@@ -7,12 +7,31 @@ import yaml
 from ..model import EasaMetadata, RegulationDocument, RegulationRequirement
 
 
+def _wrap(frontmatter: dict[str, Any]) -> str:
+    """Serialize frontmatter as a fenced YAML block."""
+    body = yaml.dump(frontmatter, allow_unicode=True, sort_keys=False, default_flow_style=False).strip()
+    return f"---\n{body}\n---"
+
+
+def _easa_block(easa_meta: EasaMetadata | None, fallback: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    if easa_meta is not None and not easa_meta.is_empty():
+        return easa_meta.to_dict()
+    if fallback:
+        normalized = EasaMetadata.from_dict(fallback)
+        if not normalized.is_empty():
+            return normalized.to_dict()
+        # Keep raw fallback if model conversion emptied it
+        if any(fallback.values()):
+            return fallback
+    return None
+
+
 def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetadata | None = None) -> str:
     """Generate YAML frontmatter for a document."""
-    frontmatter = {
+    frontmatter: dict[str, Any] = {
         "id": doc.document_id or doc.id,
         "title": doc.title,
-        "authority": doc.authority,
+        "authority": doc.authority or "EASA",
         "version": doc.version,
         "type": "document",
         "parser": {
@@ -20,54 +39,55 @@ def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetada
         },
     }
 
-    if easa_meta:
-        frontmatter["easa"] = easa_meta.to_dict()
+    easa = _easa_block(easa_meta, doc.metadata.get("easa") if doc.metadata else None)
+    if easa:
+        frontmatter["easa"] = easa
 
-    return yaml.dump(frontmatter, allow_unicode=True, sort_keys=False).strip()
+    return _wrap(frontmatter)
 
 
 def generate_requirement_frontmatter(req: RegulationRequirement, easa_meta: EasaMetadata | None = None) -> str:
     """Generate YAML frontmatter for a requirement."""
-    frontmatter = {
-        "id": req.id,
+    frontmatter: dict[str, Any] = {
+        "id": req.erules_id or req.designation or req.id,
         "rule": req.designation,
         "title": req.title,
         "type": "requirement",
         "requirement_type": req.requirement_type or "CS",
         "source": {
             "agency": "EASA",
-            "document": req.metadata.get("document_id", ""),
+            "document": req.metadata.get("document_id", "") if req.metadata else "",
         },
         "parser": {
             "version": "0.1.0",
         },
     }
 
-    if easa_meta:
-        frontmatter["easa"] = easa_meta.to_dict()
-    elif req.metadata.get("easa"):
-        frontmatter["easa"] = req.metadata["easa"]
+    easa = _easa_block(easa_meta, req.metadata.get("easa") if req.metadata else None)
+    if easa:
+        frontmatter["easa"] = easa
 
-    return yaml.dump(frontmatter, allow_unicode=True, sort_keys=False).strip()
+    return _wrap(frontmatter)
 
 
 def generate_section_frontmatter(section: Any) -> str:
     """Generate YAML frontmatter for a section."""
-    frontmatter = {
-        "id": section.id,
-        "designation": getattr(section, 'designation', ''),
-        "title": getattr(section, 'title', ''),
+    frontmatter: dict[str, Any] = {
+        "id": getattr(section, "erules_id", "") or getattr(section, "designation", "") or section.id,
+        "designation": getattr(section, "designation", ""),
+        "title": getattr(section, "title", ""),
         "type": "section",
-        "level": getattr(section, 'level', 1),
+        "level": getattr(section, "level", 1),
         "parser": {
             "version": "0.1.0",
         },
     }
 
-    if section.metadata.get("easa"):
-        frontmatter["easa"] = section.metadata["easa"]
+    easa = _easa_block(None, section.metadata.get("easa") if section.metadata else None)
+    if easa:
+        frontmatter["easa"] = easa
 
-    return yaml.dump(frontmatter, allow_unicode=True, sort_keys=False).strip()
+    return _wrap(frontmatter)
 
 
 def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:

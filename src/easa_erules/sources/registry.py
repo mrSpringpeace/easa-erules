@@ -36,19 +36,24 @@ REGISTRY = {
 }
 
 
-def get_source(doc_id: str) -> dict:
-    """Get source by ID or alias."""
-    doc_id = doc_id.lower()
-    if doc_id in REGISTRY:
-        return REGISTRY[doc_id]
+def resolve_source_id(doc_id: str) -> str:
+    """Resolve a document ID or alias to the canonical registry key."""
+    key = doc_id.lower().strip()
+    if key in REGISTRY:
+        return key
 
-    # Check aliases
-    for key, source in REGISTRY.items():
+    for registry_key, source in REGISTRY.items():
         for alias in source.get("aliases", []):
-            if alias.lower() == doc_id:
-                return source
+            if alias.lower() == key:
+                return registry_key
 
     raise KeyError(f"Unknown source: {doc_id}")
+
+
+def get_source(doc_id: str) -> dict:
+    """Get source by ID or alias. Includes canonical ``id`` field."""
+    key = resolve_source_id(doc_id)
+    return {"id": key, **REGISTRY[key]}
 
 
 def list_sources() -> list:

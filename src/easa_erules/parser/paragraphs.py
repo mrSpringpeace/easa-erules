@@ -12,6 +12,7 @@ from ..model import (
     BoldNode,
     HeadingNode,
     HyperlinkNode,
+    InternalReferenceNode,
     ItalicNode,
     LineBreakNode,
     ListItemNode,
@@ -21,6 +22,7 @@ from ..model import (
     SuperscriptNode,
     TextNode,
 )
+from ..model.references import Reference, ReferenceType
 
 
 class ParagraphParser:
@@ -41,10 +43,10 @@ class ParagraphParser:
         if self._is_list_item(elem):
             return self._parse_list_item(elem, parent)
 
-        # Regular paragraph
+        # Regular paragraph — attach first so nested figures can resolve rule context
         para = ParagraphNode()
-        self._parse_paragraph_content(elem, para)
         parent.add_child(para)
+        self._parse_paragraph_content(elem, para)
         return para
 
     def _get_paragraph_style(self, elem: etree._Element) -> str | None:
@@ -71,13 +73,13 @@ class ParagraphParser:
         level = self._get_heading_level(style)
 
         heading = HeadingNode(level=level)
+        parent.add_child(heading)
         self._parse_paragraph_content(elem, heading)
 
         # Extract designation from heading text if present
         text = heading.get_text().strip()
         heading.designation = self._extract_designation(text)
 
-        parent.add_child(heading)
         return heading
 
     def _get_heading_level(self, style: str) -> int:
@@ -132,7 +134,6 @@ class ParagraphParser:
     def _parse_list_item(self, elem: etree._Element, parent: Any) -> ListItemNode:
         """Parse a list item paragraph."""
         item = ListItemNode()
-        self._parse_paragraph_content(elem, item)
 
         # Try to get list level and number
         ppr = elem.find(qname(W, "pPr"))
@@ -146,9 +147,11 @@ class ParagraphParser:
         # Get numId for list formatting
         num_id = self._get_list_num_id(elem)
 
-        # Find or create parent list
+        # Find or create parent list, attach item before parsing content
+        # so nested assets can walk the parent chain for naming.
         list_node = self._find_or_create_parent_list(parent, item, num_id)
         list_node.add_child(item)
+        self._parse_paragraph_content(elem, item)
 
         return item
 
@@ -208,9 +211,81 @@ class ParagraphParser:
         if not full_text:
             return
 
-        # Apply formatting
+        # Split plain text on internal regulatory references when unformatted
+        if not any(formatting.get(k) for k in ("bold", "italic", "superscript", "subscript")):
+            segments = self._split_text_with_references(full_text, parent)
+            if segments is not None:
+                for segment in segments:
+                    parent.add_child(segment)
+                return
+
         node = self._apply_formatting(full_text, formatting)
         parent.add_child(node)
+
+    def _split_text_with_references(self, text: str, parent: Any) -> list[Any] | None:
+        """Split text into TextNode / InternalReferenceNode segments.
+
+        Returns None when no references are found (caller should use plain formatting).
+        """
+        import re
+
+        # AMC1 CS-TEST.300, GM1 CS-23.1, CS-VLA.303, CS 23.2210
+        pattern = re.compile(
+            r"(?P<ref>(?:AMC\d*|GM\d*)\s+CS[-\s]?[A-Z0-9]+(?:\.\d+)?|"
+            r"CS[-\s]?[A-Z0-9]+(?:\.\d+)+)",
+            re.IGNORECASE,
+        )
+        matches = list(pattern.finditer(text))
+        if not matches:
+            return None
+
+        segments: list[Any] = []
+        cursor = 0
+        source_id = getattr(parent, "id", "") or ""
+
+        for match in matches:
+            if match.start() > cursor:
+                segments.append(TextNode(text=text[cursor:match.start()]))
+
+            raw = match.group("ref")
+            designation = re.sub(r"\s+", " ", raw).strip()
+            # Normalize "CS 23.2210" -> "CS-23.2210", keep "AMC1 CS-TEST.300"
+            if designation.upper().startswith(("AMC", "GM")):
+                designation = re.sub(
+                    r"(AMC\d*|GM\d*)\s+CS\s+",
+                    lambda m: f"{m.group(1)} CS-",
+                    designation,
+                    flags=re.IGNORECASE,
+                )
+                designation = re.sub(r"\s+", " ", designation)
+            else:
+                designation = designation.replace(" ", "-")
+
+            ref_node = InternalReferenceNode(
+                text=raw,
+                target_id="",
+                target_designation=designation,
+            )
+            ref_node.add_child(TextNode(text=raw))
+            segments.append(ref_node)
+
+            # Register for later resolution
+            self.parser.references.add(
+                Reference(
+                    source_id=source_id,
+                    target_id="",
+                    target_designation=designation,
+                    reference_type=ReferenceType.INTERNAL,
+                    raw_text=raw,
+                    resolved=False,
+                )
+            )
+            cursor = match.end()
+
+        if cursor < len(text):
+            segments.append(TextNode(text=text[cursor:]))
+
+        return segments
 
     def _get_run_formatting(self, rpr: etree._Element | None) -> dict:
         """Extract formatting properties from run properties."""

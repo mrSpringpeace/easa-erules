@@ -60,12 +60,30 @@ def validate_conversion(output_dir: Path) -> ValidationReport:
     # Check assets
     assets_dir = output_dir / "assets"
     if assets_dir.exists():
-        report.images = len(list(assets_dir.glob("*")))
+        asset_files = [p for p in assets_dir.iterdir() if p.is_file()]
+        report.images = len(asset_files)
 
     # Check rules directory
     rules_dir = output_dir / "rules"
     if rules_dir.exists():
         report.topics = len(list(rules_dir.glob("*.md")))
+
+    # Flag markdown image references with missing files
+    for md_file in output_dir.rglob("*.md"):
+        content = md_file.read_text(encoding="utf-8")
+        import re
+        for match in re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", content):
+            rel = match.group(1)
+            if rel.startswith(("http://", "https://")):
+                continue
+            target = (md_file.parent / rel).resolve()
+            if not target.exists():
+                report.missing_images.append(str(rel))
+                report.warnings.append({
+                    "type": "missing_image",
+                    "file": str(md_file.relative_to(output_dir)),
+                    "path": rel,
+                })
 
     return report
 
@@ -151,8 +169,12 @@ def validate_document(doc, assets=None, references=None, parse_warnings=None, un
         
         if isinstance(node, RegulationRequirement):
             report.requirements += 1
+            report.topics += 1
         elif isinstance(node, RegulationSection):
             report.sections += 1
+            report.topics += 1
+        elif type(node).__name__ in ("GuidanceNode", "AcceptableMeansOfComplianceNode"):
+            report.topics += 1
         elif isinstance(node, ParagraphNode):
             report.paragraphs += 1
         elif isinstance(node, HeadingNode):

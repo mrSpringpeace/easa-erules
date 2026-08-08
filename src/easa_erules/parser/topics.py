@@ -11,6 +11,8 @@ from ..model import (
     RegulationRequirement,
     RegulationSection,
 )
+from ..model.metadata import normalize_easa_metadata_dict
+from ..util.slugify import extract_designation
 
 
 class TopicParser:
@@ -47,57 +49,61 @@ class TopicParser:
 
     def _extract_topic_metadata(self, elem: etree._Element) -> dict[str, Any]:
         """Extract metadata from topic element."""
-        meta = {}
+        meta: dict[str, Any] = {}
 
-        # ERulesId
-        id_elem = elem.find(f".//{{{ERULES}}}id")
+        # Prefer direct children so nested topics' ids are not stolen via .//
+        id_elem = elem.find(f"{{{ERULES}}}id")
+        if id_elem is None:
+            id_elem = elem.find(f".//{{{ERULES}}}id")
         if id_elem is not None:
             meta["erules_id"] = id_elem.text or ""
 
-        # Title
-        title_elem = elem.find(f".//{{{ERULES}}}title")
+        title_elem = elem.find(f"{{{ERULES}}}title")
+        if title_elem is None:
+            title_elem = elem.find(f".//{{{ERULES}}}title")
         if title_elem is not None:
             meta["title"] = title_elem.text or ""
 
-        # Nested metadata
-        meta_elem = elem.find(f".//{{{ERULES}}}metadata")
+        meta_elem = elem.find(f"{{{ERULES}}}metadata")
+        if meta_elem is None:
+            meta_elem = elem.find(f".//{{{ERULES}}}metadata")
         if meta_elem is not None:
             meta["nested_metadata"] = self._parse_nested_metadata(meta_elem)
 
         return meta
 
     def _parse_nested_metadata(self, elem: etree._Element) -> dict[str, Any]:
-        """Parse nested metadata within a topic."""
-        meta = {}
+        """Parse nested metadata within a topic into normalized field names."""
+        raw: dict[str, Any] = {}
 
         for child in elem:
             tag = etree.QName(child.tag).localname
             if child.text:
-                if tag in meta:
-                    if not isinstance(meta[tag], list):
-                        meta[tag] = [meta[tag]]
-                    meta[tag].append(child.text)
+                if tag in raw:
+                    if not isinstance(raw[tag], list):
+                        raw[tag] = [raw[tag]]
+                    raw[tag].append(child.text)
                 else:
-                    meta[tag] = child.text
+                    raw[tag] = child.text
 
-        return meta
+        return normalize_easa_metadata_dict(raw)
 
     def _determine_topic_type(self, meta: dict[str, Any]) -> str:
         """Determine the type of topic based on metadata."""
         nested = meta.get("nested_metadata", {})
 
-        # Check typeOfContent
-        toc = nested.get("typeOfContent", [])
+        # Support both normalized and raw key names
+        toc = nested.get("type_of_content") or nested.get("typeOfContent") or []
         if isinstance(toc, str):
             toc = [toc]
 
         for t in toc:
             t_lower = t.lower()
-            if "certification" in t_lower or "cs" in t_lower:
+            if "certification" in t_lower or t_lower == "cs" or t_lower.startswith("cs "):
                 return "requirement"
             if "acceptable means" in t_lower or "amc" in t_lower:
                 return "amc"
-            if "guidance" in t_lower or "gm" in t_lower:
+            if "guidance" in t_lower or t_lower == "gm" or t_lower.startswith("gm "):
                 return "guidance"
 
         # Check erules_id pattern
@@ -115,46 +121,69 @@ class TopicParser:
                 return "amc"
             if title.startswith(("GM", "gm")):
                 return "guidance"
+            # Titles like "CS-VLA.303 Factor of safety" are requirements
+            if extract_designation(title):
+                return "requirement"
 
         return "section"
+
+    def _designation_from_meta(self, meta: dict[str, Any]) -> str:
+        title = meta.get("title", "") or ""
+        designation = extract_designation(title)
+        if designation:
+            return designation
+        erules_id = meta.get("erules_id", "") or ""
+        if erules_id and not erules_id.upper().startswith("ERULES"):
+            return erules_id
+        # Fallback: first token of title
+        return title.split(" ")[0] if title else erules_id
+
+    def _easa_metadata_for_node(self, meta: dict[str, Any]) -> dict[str, Any]:
+        """Build easa metadata dict including topic-level id/title."""
+        easa = dict(meta.get("nested_metadata") or {})
+        if meta.get("erules_id") and not easa.get("erules_id"):
+            easa["erules_id"] = meta["erules_id"]
+        if meta.get("title") and not easa.get("source_title"):
+            easa["source_title"] = meta["title"]
+        return easa
 
     def _create_requirement_node(self, meta: dict[str, Any]) -> RegulationRequirement:
         """Create a RegulationRequirement node."""
         node = RegulationRequirement(
-            designation=meta.get("title", "").split(" ")[0] if meta.get("title") else "",
+            designation=self._designation_from_meta(meta),
             title=meta.get("title", ""),
             erules_id=meta.get("erules_id", ""),
         )
-        node.metadata["easa"] = meta.get("nested_metadata", {})
+        node.metadata["easa"] = self._easa_metadata_for_node(meta)
         return node
 
     def _create_guidance_node(self, meta: dict[str, Any]) -> GuidanceNode:
         """Create a GuidanceNode."""
         node = GuidanceNode(
-            designation=meta.get("title", "").split(" ")[0] if meta.get("title") else "",
+            designation=self._designation_from_meta(meta),
             title=meta.get("title", ""),
             erules_id=meta.get("erules_id", ""),
         )
-        node.metadata["easa"] = meta.get("nested_metadata", {})
+        node.metadata["easa"] = self._easa_metadata_for_node(meta)
         return node
 
     def _create_amc_node(self, meta: dict[str, Any]) -> AcceptableMeansOfComplianceNode:
         """Create an AMC node."""
         node = AcceptableMeansOfComplianceNode(
-            designation=meta.get("title", "").split(" ")[0] if meta.get("title") else "",
+            designation=self._designation_from_meta(meta),
             title=meta.get("title", ""),
             erules_id=meta.get("erules_id", ""),
         )
-        node.metadata["easa"] = meta.get("nested_metadata", {})
+        node.metadata["easa"] = self._easa_metadata_for_node(meta)
         return node
 
     def _create_section_node(self, meta: dict[str, Any]) -> RegulationSection:
         """Create a RegulationSection node."""
         node = RegulationSection(
-            designation=meta.get("erules_id", ""),
+            designation=meta.get("erules_id", "") or self._designation_from_meta(meta),
             title=meta.get("title", ""),
         )
-        node.metadata["easa"] = meta.get("nested_metadata", {})
+        node.metadata["easa"] = self._easa_metadata_for_node(meta)
         return node
 
     def _create_generic_section_node(self, meta: dict[str, Any]) -> RegulationSection:

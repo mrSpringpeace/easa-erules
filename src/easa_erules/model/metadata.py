@@ -3,6 +3,80 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+# Map EASA XML local names (camelCase) and variants to model field names.
+_XML_FIELD_MAP: dict[str, str] = {
+    "erules_id": "erules_id",
+    "id": "erules_id",
+    "ERulesId": "erules_id",
+    "regulatory_source": "regulatory_source",
+    "regulatorySource": "regulatory_source",
+    "regulatory_subject": "regulatory_subject",
+    "regulatorySubject": "regulatory_subject",
+    "type_of_content": "type_of_content",
+    "typeOfContent": "type_of_content",
+    "technical_subject_matter": "technical_subject_matter",
+    "technicalSubjectMatter": "technical_subject_matter",
+    "aircraft_category": "aircraft_category",
+    "aircraftCategory": "aircraft_category",
+    "aircraft_use": "aircraft_use",
+    "aircraftUse": "aircraft_use",
+    "applicability_date": "applicability_date",
+    "applicabilityDate": "applicability_date",
+    "amended_by": "amended_by",
+    "amendedBy": "amended_by",
+    "source_title": "source_title",
+    "title": "source_title",
+    "sourceTitle": "source_title",
+}
+
+_LIST_FIELDS = {
+    "regulatory_source",
+    "regulatory_subject",
+    "type_of_content",
+    "technical_subject_matter",
+    "aircraft_category",
+    "aircraft_use",
+    "amended_by",
+}
+
+
+def normalize_easa_metadata_dict(data: dict[str, Any]) -> dict[str, Any]:
+    """Normalize camelCase / mixed EASA metadata keys to model field names."""
+    if not data:
+        return {}
+
+    result: dict[str, Any] = {}
+    raw: dict[str, Any] = {}
+
+    for key, value in data.items():
+        if key == "raw_attributes" and isinstance(value, dict):
+            raw.update(value)
+            continue
+
+        field_name = _XML_FIELD_MAP.get(key)
+        if field_name is None:
+            raw[key] = value
+            continue
+
+        if field_name in _LIST_FIELDS:
+            if isinstance(value, list):
+                items = list(value)
+            elif value is None or value == "":
+                items = []
+            else:
+                items = [value]
+            existing = result.get(field_name)
+            if existing:
+                result[field_name] = list(existing) + items
+            else:
+                result[field_name] = items
+        else:
+            result[field_name] = value
+
+    if raw:
+        result["raw_attributes"] = raw
+    return result
+
 
 @dataclass(slots=True)
 class EasaMetadata:
@@ -36,9 +110,26 @@ class EasaMetadata:
             "raw_attributes": self.raw_attributes,
         }
 
+    def is_empty(self) -> bool:
+        """Return True if no meaningful metadata fields are set."""
+        return not any([
+            self.erules_id,
+            self.regulatory_source,
+            self.regulatory_subject,
+            self.type_of_content,
+            self.technical_subject_matter,
+            self.aircraft_category,
+            self.aircraft_use,
+            self.applicability_date,
+            self.amended_by,
+            self.source_title,
+        ])
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "EasaMetadata":
-        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+        normalized = normalize_easa_metadata_dict(data)
+        fields = cls.__dataclass_fields__
+        return cls(**{k: v for k, v in normalized.items() if k in fields})
 
 
 @dataclass(slots=True)

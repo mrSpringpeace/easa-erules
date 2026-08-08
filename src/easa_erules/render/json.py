@@ -157,9 +157,25 @@ class JSONRenderer:
         return result
 
 
-def render_json(doc: RegulationDocument, assets: AssetCollection | None = None,
-                references: ReferenceIndex | None = None,
-                include_assets: bool = True, include_references: bool = True) -> dict[str, Any]:
-    """Convenience function to render document to JSON."""
+def render_json(
+    doc: RegulationDocument | Node,
+    assets: AssetCollection | None = None,
+    references: ReferenceIndex | None = None,
+    include_assets: bool = True,
+    include_references: bool = True,
+) -> dict[str, Any]:
+    """Convenience function to render document or a single node to JSON."""
     renderer = JSONRenderer(include_assets=include_assets, include_references=include_references)
-    return renderer.render(doc, assets, references)
+    if isinstance(doc, RegulationDocument):
+        return renderer.render(doc, assets, references)
+    # Single-rule / node extract shape preferred by agent workflows
+    if isinstance(doc, RegulationRequirement):
+        return {
+            "id": doc.erules_id or doc.id,
+            "rule": doc.designation,
+            "title": doc.title,
+            "metadata": doc.metadata,
+            "content": [renderer._render_node(child) for child in doc.children],
+            "references": [],
+        }
+    return renderer._render_node(doc)

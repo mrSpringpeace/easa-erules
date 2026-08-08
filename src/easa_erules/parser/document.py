@@ -76,7 +76,11 @@ class EasaDocumentParser:
         if body is not None:
             self._parse_body(body)
 
-        # Post-process: resolve references
+        # Deterministic IDs before reference resolution (refs link by id)
+        from ..util.ids import assign_deterministic_ids
+        assign_deterministic_ids(self.document)
+
+        # Post-process: resolve references and update inline nodes
         self._resolve_references()
 
         return ParseResult(
@@ -153,13 +157,50 @@ class EasaDocumentParser:
 
     def _resolve_references(self) -> None:
         """Resolve internal references after parsing."""
+        from ..model import InternalReferenceNode
+
+        # Build designation -> node index
+        by_designation: dict[str, Any] = {}
+        self._index_designations(self.document, by_designation)
+
+        def normalize(des: str) -> str:
+            return des.replace(" ", "-").upper()
+
+        norm_index = {normalize(k): v for k, v in by_designation.items()}
+
         for ref in self.references.by_designation.values():
-            if ref.target_designation and not ref.target_id:
-                # Try to find target by designation
-                target_node = self._find_node_by_designation(self.document, ref.target_designation)
+            if ref.target_designation and not ref.resolved:
+                target_node = (
+                    by_designation.get(ref.target_designation)
+                    or norm_index.get(normalize(ref.target_designation))
+                )
                 if target_node:
                     ref.target_id = target_node.id
                     ref.resolved = True
+                    if ref.target_id:
+                        self.references.by_target.setdefault(ref.target_id, []).append(ref)
+
+        # Update inline InternalReferenceNode instances
+        def walk(node: Any) -> None:
+            if isinstance(node, InternalReferenceNode) and node.target_designation:
+                target_node = (
+                    by_designation.get(node.target_designation)
+                    or norm_index.get(normalize(node.target_designation))
+                )
+                if target_node:
+                    node.target_id = target_node.id
+            for child in getattr(node, "children", []):
+                walk(child)
+
+        walk(self.document)
+
+    def _index_designations(self, node: Any, index: dict[str, Any]) -> None:
+        if hasattr(node, "designation") and node.designation:
+            index.setdefault(node.designation, node)
+        if hasattr(node, "erules_id") and node.erules_id:
+            index.setdefault(node.erules_id, node)
+        for child in getattr(node, "children", []):
+            self._index_designations(child, index)
 
     def _find_node_by_designation(self, node: Any, designation: str) -> Any | None:
         """Find a node by its designation (e.g., CS-VLA.303)."""
