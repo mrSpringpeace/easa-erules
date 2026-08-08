@@ -20,8 +20,12 @@ CP: Final = "http://schemas.openxmlformats.org/package/2006/metadata/core-proper
 EP: Final = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
 
 # Custom XML / EASA specific
-# EASA eRules custom XML namespace (observed in documents)
+# Fixture / simplified documents
 ERULES: Final = "http://www.easa.europa.eu/erules"
+# Official Easy Access Rules XML export packages
+ERULES_EXPORT: Final = "http://www.easa.europa.eu/erules-export"
+# All known EASA eRules namespaces (for detection)
+ERULES_NAMESPACES: Final = frozenset({ERULES, ERULES_EXPORT})
 
 # XML Schema Instance
 XSI: Final = "http://www.w3.org/2001/XMLSchema-instance"
@@ -47,6 +51,7 @@ NSMAP: Final = {
     "cp": CP,
     "ep": EP,
     "erules": ERULES,
+    "er": ERULES_EXPORT,
     "xsi": XSI,
     "vml": VML,
     "drawing": DRAWING,

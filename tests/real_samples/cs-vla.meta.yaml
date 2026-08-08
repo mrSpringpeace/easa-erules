@@ -1,0 +1,20 @@
+document: cs-vla
+title: Very Light Aeroplanes
+authority: EASA
+version:
+  label: Amendment 1
+  slug: amendment-1
+source:
+  landing_page: https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-very-light-aeroplanes-cs-vla
+  download_url: https://www.easa.europa.eu/en/downloads/136669/en
+  filename: easy_access_rules_for_very_light_aeroplanes_cs-vla_amdt_1.zip
+  format: xml
+retrieved_at: '2026-08-08T21:58:49Z'
+integrity:
+  sha256: b24a3ab4fe969d646fe3ffb217e693e596ad490e9bf1ae5907723ca754f05bee
+  size: 6402678
+parser:
+  version: 0.1.0
+cache:
+  root: /tmp/easa-real-cache
+  path: /tmp/easa-real-cache/cs-vla/versions/amendment-1/source.xml

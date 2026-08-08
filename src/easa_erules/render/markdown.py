@@ -19,7 +19,7 @@ from ..model import (
     RegulationRequirement,
     RegulationSection,
     TableNode,
-)
+)  # TableNode used for nested tables in cells
 from ..util.ids import rule_file_slug
 from .frontmatter import (
     generate_document_frontmatter,
@@ -339,30 +339,71 @@ class MarkdownRenderer:
             buf.write("| " + " | ".join(cells) + " |\n")
 
     def _render_html_table(self, node: TableNode, buf: StringIO) -> None:
-        """Render table as HTML."""
+        """Render table as HTML (supports colspan/rowspan from cell metadata)."""
         buf.write("<table>\n")
 
         if node.headers:
-            buf.write("  <thead>\n    <tr>\n")
-            buf.writelines(f"      <th>{self._render_cell_content(cell)}</th>\n" for cell in node.headers[0])
-            buf.write("    </tr>\n  </thead>\n")
+            buf.write("  <thead>\n")
+            for row in node.headers:
+                buf.write("    <tr>\n")
+                for cell in row:
+                    if self._cell_should_skip(cell):
+                        continue
+                    attrs = self._cell_html_attrs(cell)
+                    buf.write(f"      <th{attrs}>{self._render_cell_content(cell)}</th>\n")
+                buf.write("    </tr>\n")
+            buf.write("  </thead>\n")
 
         if node.rows:
             buf.write("  <tbody>\n")
             for row in node.rows:
                 buf.write("    <tr>\n")
-                buf.writelines(f"      <td>{self._render_cell_content(cell)}</td>\n" for cell in row)
+                for cell in row:
+                    if self._cell_should_skip(cell):
+                        continue
+                    attrs = self._cell_html_attrs(cell)
+                    buf.write(f"      <td{attrs}>{self._render_cell_content(cell)}</td>\n")
                 buf.write("    </tr>\n")
             buf.write("  </tbody>\n")
 
         buf.write("</table>\n")
+
+    def _cell_meta(self, cell: Any) -> dict:
+        if isinstance(cell, list) and cell:
+            return dict(getattr(cell[0], "metadata", {}).get("cell") or {})
+        if hasattr(cell, "metadata"):
+            return dict(cell.metadata.get("cell") or {})
+        return {}
+
+    def _cell_should_skip(self, cell: Any) -> bool:
+        meta = self._cell_meta(cell)
+        if meta.get("skip"):
+            return True
+        # OOXML continuation cells of a vertical merge
+        return meta.get("vmerge") == "continue"
+
+    def _cell_html_attrs(self, cell: Any) -> str:
+        meta = self._cell_meta(cell)
+        parts: list[str] = []
+        colspan = meta.get("colspan")
+        if colspan and str(colspan) not in ("", "1"):
+            parts.append(f' colspan="{colspan}"')
+        rowspan = meta.get("rowspan")
+        if rowspan and str(rowspan) not in ("", "1"):
+            parts.append(f' rowspan="{rowspan}"')
+        return "".join(parts)
 
     def _render_cell_content(self, cell: Any) -> str:
         """Render cell content to string."""
         if isinstance(cell, list):
             parts = []
             for item in cell:
-                if isinstance(item, ParagraphNode):
+                if isinstance(item, TableNode):
+                    # Nested table as HTML fragment
+                    nested = StringIO()
+                    self._render_html_table(item, nested)
+                    parts.append(nested.getvalue())
+                elif isinstance(item, ParagraphNode):
                     parts.append(self._render_inline_children(item))
                 else:
                     parts.append(self._render_inline_children(item))

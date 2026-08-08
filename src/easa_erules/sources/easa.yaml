@@ -45,3 +45,91 @@ sources:
       - cs23
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-normal-category-aeroplanes-cs-23"
     preferred_format: xml
+
+  cs-25:
+    title: "Large Aeroplanes"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-25
+      - CS25
+      - cs25
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-large-aeroplanes-cs-25"
+    preferred_format: xml
+
+  cs-27:
+    title: "Small Rotorcraft"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-27
+      - CS27
+      - cs27
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-small-rotorcraft-cs-27"
+    preferred_format: xml
+
+  cs-29:
+    title: "Large Rotorcraft"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-29
+      - CS29
+      - cs29
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-large-rotorcraft-cs-29"
+    preferred_format: xml
+
+  cs-e:
+    title: "Engines"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-E
+      - CSE
+      - cse
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-engines-cs-e"
+    preferred_format: xml
+
+  cs-p:
+    title: "Propellers"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-P
+      - CSP
+      - csp
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-propellers-cs-p"
+    preferred_format: xml
+
+  cs-etso:
+    title: "European Technical Standard Orders"
+    authority: "EASA"
+    type: "certification-specification"
+    aliases:
+      - CS-ETSO
+      - ETSO
+      - etso
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-european-technical-standard-orders-cs-etso"
+    preferred_format: xml
+
+  part-21:
+    title: "Initial Airworthiness and Environmental Certification"
+    authority: "EASA"
+    type: "regulation"
+    aliases:
+      - Part-21
+      - Part21
+      - part21
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-initial-airworthiness-and-environmental"
+    preferred_format: xml
+
+  uas-rules:
+    title: "Unmanned Aircraft Systems"
+    authority: "EASA"
+    type: "regulation"
+    aliases:
+      - UAS
+      - uas
+      - drones
+    landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-unmanned-aircraft-systems"
+    preferred_format: xml

@@ -175,7 +175,10 @@ class HTMLRenderer:
             for row in node.headers:
                 buf.write("          <tr>\n")
                 for cell in row:
-                    buf.write(f"            <th>{self._render_cell(cell)}</th>\n")
+                    if self._cell_should_skip(cell):
+                        continue
+                    attrs = self._cell_html_attrs(cell)
+                    buf.write(f"            <th{attrs}>{self._render_cell(cell)}</th>\n")
                 buf.write("          </tr>\n")
             buf.write("        </thead>\n")
         if node.rows:
@@ -183,14 +186,47 @@ class HTMLRenderer:
             for row in node.rows:
                 buf.write("          <tr>\n")
                 for cell in row:
-                    buf.write(f"            <td>{self._render_cell(cell)}</td>\n")
+                    if self._cell_should_skip(cell):
+                        continue
+                    attrs = self._cell_html_attrs(cell)
+                    buf.write(f"            <td{attrs}>{self._render_cell(cell)}</td>\n")
                 buf.write("          </tr>\n")
             buf.write("        </tbody>\n")
         buf.write("      </table>\n")
 
+    def _cell_meta(self, cell: Any) -> dict:
+        if isinstance(cell, list) and cell:
+            return dict(getattr(cell[0], "metadata", {}).get("cell") or {})
+        if hasattr(cell, "metadata"):
+            return dict(cell.metadata.get("cell") or {})
+        return {}
+
+    def _cell_should_skip(self, cell: Any) -> bool:
+        meta = self._cell_meta(cell)
+        return bool(meta.get("skip") or meta.get("vmerge") == "continue")
+
+    def _cell_html_attrs(self, cell: Any) -> str:
+        meta = self._cell_meta(cell)
+        parts: list[str] = []
+        colspan = meta.get("colspan")
+        if colspan and str(colspan) not in ("", "1"):
+            parts.append(f' colspan="{html.escape(str(colspan))}"')
+        rowspan = meta.get("rowspan")
+        if rowspan and str(rowspan) not in ("", "1"):
+            parts.append(f' rowspan="{html.escape(str(rowspan))}"')
+        return "".join(parts)
+
     def _render_cell(self, cell: Any) -> str:
         if isinstance(cell, list):
-            return "<br/>".join(self._render_inline_children(item) for item in cell)
+            parts: list[str] = []
+            for item in cell:
+                if isinstance(item, TableNode):
+                    nested = StringIO()
+                    self._render_table(item, nested, 0)
+                    parts.append(nested.getvalue())
+                else:
+                    parts.append(self._render_inline_children(item))
+            return "<br/>".join(parts)
         return self._render_inline_children(cell)
 
     def _render_figure(self, node: FigureNode, buf: StringIO, level: int) -> None:

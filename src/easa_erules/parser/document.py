@@ -73,14 +73,21 @@ class EasaDocumentParser:
         root_xml = self.doc_part.xml()
 
         # Count source topics before parse (content-loss baseline)
-        from ..input.namespaces import ERULES
-        self.source_topic_count = len(root_xml.findall(f".//{{{ERULES}}}topic"))
+        from ..input.namespaces import ERULES, ERULES_EXPORT, W
+        topic_elems = root_xml.findall(f".//{{{ERULES}}}topic")
+        topic_elems += root_xml.findall(f".//{{{ERULES_EXPORT}}}topic")
+        # Real EAR packages: topics/headings as Word SDT alias/tag values
+        sdt_topics = 0
+        for sdt in root_xml.findall(f".//{{{W}}}sdt"):
+            if self._sdt_kind(sdt) in ("topic", "heading"):
+                sdt_topics += 1
+        self.source_topic_count = len(topic_elems) + sdt_topics
 
         # Parse document metadata first
         self.metadata_parser.parse(root_xml)
 
         # Parse document body
-        body = root_xml.find(".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}body")
+        body = root_xml.find(f".//{{{W}}}body")
         if body is not None:
             self._parse_body(body)
 
@@ -113,11 +120,22 @@ class EasaDocumentParser:
 
     def _parse_element(self, elem: etree._Element, parent: Any) -> None:
         """Dispatch element to appropriate parser."""
-        tag = etree.QName(elem.tag).localname
+        from ..input.namespaces import ERULES_NAMESPACES, W
 
-        # Handle EASA custom elements first
-        if elem.tag.startswith("{http://www.easa.europa.eu/erules}"):
+        if not isinstance(elem.tag, str):
+            return
+
+        tag = etree.QName(elem.tag).localname
+        ns = etree.QName(elem.tag).namespace or ""
+
+        # Handle EASA custom elements (fixture + official export namespaces)
+        if ns in ERULES_NAMESPACES:
             self._parse_erules_element(elem, parent)
+            return
+
+        # Real EAR packages: structured document tags for topics/headings
+        if tag == "sdt" and ns == W:
+            self._parse_sdt(elem, parent)
             return
 
         # Standard WordprocessingML elements
@@ -125,13 +143,49 @@ class EasaDocumentParser:
         if handler:
             handler(elem, parent)
         else:
-            # Default: try paragraph parser
             if tag == "p":
                 self.paragraph_parser.parse(elem, parent)
             elif tag == "tbl":
                 self.table_parser.parse(elem, parent)
+            elif tag in ("sectPr", "bookmarkStart", "bookmarkEnd", "proofErr"):
+                return  # structural noise
             else:
                 self._add_warning(f"Unhandled element: {tag}", elem)
+
+    def _sdt_kind(self, sdt: etree._Element) -> str | None:
+        """Return 'topic' / 'heading' / other from SDT alias or tag."""
+        from ..input.namespaces import W, qname
+
+        for local in ("alias", "tag"):
+            el = sdt.find(f".//{qname(W, local)}")
+            if el is not None:
+                val = (el.get(qname(W, "val")) or "").strip().lower()
+                if val in ("topic", "heading"):
+                    return val
+        return None
+
+    def _parse_sdt(self, elem: etree._Element, parent: Any) -> None:
+        """Parse a Word structured document tag (real EASA EAR packaging)."""
+        from ..input.namespaces import W, qname
+
+        kind = self._sdt_kind(elem)
+        content = elem.find(qname(W, "sdtContent"))
+        if content is None:
+            content = elem.find(f".//{qname(W, 'sdtContent')}")
+
+        if kind == "topic":
+            self.topic_parser.parse_sdt(elem, content, parent)
+            return
+        if kind == "heading":
+            # Treat structural headings as section-like nodes from first para
+            if content is not None:
+                self.topic_parser.parse_sdt_heading(content, parent)
+            return
+
+        # Unknown SDT — still parse content so text is not lost
+        if content is not None:
+            for child in content:
+                self._parse_element(child, parent)
 
     def _parse_erules_element(self, elem: etree._Element, parent: Any) -> None:
         """Parse EASA custom XML elements."""

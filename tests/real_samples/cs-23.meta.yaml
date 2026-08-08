@@ -1,0 +1,20 @@
+document: cs-23
+title: Normal-Category Aeroplanes
+authority: EASA
+version:
+  label: Amendment 6
+  slug: amendment-6
+source:
+  landing_page: https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-normal-category-aeroplanes-cs-23
+  download_url: https://www.easa.europa.eu/en/downloads/143631/en
+  filename: 5e178d_2026-05-13_19.03.46_ear-for-normal-category-aeroplanes-cs-23.zip
+  format: xml
+retrieved_at: '2026-08-08T21:58:51Z'
+integrity:
+  sha256: cbaf332c96b4c7b54e6776f8a74df36a8d411885b7d135fbab2f363e76504743
+  size: 4184733
+parser:
+  version: 0.1.0
+cache:
+  root: /tmp/easa-real-cache
+  path: /tmp/easa-real-cache/cs-23/versions/amendment-6/source.xml

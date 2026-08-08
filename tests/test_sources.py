@@ -61,7 +61,9 @@ def test_registry_loads_yaml():
     assert resolve_source_id("CS23") == "cs-23"
     src = get_source("csvla")
     assert src["id"] == "cs-vla"
-    assert len(list_sources()) >= 4
+    assert len(list_sources()) >= 10
+    assert resolve_source_id("cs-25") == "cs-25"
+    assert resolve_source_id("ETSO") == "cs-etso"
 
 
 def test_parse_landing_page_publications():

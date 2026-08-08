@@ -46,17 +46,20 @@ def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetada
     return _wrap(frontmatter)
 
 
-def generate_requirement_frontmatter(req: RegulationRequirement, easa_meta: EasaMetadata | None = None) -> str:
-    """Generate YAML frontmatter for a requirement."""
+def generate_requirement_frontmatter(req: Any, easa_meta: EasaMetadata | None = None) -> str:
+    """Generate YAML frontmatter for a requirement / AMC / GM node."""
+    node_type = getattr(getattr(req, "type", None), "value", None) or "requirement"
     frontmatter: dict[str, Any] = {
-        "id": req.erules_id or req.designation or req.id,
-        "rule": req.designation,
-        "title": req.title,
-        "type": "requirement",
-        "requirement_type": req.requirement_type or "CS",
+        "id": getattr(req, "erules_id", "") or getattr(req, "designation", "") or req.id,
+        "rule": getattr(req, "designation", "") or "",
+        "title": getattr(req, "title", "") or "",
+        "type": node_type,
+        "requirement_type": getattr(req, "requirement_type", None) or (
+            "AMC" if "amc" in node_type else "GM" if "guidance" in node_type else "CS"
+        ),
         "source": {
             "agency": "EASA",
-            "document": req.metadata.get("document_id", "") if req.metadata else "",
+            "document": (req.metadata.get("document_id", "") if getattr(req, "metadata", None) else "") or "",
         },
         "parser": {
             "version": "0.1.0",
