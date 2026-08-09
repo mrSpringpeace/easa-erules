@@ -72,7 +72,7 @@ uv pip install -e ".[dev]"
 Pinned git tag (if PyPI is unavailable):
 
 ```bash
-pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.1.1"
+pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.1.2"
 ```
 
 Entry point: `easa-erules`.

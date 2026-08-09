@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-08-09
+
+### Fixed
+- Packaging: require setuptools≥77; resolve `project.license-files` vs `tool.setuptools.license-files` conflict that broke CI install and PyPI build on the v0.1.1 tag.
+
 ## [0.1.1] - 2026-08-09
 
 ### Added

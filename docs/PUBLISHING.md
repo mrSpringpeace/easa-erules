@@ -67,7 +67,7 @@ Actions → **Publish to PyPI** → Run workflow → leave **dry_run** checked t
 ```bash
 pip install "git+https://github.com/mrSpringpeace/easa-erules.git@main"
 # or a tag:
-pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.1.1"
+pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.1.2"
 ```
 
 ## Notes
