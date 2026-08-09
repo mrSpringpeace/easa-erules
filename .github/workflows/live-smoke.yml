@@ -1,0 +1,80 @@
+name: Live EASA smoke
+
+# Optional network-dependent fetch smoke for larger packages (CS-25)
+# and a baseline CS-VLA re-fetch. Manual or weekly — not on every PR.
+
+on:
+  workflow_dispatch:
+    inputs:
+      document_ids:
+        description: "Comma-separated registry ids to fetch+parse"
+        required: false
+        default: "cs-vla,cs-25"
+  schedule:
+    # Mondays 06:15 UTC
+    - cron: "15 6 * * 1"
+
+jobs:
+  live-fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Live fetch + parse smoke
+        env:
+          EASA_ERULES_LIVE: "1"
+          EASA_ERULES_CACHE: ${{ runner.temp }}/easa-cache
+        run: |
+          set -euo pipefail
+          IDS="${{ github.event.inputs.document_ids }}"
+          if [ -z "${IDS}" ]; then
+            IDS="cs-vla,cs-25"
+          fi
+          IFS=',' read -ra DOCS <<< "${IDS}"
+          for id in "${DOCS[@]}"; do
+            id="$(echo "$id" | xargs)"
+            [ -z "$id" ] && continue
+            echo "::group::fetch $id"
+            easa-erules fetch "$id"
+            easa-erules inspect "$id"
+            python -c "
+          from easa_erules.sources import resolve_local_source
+          from easa_erules.input.package import OpcPackage
+          from easa_erules.parser import EasaDocumentParser
+          from easa_erules.validation import validate_document
+
+          doc_id = '''$id'''
+          path = resolve_local_source(doc_id, auto_fetch=False)
+          result = EasaDocumentParser(OpcPackage.from_file(path)).parse()
+          report = validate_document(
+              result.document, result.assets, result.references,
+              source_topic_count=result.source_topic_count,
+          )
+          print(f'{doc_id}: topics={report.topics} source={result.source_topic_count} '
+                f'dup_erules={len(report.duplicate_erules_ids)} title={result.document.title!r}')
+          assert result.source_topic_count > 10, f'{doc_id}: too few source topics'
+          assert report.topics == result.source_topic_count
+          assert report.duplicate_erules_ids == []
+          "
+            echo "::endgroup::"
+          done
+
+      - name: Pytest live markers
+        env:
+          EASA_ERULES_LIVE: "1"
+          EASA_ERULES_CACHE: ${{ runner.temp }}/easa-cache-pytest
+        run: |
+          pytest -q tests/test_real_samples.py -k live --tb=short

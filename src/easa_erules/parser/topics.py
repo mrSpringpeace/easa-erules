@@ -1,8 +1,7 @@
-"""EASA topics parser."""
+"""EASA topics parser (custom XML topics and Word SDT wrappers)."""
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from lxml import etree
@@ -15,7 +14,11 @@ from ..model import (
     RegulationSection,
 )
 from ..model.metadata import normalize_easa_metadata_dict
-from ..util.slugify import extract_designation
+from ..util.slugify import (
+    extract_designation,
+    extract_designation_from_lines,
+    extract_ed_decision,
+)
 
 
 class TopicParser:
@@ -45,29 +48,79 @@ class TopicParser:
 
     def parse_sdt(self, sdt: etree._Element, content: etree._Element | None, parent: Any) -> None:
         """Parse a Word SDT-wrapped topic (official EAR XML export)."""
-        text_blob = "".join(content.itertext()) if content is not None else ""
-        text_blob = " ".join(text_blob.split())
-        title = text_blob[:200] if text_blob else "Untitled topic"
-        designation = extract_designation(title) or self._first_line_designation(content)
+        sdt_id = self._sdt_id(sdt)
+        export = None
+        meta_parser = getattr(self.parser, "metadata_parser", None)
+        if meta_parser is not None:
+            export = meta_parser.topic_meta_for_sdt(sdt_id)
+
+        lines = self._content_lines(content)
+        first_line = lines[0] if lines else ""
+        body_blob = " ".join(lines) if lines else ""
+
+        # Prefer export source-title, then first content line (not full body blob)
+        if export and export.get("source_title"):
+            title = str(export["source_title"]).replace("\xa0", " ").strip()
+        elif first_line:
+            title = first_line[:300]
+        elif body_blob:
+            title = body_blob[:297] + ("..." if len(body_blob) > 300 else "")
+        else:
+            title = "Untitled topic"
+
+        # Designation: title first, then first few lines — never full body
+        designation = extract_designation(title, require_number=True)
+        if not designation:
+            designation = extract_designation_from_lines(lines[:3])
+        if not designation:
+            # Bare document-level code only if title is short (e.g. section codes)
+            designation = extract_designation(title, require_number=False)
+            if designation and len(title) > len(designation) + 8:
+                # Likely false positive from mid-title noise
+                designation = ""
+
+        erules_id = ""
+        if export and export.get("erules_id"):
+            erules_id = str(export["erules_id"])
+        if not erules_id:
+            erules_id = designation
+
+        nested: dict[str, Any] = {}
+        if export:
+            nested = {k: v for k, v in export.items() if k not in ("raw_attributes",)}
+
+        # ED Decision from second line is a common EAR pattern
+        if not nested.get("regulatory_source"):
+            for line in lines[:3]:
+                ed = extract_ed_decision(line)
+                if ed:
+                    nested["regulatory_source"] = [ed]
+                    break
+
+        if sdt_id and not nested.get("sdt_id"):
+            nested["sdt_id"] = sdt_id
 
         topic_meta = {
-            "erules_id": designation,
-            "title": title if len(title) < 300 else title[:297] + "...",
-            "nested_metadata": {},
+            "erules_id": erules_id,
+            "title": title,
+            "nested_metadata": nested,
+            "designation_hint": designation,
         }
-        upper = title.upper()
-        if upper.startswith("AMC") or " ACCEPTABLE MEANS" in upper[:40]:
-            node = self._create_amc_node(topic_meta)
-        elif upper.startswith("GM") or "GUIDANCE" in upper[:40]:
-            node = self._create_guidance_node(topic_meta)
-        elif designation or upper.startswith("CS"):
+
+        topic_type = self._determine_topic_type(topic_meta)
+        if topic_type == "requirement":
             node = self._create_requirement_node(topic_meta)
+        elif topic_type == "guidance":
+            node = self._create_guidance_node(topic_meta)
+        elif topic_type == "amc":
+            node = self._create_amc_node(topic_meta)
         else:
             node = self._create_section_node(topic_meta)
 
         if content is not None:
             for child in content:
                 if isinstance(child.tag, str) and etree.QName(child.tag).localname == "sdt":
+                    # Nested SDT topics attach to the document parent, not this topic
                     self.parser._parse_element(child, parent)
                 else:
                     self.parser._parse_element(child, node)
@@ -76,9 +129,11 @@ class TopicParser:
 
     def parse_sdt_heading(self, content: etree._Element, parent: Any) -> None:
         """Parse an SDT marked as heading into a RegulationSection."""
-        text_blob = " ".join("".join(content.itertext()).split())
+        lines = self._content_lines(content)
+        text_blob = lines[0] if lines else " ".join("".join(content.itertext()).split())
+        designation = extract_designation(text_blob, require_number=True) or ""
         node = RegulationSection(
-            designation=extract_designation(text_blob) or "",
+            designation=designation,
             title=text_blob[:200] if text_blob else "Heading",
             level=1,
         )
@@ -86,24 +141,30 @@ class TopicParser:
             self.parser._parse_element(child, node)
         parent.add_child(node)
 
-    def _first_line_designation(self, content: etree._Element | None) -> str:
+    def _sdt_id(self, sdt: etree._Element) -> str | None:
+        """Return Word SDT id value from sdtPr/id/@w:val."""
+        sdt_pr = sdt.find(qname(W, "sdtPr"))
+        if sdt_pr is None:
+            sdt_pr = sdt.find(f".//{qname(W, 'sdtPr')}")
+        if sdt_pr is None:
+            return None
+        id_el = sdt_pr.find(qname(W, "id"))
+        if id_el is None:
+            return None
+        return id_el.get(qname(W, "val"))
+
+    def _content_lines(self, content: etree._Element | None) -> list[str]:
         if content is None:
-            return ""
+            return []
+        lines: list[str] = []
         for p in content.findall(f".//{qname(W, 'p')}"):
             text = " ".join("".join(p.itertext()).split())
-            if not text:
-                continue
-            des = extract_designation(text)
-            if des:
-                return des
-            m = re.match(r"(CS[-\s]?[A-Z0-9]+(?:\s+\d+(?:\([a-z]\))?)?)", text, re.I)
-            if m:
-                return re.sub(r"\s+", "-", m.group(1).strip())
-            m = re.match(r"((?:AMC|GM)\s*VLA\s*\d+(?:\([a-z]\))?)", text, re.I)
-            if m:
-                return re.sub(r"\s+", " ", m.group(1).strip())
-            break
-        return ""
+            text = text.replace("\xa0", " ").strip()
+            if text:
+                lines.append(text)
+            if len(lines) >= 12:
+                break
+        return lines
 
     def _extract_topic_metadata(self, elem: etree._Element) -> dict[str, Any]:
         """Extract metadata from topic element."""
@@ -133,6 +194,8 @@ class TopicParser:
         """Parse nested metadata within a topic into normalized field names."""
         raw: dict[str, Any] = {}
         for child in elem:
+            if not isinstance(child.tag, str):
+                continue
             tag = etree.QName(child.tag).localname
             if child.text:
                 if tag in raw:
@@ -145,47 +208,56 @@ class TopicParser:
 
     def _determine_topic_type(self, meta: dict[str, Any]) -> str:
         """Determine the type of topic based on metadata."""
-        nested = meta.get("nested_metadata", {})
+        nested = meta.get("nested_metadata", {}) or {}
         toc = nested.get("type_of_content") or nested.get("typeOfContent") or []
         if isinstance(toc, str):
             toc = [toc]
 
         for t in toc:
-            t_lower = t.lower()
-            if "certification" in t_lower or t_lower == "cs" or t_lower.startswith("cs "):
-                return "requirement"
-            if "acceptable means" in t_lower or "amc" in t_lower:
+            t_lower = str(t).lower()
+            if "acceptable means" in t_lower or t_lower.startswith("amc"):
                 return "amc"
-            if "guidance" in t_lower or t_lower == "gm" or t_lower.startswith("gm "):
+            if "guidance" in t_lower or t_lower.startswith("gm"):
+                return "guidance"
+            if "certification" in t_lower or t_lower == "cs" or t_lower.startswith(("cs ", "cs (")):
+                return "requirement"
+
+        erules_id = meta.get("erules_id", "") or ""
+        title = meta.get("title", "") or ""
+        designation = meta.get("designation_hint") or extract_designation(
+            title, require_number=True
+        )
+
+        for candidate in (title, designation, erules_id):
+            upper = (candidate or "").upper().strip()
+            if upper.startswith("AMC"):
+                return "amc"
+            if upper.startswith("GM"):
                 return "guidance"
 
-        erules_id = meta.get("erules_id", "")
-        if erules_id:
-            if "AMC" in erules_id.upper():
-                return "amc"
-            if "GM" in erules_id.upper():
-                return "guidance"
+        if designation or extract_designation(title, require_number=True):
+            return "requirement"
 
-        title = meta.get("title", "")
-        if title:
-            if title.startswith(("AMC", "amc")):
-                return "amc"
-            if title.startswith(("GM", "gm")):
-                return "guidance"
-            if extract_designation(title):
-                return "requirement"
+        # Fixture titles like CS-VLA.303 Factor of safety
+        if extract_designation(title, require_number=False) and title.upper().startswith("CS"):
+            return "requirement"
 
         return "section"
 
     def _designation_from_meta(self, meta: dict[str, Any]) -> str:
+        if meta.get("designation_hint"):
+            return str(meta["designation_hint"])
         title = meta.get("title", "") or ""
-        designation = extract_designation(title)
+        designation = extract_designation(title, require_number=True)
+        if not designation:
+            designation = extract_designation(title, require_number=False)
         if designation:
             return designation
         erules_id = meta.get("erules_id", "") or ""
+        # Do not use opaque ERULES-* ids as human designations
         if erules_id and not erules_id.upper().startswith("ERULES"):
             return erules_id
-        return title.split(" ")[0] if title else erules_id
+        return ""
 
     def _easa_metadata_for_node(self, meta: dict[str, Any]) -> dict[str, Any]:
         easa = dict(meta.get("nested_metadata") or {})
@@ -223,10 +295,15 @@ class TopicParser:
         return node
 
     def _create_section_node(self, meta: dict[str, Any]) -> RegulationSection:
+        designation = self._designation_from_meta(meta)
+        # Prefer human designation; fall back to empty rather than opaque ids
         node = RegulationSection(
-            designation=meta.get("erules_id", "") or self._designation_from_meta(meta),
+            designation=designation,
             title=meta.get("title", ""),
         )
+        if meta.get("erules_id"):
+            # Sections don't always have erules_id field; stash in metadata
+            pass
         node.metadata["easa"] = self._easa_metadata_for_node(meta)
         return node
 

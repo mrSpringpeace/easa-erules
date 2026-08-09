@@ -45,11 +45,17 @@ def test_real_sample_parse_validate_convert(path: Path):
         unknown_elements=result.unknown_elements,
         source_topic_count=result.source_topic_count,
     )
-    # Real docs may have duplicate designations from heuristic extraction,
-    # unresolved refs, etc. Core smoke: parse + structure + topic count alignment.
+    # Core smoke: parse + structure + topic count alignment.
+    # Designation quality: unique opaque ERulesIds from export customXml.
     assert report.topics >= 1 or report.paragraphs >= 1
     assert not report.topic_count_mismatch
     assert report.topics == result.source_topic_count or result.source_topic_count == 0
+    assert report.duplicate_erules_ids == []
+    # Document-level export / core metadata present on official packages
+    assert result.document.title
+    assert (result.document.easa_metadata or {}).get("source_title") or (
+        result.document.metadata or {}
+    ).get("core_properties")
 
     md = render_markdown(result.document, split_by_rule=True)
     assert "index.md" in md or len(md) >= 1
@@ -68,20 +74,28 @@ def test_real_samples_present():
 
 
 @pytest.mark.skipif(not LIVE, reason="Set EASA_ERULES_LIVE=1 for network fetch smoke")
-def test_live_fetch_cs_vla_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Optional live fetch + parse of CS-VLA (network required)."""
+@pytest.mark.parametrize("doc_id,min_topics", [("cs-vla", 10), ("cs-25", 50)])
+def test_live_fetch_smoke(
+    doc_id: str,
+    min_topics: int,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Optional live fetch + parse (network required). Includes CS-25 coverage."""
     monkeypatch.setenv("EASA_ERULES_CACHE", str(tmp_path))
     from easa_erules.sources import EasaDownloader
 
     with EasaDownloader(cache_root=tmp_path) as dl:
-        fetched = dl.fetch("cs-vla")
+        fetched = dl.fetch(doc_id)
     assert fetched.source_path.exists()
     result = EasaDocumentParser(OpcPackage.from_file(fetched.source_path)).parse()
-    assert result.source_topic_count > 10
+    assert result.source_topic_count > min_topics
     report = validate_document(
         result.document,
         result.assets,
         result.references,
         source_topic_count=result.source_topic_count,
     )
-    assert report.topics > 10
+    assert report.topics > min_topics
+    assert report.duplicate_erules_ids == []
+    assert result.document.title

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check src tests
+
+      - name: Pytest (unit, golden, real samples)
+        run: pytest -q
+
+      - name: Adapter scaffold smoke
+        run: |
+          python - <<'PY'
+          from easa_erules.adapters import get_adapter
+          easa = get_adapter("easa")
+          assert easa.capabilities().parse
+          faa = get_adapter("faa")
+          assert not faa.capabilities().parse
+          print("adapters ok", easa.capabilities().authority, faa.capabilities().authority)
+          PY

@@ -10,8 +10,6 @@ from easa_erules.input.package import OpcPackage
 from easa_erules.parser import EasaDocumentParser
 from easa_erules.search import ensure_index, prepare_fts_query, search
 from easa_erules.search.indexer import build_index, sha256_file
-from easa_erules import __version__
-
 
 FIXTURE = Path("tests/fixtures/cs-vla-sample.xml")
 

@@ -4,7 +4,7 @@ from typing import Any
 
 import yaml
 
-from ..model import EasaMetadata, RegulationDocument, RegulationRequirement
+from ..model import EasaMetadata, RegulationDocument
 
 
 def _wrap(frontmatter: dict[str, Any]) -> str:

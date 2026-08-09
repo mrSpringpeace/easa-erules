@@ -138,9 +138,8 @@ def fetch(
         raise typer.Exit(1)
 
     try:
-        with EasaDownloader() as downloader:
-            with console.status(f"Fetching {doc_id}..."):
-                result = downloader.fetch(doc_id, version=version, force=force)
+        with EasaDownloader() as downloader, console.status(f"Fetching {doc_id}..."):
+            result = downloader.fetch(doc_id, version=version, force=force)
     except LookupError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
@@ -476,7 +475,8 @@ def query(
     ),
 ):
     """Search a regulation using a local SQLite FTS5 index."""
-    from .search import ensure_index, search as run_search
+    from .search import ensure_index
+    from .search import search as run_search
     from .sources import resolve_local_source
 
     try:

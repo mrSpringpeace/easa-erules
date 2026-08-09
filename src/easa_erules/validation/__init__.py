@@ -14,9 +14,9 @@ from .structure import check_source_topic_count, count_and_check_structure
 
 __all__ = [
     "ValidationReport",
-    "validate_document",
-    "validate_conversion",
     "build_conversion_report",
+    "validate_conversion",
+    "validate_document",
 ]
 
 

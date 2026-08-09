@@ -13,7 +13,6 @@ from ..input.namespaces import (
 from ..model import Asset, FigureNode
 from ..util.slugify import slugify_rule
 
-
 # WordprocessingDrawing namespace
 WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from ..model import InternalReferenceNode
@@ -20,9 +19,6 @@ def normalize_references(root: Any) -> None:
 
 
 def _normalize_designation(text: str) -> str:
-    text = re.sub(r"\s+", " ", text.strip())
-    # CS 23.2210 → CS-23.2210
-    text = re.sub(r"\bCS\s+(\d)", r"CS-\1", text, flags=re.I)
-    # Collapse multiple hyphens
-    text = re.sub(r"-{2,}", "-", text)
-    return text
+    from ..util.slugify import normalize_designation
+
+    return normalize_designation(text)

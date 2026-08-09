@@ -5,14 +5,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from easa_erules.input.package import OpcPackage
 from easa_erules.model import (
     FigureNode,
     RegulationDocument,
     RegulationRequirement,
-    TextNode,
 )
 from easa_erules.model.assets import Asset, AssetCollection
 from easa_erules.parser import EasaDocumentParser
@@ -22,8 +19,8 @@ from easa_erules.validation import (
     validate_conversion,
     validate_document,
 )
-from easa_erules.validation.structure import count_and_check_structure
 from easa_erules.validation.report import ValidationReport
+from easa_erules.validation.structure import count_and_check_structure
 
 
 def _parse(fixture: str):

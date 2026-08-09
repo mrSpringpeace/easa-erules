@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from easa_erules.input.package import OpcPackage
+from easa_erules.model import TableNode
 from easa_erules.parser import EasaDocumentParser
 from easa_erules.render import render_html, render_markdown
-from easa_erules.model import TableNode
-
 
 MERGED_TABLE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage">

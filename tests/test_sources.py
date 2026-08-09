@@ -25,7 +25,6 @@ from easa_erules.sources.resolver import (
     parse_landing_page_publications,
 )
 
-
 SAMPLE_LANDING_HTML = """
 <html><body>
   <a href="/en/downloads/66874/en" class="matomo_download"

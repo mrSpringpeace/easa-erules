@@ -169,14 +169,18 @@ Landing pages are stable EASA document-library URLs (not fragile direct download
 
 ## 9. Recommended next steps (when work resumes)
 
-Prioritized, not blocking “done for today”:
+**Status as of follow-up session (same day): all five items implemented.**
 
-1. **Designation quality** — Improve extraction for `CS-VLA 1`, AMC/GM variants; reduce duplicate-id noise.  
-2. **Real-doc metadata** — Pull more structured fields if present in SDT tags / related parts.  
-3. **Optional CI** — Nightly or manual job for CS-25 fetch smoke (`EASA_ERULES_LIVE`).  
-4. **Agent examples** — Short end-to-end cookbook in README or `examples/`.  
-5. **Future adapters** — FAA/ASTM only after EASA designation quality is solid.
+| # | Item | Outcome |
+|---|------|---------|
+| 1 | Designation quality | `util/slugify.extract_designation` + export titles; unique ERulesIds; real samples zero `duplicate_erules_ids` |
+| 2 | Real-doc metadata | `erules-export` customXml by `sdt-id`; core props; extended `EasaMetadata` fields |
+| 3 | Optional CI | `.github/workflows/ci.yml` + `live-smoke.yml` (CS-25) |
+| 4 | Agent examples | `examples/agent-cookbook.md` |
+| 4b | Manual | `docs/MANUAL.md` |
+| 5 | Future adapters | `src/easa_erules/adapters/` (EASA live; FAA/ASTM scaffold) |
 
+Further optional work: table edge cases, more live packages in smoke matrix, implement FAA/ASTM when package formats are chosen.
 ---
 
 ## 10. Conclusion

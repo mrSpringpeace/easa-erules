@@ -6,7 +6,7 @@ import hashlib
 import io
 import zipfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +20,7 @@ from .cache import (
     latest_pointer_path,
     version_cache_dir,
 )
-from .resolver import DEFAULT_USER_AGENT, EasaSourceResolver, Publication, ResolveResult
+from .resolver import DEFAULT_USER_AGENT, EasaSourceResolver, Publication
 
 
 @dataclass(slots=True)
@@ -78,7 +78,7 @@ class EasaDownloader:
         if self._owns_client:
             self.client.close()
 
-    def __enter__(self) -> "EasaDownloader":
+    def __enter__(self) -> EasaDownloader:
         return self
 
     def __exit__(self, *args: object) -> None:
@@ -138,7 +138,7 @@ class EasaDownloader:
 
         source_path.write_bytes(xml_bytes)
         sha = hashlib.sha256(xml_bytes).hexdigest()
-        retrieved_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        retrieved_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         meta = {
             "document": resolved.document_id,

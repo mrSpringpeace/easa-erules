@@ -83,7 +83,7 @@ class EasaSourceResolver:
         if self._owns_client:
             self.client.close()
 
-    def __enter__(self) -> "EasaSourceResolver":
+    def __enter__(self) -> EasaSourceResolver:
         return self
 
     def __exit__(self, *args: object) -> None:
@@ -208,7 +208,7 @@ def parse_landing_page_publications(html_text: str, base_url: str) -> list[Publi
         display_title = link_text or title_attr or filename or url
 
         # Prefer entries that look like real EAR downloads
-        if fmt == "other" and not re.search(r"easy.?access|cs[- ]|/en/downloads/", display_title + url, re.I):
+        if fmt == "other" and not re.search(r"easy.?access|cs[- ]|/en/downloads/", display_title + url, re.IGNORECASE):
             continue
 
         seen_urls.add(url)
@@ -265,7 +265,7 @@ def _extract_version_label(text: str) -> str:
                 r"^Amdt\.?[\s_-]*",
                 "Amendment ",
                 label,
-                flags=re.I,
+                flags=re.IGNORECASE,
             )
             return " ".join(label.split())
     return ""
@@ -300,7 +300,7 @@ def _parse_size_from_type(content_type: str | None) -> int | None:
 
 
 def _filename_from_title(title: str) -> str | None:
-    if title and re.search(r"\.(pdf|zip|xml)$", title, re.I):
+    if title and re.search(r"\.(pdf|zip|xml)$", title, re.IGNORECASE):
         return title.split("/")[-1]
     return None
 

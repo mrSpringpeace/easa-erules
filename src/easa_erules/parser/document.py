@@ -113,8 +113,6 @@ class EasaDocumentParser:
 
     def _parse_body(self, body: etree._Element) -> None:
         """Parse the document body element by element."""
-        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
-
         for child in body:
             self._parse_element(child, self.document)
 

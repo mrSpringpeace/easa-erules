@@ -96,20 +96,12 @@ class ParagraphParser:
         return 1
 
     def _extract_designation(self, text: str) -> str:
-        """Extract designation like 'CS-VLA.303' from heading text."""
-        import re
-        # Pattern for CS-VLA.303, CS 23.2210, AMC1 CS-23.XXXX, etc.
-        patterns = [
-            r"(CS[-\s]?[A-Z0-9]+(?:\.\d+)?)",
-            r"(AMC\d*\s+CS[-\s]?[A-Z0-9]+(?:\.\d+)?)",
-            r"(GM\d*\s+CS[-\s]?[A-Z0-9]+(?:\.\d+)?)",
-            r"(\d+\.\d+)",  # Simple numbered sections
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, text)
-            if match:
-                return match.group(1).replace(" ", "-")
-        return ""
+        """Extract designation like 'CS-VLA.303' from the start of heading text."""
+        from ..util.slugify import extract_designation
+
+        # Require a paragraph number so titles like "… (CS-23)" do not become
+        # bare document codes and pollute the designation index.
+        return extract_designation(text, require_number=True)
 
     def _is_list_item(self, elem: etree._Element) -> bool:
         """Check if paragraph is a list item."""
@@ -159,10 +151,8 @@ class ParagraphParser:
         """Find existing list or create new one."""
         # Check if last child is a list at same level
         if parent.children and isinstance(parent.children[-1], ListNode):
-            last_list = parent.children[-1]
-            item_level = item.metadata.get("list_level", "0")
             # Simplified: assume same level belongs to same list
-            return last_list
+            return parent.children[-1]
 
         # Create new list with proper ordering
         ordered = self.parser.list_parser.is_ordered(num_id)

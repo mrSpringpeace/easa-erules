@@ -15,7 +15,7 @@ Regulatory text is **never rewritten by an LLM during conversion**. Conversion i
 
 ---
 
-## Project status (re-evaluation)
+## Project status
 
 | Area | Status | Notes |
 |------|--------|--------|
@@ -31,13 +31,14 @@ Regulatory text is **never rewritten by an LLM during conversion**. Conversion i
 | LLM skills (thin adapters) | **Done** | `skills/{generic,codex,claude-code,opencode}/` |
 | Complex tables (colspan/rowspan) | **Improved** | HTML path emits merge attrs; nested tables; header-row fix |
 | Broader catalog | **Expanded** | cs-25/27/29, cs-e/p/etso, part-21, uas-rules (+ original four) |
-| Designation quality on real docs | **Partial** | Heuristic from SDT text; some duplicate ids reported (expected) |
-| Full production hardness on all EARs | **Partial** | CS-VLA/CS-23 smokes green; larger packages (e.g. CS-25) not smoke-tested in CI |
+| Designation quality on real docs | **Done** | Export `source-title` + first-line extract; `CS-VLA.1`, `AMC VLA 21(c)`, `AMC1 CS-23.2000`, … |
+| Real-doc metadata | **Done** | `erules-export` customXml by `sdt-id`; core props; unique ERulesIds |
+| Agent cookbook + manual | **Done** | `examples/agent-cookbook.md`, `docs/MANUAL.md` |
+| CI + live CS-25 smoke | **Done** | `.github/workflows/ci.yml` + optional `live-smoke.yml` |
+| FAA / ASTM adapters | **Scaffold** | `src/easa_erules/adapters/` — EASA production; FAA/ASTM stubs |
 | Vector/embeddings search | **Out of scope** | FTS5 only (by design for v1) |
 
-**Verdict:** **MVP complete for agent-local EAR workflows.**  
-End-to-end path works on synthetic fixtures **and** official CS-VLA / CS-23 XML exports (SDT-based packaging). Remaining work is quality polish (designation extraction, metadata richness on real SDTs, more real docs, table edge cases), not greenfield architecture.
-
+**Verdict:** **MVP complete** for agent-local EAR workflows, with designation/metadata polish and docs in place. Next expansion is optional (more live packages, FAA/ASTM when needed).
 ---
 
 ## Install
@@ -163,13 +164,15 @@ Defined in `src/easa_erules/sources/easa.yaml` (stable **landing pages**, not fr
 
 Use the thin skills under `skills/` (generic / Codex / Claude Code / OpenCode).
 
+**Cookbook:** [`examples/agent-cookbook.md`](examples/agent-cookbook.md)  
+**Full manual:** [`docs/MANUAL.md`](docs/MANUAL.md)
+
 Rules of engagement:
 
 1. Prefer `query` / `extract` / `refs` with `--json` over stuffing full regulations into context.
 2. Never hand-write or “fix” regulatory text from model memory.
 3. After bulk `convert`, run `validate`.
 4. Ground answers only on tool output.
-
 ---
 
 ## Development

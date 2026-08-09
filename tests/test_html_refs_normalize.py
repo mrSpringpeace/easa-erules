@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from easa_erules.input.package import OpcPackage
+from easa_erules.model import ListItemNode, ListNode, ParagraphNode, RegulationDocument, TextNode
 from easa_erules.model.graph import lookup_refs
 from easa_erules.normalize import normalize_document
 from easa_erules.parser import EasaDocumentParser, parse_easa_document
 from easa_erules.render import render_html
-from easa_erules.model import ListItemNode, ListNode, ParagraphNode, TextNode, RegulationDocument
 
 
 def test_render_html_sample():

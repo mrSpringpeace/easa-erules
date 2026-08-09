@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-08-09
+
+### Added
+- **Designation quality:** robust extract/normalize for `CS-VLA.1`, `CS 23.2000` → `CS-23.2000`, `AMC VLA 21(c)`, `AMC1 23.2000` → `AMC1 CS-23.2000`, GM variants; first-line / export-title based (no full-body false positives).
+- **Real-doc metadata:** parse official `erules-export` customXml (topics by `sdt-id`, `ERulesId`, TypeOfContent, RegulatorySource, ParentIR, …) plus `docProps/core.xml` / app properties.
+- **CI:** `.github/workflows/ci.yml` (pytest + ruff); `.github/workflows/live-smoke.yml` (manual/weekly `cs-vla` + `cs-25` network smoke).
+- **Docs:** `examples/agent-cookbook.md`, `docs/MANUAL.md` (full user/agent manual).
+- **Adapters scaffold:** `easa_erules.adapters` with production EASA adapter and FAA/ASTM stubs.
+- Tests: `test_designation.py`, `test_export_metadata.py`; live parametrized smokes for `cs-vla` / `cs-25`.
+
+### Fixed
+- Duplicate `erules_id` noise on real CS-VLA/CS-23 (unique export ERulesIds; designations no longer collapse to bare `CS-VLA` / `CS-23`).
+- Parenthetical AMC designations (`AMC VLA 21(c)` vs truncated `AMC VLA 21`).
+
 ## [0.1.0] - 2026-08-08
 
 ### Added

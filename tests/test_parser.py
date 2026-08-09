@@ -2,7 +2,6 @@
 
 import io
 import zipfile
-from pathlib import Path
 
 import pytest
 
@@ -13,7 +12,6 @@ from easa_erules.model import (
     HyperlinkNode,
     InternalReferenceNode,
     ItalicNode,
-    ListNode,
     ParagraphNode,
     RegulationDocument,
     RegulationRequirement,

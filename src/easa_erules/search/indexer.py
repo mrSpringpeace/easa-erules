@@ -5,11 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from .. import __version__
+from ..input.package import OpcPackage
 from ..model import (
     AcceptableMeansOfComplianceNode,
     GuidanceNode,
@@ -22,9 +23,8 @@ from ..model import (
 from ..model.assets import AssetCollection
 from ..model.references import ReferenceIndex
 from ..parser import EasaDocumentParser, ParseResult
-from ..input.package import OpcPackage
-from ..sources.cache import default_cache_root, document_cache_dir
-from .sqlite import connect, get_meta, set_meta
+from ..sources.cache import document_cache_dir
+from .sqlite import connect, set_meta
 
 
 def index_db_path(
@@ -133,7 +133,7 @@ def _index_document(
     assets: AssetCollection | None,
     references: ReferenceIndex | None,
 ) -> None:
-    indexed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    indexed_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     cur = conn.execute(
         """
         INSERT INTO documents(
