@@ -1,5 +1,11 @@
 # easa-erules
 
+[![CI](https://github.com/mrSpringpeace/easa-erules/actions/workflows/ci.yml/badge.svg)](https://github.com/mrSpringpeace/easa-erules/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/easa-erules.svg)](https://pypi.org/project/easa-erules/)
+[![Python versions](https://img.shields.io/pypi/pyversions/easa-erules.svg)](https://pypi.org/project/easa-erules/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/mrSpringpeace/easa-erules)](https://github.com/mrSpringpeace/easa-erules/releases)
+
 **Universal, deterministic toolkit for EASA Easy Access Rules / eRules XML publications.**
 
 This is not “XML → Markdown only”. It is a local CLI for humans and LLM agents:
@@ -46,16 +52,32 @@ Regulatory text is **never rewritten by an LLM during conversion**. Conversion i
 Requires **Python ≥ 3.11**.
 
 ```bash
-# with uv (recommended)
+# PyPI (recommended for users)
+pip install easa-erules
+
+# or with uv
+uv pip install easa-erules
+```
+
+From source / development:
+
+```bash
+git clone https://github.com/mrSpringpeace/easa-erules.git
+cd easa-erules
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
+# or: pip install -e ".[dev]"
+```
 
-# or pip
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+Pinned git tag (if PyPI is unavailable):
+
+```bash
+pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.1.1"
 ```
 
 Entry point: `easa-erules`.
+
+> **Disclaimer:** Unofficial toolkit. Always verify critical interpretations against the official EASA Easy Access Rules publication. This software does not re-license regulatory text.
 
 ---
 

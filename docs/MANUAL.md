@@ -26,13 +26,13 @@ Regulatory text is **never rewritten by an LLM during conversion**. Models shoul
 Requires **Python ≥ 3.11**.
 
 ```bash
-# recommended
+# users (PyPI)
+pip install easa-erules
+
+# development (from clone)
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
-
-# or
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+# or: pip install -e ".[dev]"
 ```
 
 Entry point: `easa-erules`.
@@ -41,8 +41,11 @@ Verify:
 
 ```bash
 easa-erules list
+# from a clone with dev extras:
 pytest -q
 ```
+
+Publishing / release process: see [`docs/PUBLISHING.md`](PUBLISHING.md).
 
 ---
 

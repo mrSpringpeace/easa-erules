@@ -1,0 +1,12 @@
+include LICENSE
+include README.md
+include CHANGELOG.md
+include pyproject.toml
+recursive-include src/easa_erules *.yaml
+recursive-include src/easa_erules py.typed
+recursive-include skills *
+recursive-include docs *.md
+recursive-include examples *.md
+# Keep the sdist lean: do not ship multi‑MB real EAR samples on PyPI.
+prune tests/real_samples
+global-exclude *.pyc __pycache__ .pytest_cache .ruff_cache .mypy_cache

@@ -10,11 +10,16 @@ All notable changes to this project will be documented in this file.
 - **CI:** `.github/workflows/ci.yml` (pytest + ruff); `.github/workflows/live-smoke.yml` (manual/weekly `cs-vla` + `cs-25` network smoke).
 - **Docs:** `examples/agent-cookbook.md`, `docs/MANUAL.md` (full user/agent manual).
 - **Adapters scaffold:** `easa_erules.adapters` with production EASA adapter and FAA/ASTM stubs.
+- **PyPI packaging:** project classifiers/URLs, `MANIFEST.in`, publish workflow (Trusted Publishing), README badges, `docs/PUBLISHING.md`.
 - Tests: `test_designation.py`, `test_export_metadata.py`; live parametrized smokes for `cs-vla` / `cs-25`.
 
 ### Fixed
 - Duplicate `erules_id` noise on real CS-VLA/CS-23 (unique export ERulesIds; designations no longer collapse to bare `CS-VLA` / `CS-23`).
 - Parenthetical AMC designations (`AMC VLA 21(c)` vs truncated `AMC VLA 21`).
+- Corrupted MIT license warranty clause (GitHub SPDX recognition).
+
+### Changed
+- Drop unused direct `pydantic` dependency (leaner install).
 
 ## [0.1.0] - 2026-08-08
 
