@@ -73,9 +73,6 @@ Documentation = "https://github.com/mrSpringpeace/easa-erules/blob/main/docs/MAN
 [project.scripts]
 easa-erules = "easa_erules.cli:app"
 
-[tool.setuptools]
-license-files = ["LICENSE"]
-
 [tool.setuptools.packages.find]
 where = ["src"]
 
