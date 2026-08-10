@@ -31,7 +31,11 @@ class ValidationReport:
 
     # Identity / integrity
     unique_erules_ids: int = 0
+    #: ERulesIds used by items whose content differs — the id is ambiguous.
     duplicate_erules_ids: list[str] = field(default_factory=list)
+    #: ERulesId → occurrence count for items the publisher prints more than
+    #: once with identical content (an AMC/GM covering several rules).
+    repeated_erules_ids: dict[str, int] = field(default_factory=dict)
     source_topic_count: int | None = None
     topic_count_mismatch: bool = False
 
@@ -80,6 +84,7 @@ class ValidationReport:
             "internal_references": self.internal_references,
             "unique_erules_ids": self.unique_erules_ids,
             "duplicate_erules_ids": self.duplicate_erules_ids,
+            "repeated_erules_ids": self.repeated_erules_ids,
             "source_topic_count": self.source_topic_count,
             "topic_count_mismatch": self.topic_count_mismatch,
             "unresolved_references": self.unresolved_references,

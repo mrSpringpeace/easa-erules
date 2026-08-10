@@ -39,7 +39,7 @@ _TOPIC_TYPES = (
 # Ordered most specific first; case-sensitive on purpose — regulatory text
 # writes designations in upper case, and matching "cs" loosely produces noise.
 _SUB = r"(?:\([a-z0-9]+\))*"
-_REF_RE = re.compile(
+_EASA_REF_RE = re.compile(
     r"(?<![\w./-])"
     r"(?:"
     rf"(?:AMC|GM)\d*\s+CS[-\s]?[A-Z]{{2,12}}[.\s]\d+{_SUB}"
@@ -50,26 +50,91 @@ _REF_RE = re.compile(
     r")"
 )
 
+# 14 CFR citations: "§ 25.1309", "§§ 25.1309, 25.1322", "14 CFR 25.1309",
+# "part 25". The section sign may be doubled for a list, and eCFR writes a
+# non-breaking space after it.
+_FAA_REF_RE = re.compile(
+    r"(?<![\w./-])"
+    r"(?:"
+    rf"(?:14\s+CFR\s+)?§{{1,2}}\s*(?P<num>\d+\.\d+[a-z]?){_SUB}"
+    rf"|14\s+CFR\s+(?P<num2>\d+\.\d+[a-z]?){_SUB}"
+    r")"
+)
 
-def find_designations(text: str) -> list[tuple[int, int, str]]:
-    """Return ``(start, end, canonical_designation)`` for every match in *text*."""
+# Continuation of a "§§ 25.1309, 25.1322 and 25.1353" list: bare section
+# numbers only count when they follow a citation on the same line.
+_FAA_LIST_RE = re.compile(rf"(?<![\w./-])(?P<num>\d+\.\d+[a-z]?){_SUB}(?![\w.])")
+
+
+def _find_easa(text: str) -> list[tuple[int, int, str]]:
     hits: list[tuple[int, int, str]] = []
-    for match in _REF_RE.finditer(text):
-        raw = match.group(0)
-        canonical = normalize_designation(raw)
+    for match in _EASA_REF_RE.finditer(text):
+        canonical = normalize_designation(match.group(0))
         if canonical:
             hits.append((match.start(), match.end(), canonical))
     return hits
 
 
-def detect_text_references(root: Any) -> int:
+def _find_faa(text: str) -> list[tuple[int, int, str]]:
+    """14 CFR citations, including the tail of a ``§§ a, b and c`` list."""
+    hits: list[tuple[int, int, str]] = []
+    for match in _FAA_REF_RE.finditer(text):
+        number = match.group("num") or match.group("num2")
+        if not number:
+            continue
+        suffix = match.group(0)[match.group(0).index(number) + len(number) :]
+        hits.append((match.start(), match.end(), f"14 CFR {number}{suffix}"))
+
+        # "§§ 25.1309, 25.1322 and 25.1353" — pick up the bare numbers that
+        # follow, but only while the text keeps looking like a citation list.
+        if not match.group(0).startswith(("§§", "14")) and "§§" not in text[: match.start() + 2]:
+            continue
+        cursor = match.end()
+        while True:
+            joiner = re.match(r"\s*(?:,|and|or|,\s*and|,\s*or)\s*", text[cursor:])
+            if not joiner:
+                break
+            follow = _FAA_LIST_RE.match(text, cursor + joiner.end())
+            if not follow:
+                break
+            number = follow.group("num")
+            hits.append((follow.start(), follow.end(), f"14 CFR {follow.group(0)}"))
+            cursor = follow.end()
+    return hits
+
+
+def find_designations(text: str, *, authority: str = "") -> list[tuple[int, int, str]]:
+    """Return ``(start, end, canonical_designation)`` for every match in *text*.
+
+    Both citation styles are recognised. *authority* restricts detection to one
+    of them when the document's origin is known ("EASA" or "FAA"); documents do
+    cite across authorities, so the default looks for both.
+    """
+    key = (authority or "").upper()
+    hits: list[tuple[int, int, str]] = []
+    if key != "FAA":
+        hits.extend(_find_easa(text))
+    if key != "EASA":
+        hits.extend(_find_faa(text))
+
+    # Drop overlaps, keeping the earliest and longest match
+    hits.sort(key=lambda h: (h[0], -(h[1] - h[0])))
+    kept: list[tuple[int, int, str]] = []
+    for hit in hits:
+        if kept and hit[0] < kept[-1][1]:
+            continue
+        kept.append(hit)
+    return kept
+
+
+def detect_text_references(root: Any, *, authority: str = "") -> int:
     """Rewrite plain-text designations into reference nodes. Returns match count."""
     found = 0
 
     def split_run(text: str, own: str, out: list[Any]) -> bool:
         """Append text/reference nodes for *text* to *out*. True if any ref found."""
         nonlocal found
-        hits = [h for h in find_designations(text) if h[2] != own]
+        hits = [h for h in find_designations(text, authority=authority) if h[2] != own]
         if not hits:
             if text:
                 out.append(TextNode(text=text))

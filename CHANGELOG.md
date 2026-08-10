@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-08-10
+
+Follow-up to 0.2.0, working through the four escalated decisions. The catalog
+was verified end to end for the first time, which surfaced two more defects.
+
+### Fixed
+
+- **The resolver silently substituted the wrong format.** When a landing page
+  offered no XML, `select_publication` fell back to any publication and handed
+  back a PDF labelled as the XML export. `cs-p` and `cs-etso` failed several
+  layers down with "Downloaded content is not XML or ZIP". Now it raises with
+  the formats that are actually available, and both entries are marked
+  `xml_available: false` so commands explain themselves instead.
+- **`catalog_health.py` reported those entries as green** because it only
+  checked that *a* publication was selected. It now verifies the format and,
+  with `--deep`, downloads and parses every entry.
+- **The catalog's `preferred_format` never took effect** — a hardcoded `"xml"`
+  default in `resolve()` always won over the YAML value.
+- **Repeated ERulesIds were treated as corruption.** An AMC or GM covering
+  several rules is printed once under each of them with the same id; Part-21
+  has 25 such items across 67 occurrences. Validation now separates
+  `repeated_erules_ids` (identical designation, title and body — a warning)
+  from `duplicate_erules_ids` (differing content — an error). Part-21 and
+  `uas-rules` validate cleanly.
+- **The FAA adapter never resolved references.** Reference resolution moved to
+  a shared `resolve_document_references`, used by both authorities. It also
+  counted subpart containers as AST topics but not as source topics, producing
+  a false `topic_count_mismatch` on every part.
+
+### Added
+
+- **`NOTICE`** bounding the MIT grant: it covers the software only, not
+  regulatory text. Records EASA's attribution requirement and 14 CFR's public
+  domain status.
+- **FAR citation detection** — `§ 25.1309`, `§§ 25.1309, 25.1322 and 25.1353`,
+  `14 CFR 23.2005(a)`, including the tail of a citation list. 14 CFR 25 goes
+  from 0 to 695 detected references, 660 of them resolved.
+- **The FAA adapter now reports what it cannot model.** Each flattened table
+  produces a `table_flattened` warning with section, row and cell counts; each
+  image is recorded as an unknown element. On 14 CFR 25 that is 32 tables and
+  88 images, all visible in `conversion-report.json`. The "no silent content
+  loss" rule now holds on the experimental branch too.
+- **`extract` reports `occurrences`** and warns `repeated_in_source` when the
+  publisher prints an item more than once, instead of silently returning the
+  first of seven.
+- `catalog_health.py --deep` and `--only`; the weekly workflow runs deep.
+
+### Changed
+
+- **The FAA branch is labelled experimental** throughout. EASA remains the
+  maintained branch, and the package keeps the name `easa-erules` — see
+  `docs/STATUS.md` for the reasoning.
+- **Git history is not being rewritten.** EASA's copyright policy authorises
+  reproduction with acknowledgement, and the "Official Publication" clause that
+  prompted the concern is a disclaimer, not a copyright carve-out. Publications
+  stay out of the repository on engineering grounds. See `docs/LEGAL-REVIEW.md`.
+- Validation reports carry `repeated_erules_ids`; the duplicate error type is
+  now `conflicting_erules_id`.
+
 ## [0.2.0] - 2026-08-10
 
 Agent-facing release. The JSON shape changed — see **Breaking** below.

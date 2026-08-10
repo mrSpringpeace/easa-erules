@@ -5,6 +5,10 @@ name: Catalog health
 # until someone tries to fetch. This job watches every catalog entry and reports
 # drift as an artifact — it never fails the build, so a website change does not
 # turn the main CI red for everyone.
+#
+# It runs --deep: resolve, download and parse. A resolver that finds *a*
+# publication proves nothing — CS-ETSO resolved happily for months and handed
+# back a PDF labelled as the XML export. Roughly 70 MB and 10-20 minutes.
 
 on:
   workflow_dispatch:
@@ -18,7 +22,7 @@ permissions:
 jobs:
   check-catalog:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     continue-on-error: true
 
     steps:
@@ -38,7 +42,7 @@ jobs:
       - name: Probe every catalog entry
         id: probe
         continue-on-error: true
-        run: python scripts/catalog_health.py --output catalog-health.json
+        run: python scripts/catalog_health.py --deep --output catalog-health.json
 
       - name: Upload report
         if: always()
@@ -55,7 +59,8 @@ jobs:
             python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           report = json.load(open("catalog-health.json"))
-          print(f"## Catalog health — {report['ok']}/{report['total']} reachable\n")
+          mode = "deep" if report.get("deep") else "resolve-only"
+          print(f"## Catalog health ({mode}) — {report['ok']}/{report['total']} ok\n")
           print("| Source | Authority | Status | Detail |")
           print("|--------|-----------|--------|--------|")
           for entry in report["entries"]:

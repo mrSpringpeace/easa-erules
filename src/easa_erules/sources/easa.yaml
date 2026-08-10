@@ -99,7 +99,9 @@ sources:
       - CSP
       - csp
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-propellers-cs-p"
-    preferred_format: xml
+    # PDF only — EASA publishes no XML export for CS-P.
+    preferred_format: pdf
+    xml_available: false
 
   cs-etso:
     title: "European Technical Standard Orders"
@@ -110,7 +112,11 @@ sources:
       - ETSO
       - etso
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-european-technical-standard-orders-cs-etso"
-    preferred_format: xml
+    # EASA publishes CS-ETSO as PDF only — there is no XML export to convert.
+    # Kept in the catalog so 'info' can say so rather than the tool failing
+    # somewhere deep in the OOXML reader.
+    preferred_format: pdf
+    xml_available: false
 
   part-21:
     title: "Initial Airworthiness and Environmental Certification"

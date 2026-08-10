@@ -99,13 +99,26 @@ On official EAR packages, **opaque ERulesIds** (e.g. `ERULES-1963177438-8056`) a
 
 ### 3.4 Built-in catalog
 
-**EASA** — `src/easa_erules/sources/easa.yaml`, keyed on stable **landing pages**:
+**EASA** — `src/easa_erules/sources/easa.yaml`, keyed on stable **landing pages**.
+Ten publications convert:
 
-`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `cs-p`, `cs-etso`, `part-21`, `uas-rules`
+`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `part-21`, `uas-rules`
 
-**FAA** — `src/easa_erules/sources/faa.yaml`, served by the public eCFR API:
+Two are catalogued but **PDF-only** — EASA publishes no XML export for them, so
+they cannot be parsed. They stay in the catalog (`xml_available: false`) so
+`info` can say so and commands fail with an explanation rather than a confusing
+error from the OOXML reader:
+
+`cs-p`, `cs-etso`
+
+**FAA (experimental)** — `src/easa_erules/sources/faa.yaml`, served by the
+public eCFR API:
 
 `far-21`, `far-23`, `far-25`, `far-27`, `far-43`, `far-91`
+
+EASA is the maintained branch. The FAA branch is a prototype kept because it is
+cheap — public-domain text over a structured API — not because this project
+aims to become an FAA tool. Treat its output shape as unstable.
 
 FAA versions are eCFR issue dates (`--version 2026-08-05`), not amendment
 numbers. With no `--version` the adapter asks eCFR for its latest issue date;
@@ -235,7 +248,13 @@ Fixture documents use inline `erules:metadata` elements instead; both paths popu
 After `convert`, `conversion-report.json` and `easa-erules validate` report:
 
 - topic counts vs source SDT/topic elements,
-- duplicate `erules_id` values (should be **empty** on current real samples),
+- **conflicting** `erules_id` values — the same id on items with a different
+  designation, title or body, which means the id no longer identifies one item
+  (an error),
+- **repeated** `erules_id` values — the same item printed more than once with
+  identical content. An AMC or GM covering several rules appears under each of
+  them; Part-21 has 25 such items across 67 occurrences. This is how EASA
+  publishes them, so it is recorded as a warning, not a failure,
 - missing assets, unresolved internal refs,
 - empty text nodes and other structure issues.
 
@@ -294,8 +313,8 @@ See [`LEGAL-REVIEW.md`](LEGAL-REVIEW.md) and `tests/real_samples/README.md`.
 ```python
 from easa_erules.adapters import get_adapter
 
-get_adapter("easa").capabilities()  # production — EAR XML / Flat OPC
-get_adapter("faa").capabilities()   # prototype  — 14 CFR via the eCFR API
+get_adapter("easa").capabilities()  # production   — EAR XML / Flat OPC
+get_adapter("faa").capabilities()   # experimental — 14 CFR via the eCFR API
 ```
 
 Both land in the same Regulation AST, so `extract`, `query` and `refs` work
@@ -308,7 +327,17 @@ easa-erules query far-23 "stall speed" --json
 ```
 
 The eCFR mapping is literal: `DIV5` part → document, `DIV6`/`DIV7` subpart →
-section, `DIV8` → requirement with a `14 CFR 23.2000` designation.
+section, `DIV8` → requirement with a `14 CFR 23.2000` designation. FAR
+citations (`§ 25.1309`, `§§ 25.1309, 25.1322 and 25.1353`, `14 CFR 23.2005(a)`)
+are detected in running text and resolved like EASA designations.
+
+**Known limitations, and how you find out about them.** Tables are rendered as
+running text and images are not extracted — but neither is dropped in silence.
+Each flattened table produces a `table_flattened` warning naming the section,
+row and cell count, and each image is recorded as an unknown element. On
+14 CFR 25 that is 32 tables and 88 images, all visible in
+`conversion-report.json`. Do not rely on the FAA branch for anything that
+depends on table structure.
 
 There is **no ASTM adapter**. Those standards are paywalled and cannot be
 redistributed, so there is nothing an adapter could fetch.
@@ -335,6 +364,8 @@ redistributed, so there is nothing an adapter could fetch.
 
 | Symptom | What to try |
 |---------|-------------|
+| "published by EASA as PDF only" | `cs-p` and `cs-etso` have no XML export; use the PDF from the landing page |
+| `extract` warns `repeated_in_source` | The item is printed under several rules; `occurrences` says how many. The bodies are identical |
 | `extract` finds nothing | `query` for keywords; check designation form (`CS-VLA.1` vs `CS-VLA 1`) |
 | Stale search hits | `query … --rebuild` |
 | Fetch fails | Check network; run `python scripts/catalog_health.py` to see whether the landing page drifted |
@@ -345,6 +376,13 @@ redistributed, so there is nothing an adapter could fetch.
 
 ---
 
-## 12. License
+## 12. License and attribution
 
-MIT — see root `LICENSE`.
+MIT for the software — see root `LICENSE`.
+
+The MIT grant covers this software only. Regulatory text retrieved through the
+tool is not re-licensed: EASA Easy Access Rules are reproduced with
+acknowledgement per [EASA's copyright policy](https://www.easa.europa.eu/copyright-disclaimer),
+and 14 CFR is US Government work in the public domain. The full statement is in
+the root [`NOTICE`](../NOTICE); the reasoning behind it is in
+[`LEGAL-REVIEW.md`](LEGAL-REVIEW.md).

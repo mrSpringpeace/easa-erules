@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "ok": true,
-  "parser_version": "0.2.0",
+  "parser_version": "0.2.1",
   "source": null,
   "topics": 2,
   "paragraphs": 3,
@@ -17,6 +17,7 @@
   "internal_references": 0,
   "unique_erules_ids": 2,
   "duplicate_erules_ids": [],
+  "repeated_erules_ids": {},
   "source_topic_count": 2,
   "topic_count_mismatch": false,
   "unresolved_references": [],

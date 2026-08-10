@@ -63,6 +63,10 @@ class FaaEcfrAdapter(RegulationAdapter):
 
     authority = "faa"
 
+    def __init__(self) -> None:
+        self._warnings: list[dict[str, Any]] = []
+        self._unknown: list[dict[str, Any]] = []
+
     def capabilities(self) -> AdapterCapabilities:
         return AdapterCapabilities(
             authority=self.authority,
@@ -71,8 +75,9 @@ class FaaEcfrAdapter(RegulationAdapter):
             search=True,
             designations=True,
             notes=(
-                "Prototype. Parts fetched whole from the eCFR versioner API; "
-                "the AST is the same one the EASA branch produces."
+                "Experimental. Parts fetched whole from the eCFR versioner API; "
+                "the AST is the same one the EASA branch produces. EASA is the "
+                "maintained branch — treat this output shape as unstable."
             ),
             planned=[
                 "Advisory Circulars (no structured public API — needs a different route)",
@@ -199,6 +204,12 @@ class FaaEcfrAdapter(RegulationAdapter):
         return self.parse_element(root)
 
     def parse_element(self, root: etree._Element) -> ParseResult:
+        # Structure this adapter does not model yet is recorded, never dropped
+        # in silence — the project's "no silent content loss" rule applies to
+        # the experimental branch too.
+        self._warnings: list[dict[str, Any]] = []
+        self._unknown: list[dict[str, Any]] = []
+
         document = RegulationDocument()
         document.authority = "FAA"
         document.metadata = {}
@@ -226,14 +237,18 @@ class FaaEcfrAdapter(RegulationAdapter):
 
         from ..normalize import normalize_document
 
-        normalize_document(document)
+        normalize_document(document, authority="FAA")
+
+        from ..parser.document import resolve_document_references
+
+        resolve_document_references(document)
 
         return ParseResult(
             document=document,
             assets=AssetCollection(),
             references=ReferenceIndex(),
-            warnings=[],
-            unknown_elements=[],
+            warnings=self._warnings,
+            unknown_elements=self._unknown,
             source_topic_count=section_count,
         )
 
@@ -260,12 +275,19 @@ class FaaEcfrAdapter(RegulationAdapter):
         if tag == "HEAD":
             return 0
         if tag in ("DIV6", "DIV7"):
-            return self._parse_container(elem, parent)
+            # The container is a topic in its own right, like the sections it holds
+            return 1 + self._parse_container(elem, parent)
         if tag == "DIV8":
             self._parse_section(elem, parent)
             return 1
-        if tag in ("P", "FP"):
+        if tag.startswith(("P", "FP")):
             self._parse_paragraph(elem, parent)
+            return 0
+        if tag in ("TABLE", "GPOTABLE", "BOXTXT"):
+            self._flatten_table(elem, parent)
+            return 0
+        if tag == "img":
+            self._note_unsupported(elem, parent, "image not extracted")
             return 0
 
         # Anything unrecognised: keep its text rather than drop it
@@ -277,6 +299,52 @@ class FaaEcfrAdapter(RegulationAdapter):
             if text:
                 self._add_paragraph(parent, text)
         return found
+
+    def _section_of(self, parent: Any) -> str:
+        """Nearest enclosing rule designation, for warning context."""
+        node = parent
+        while node is not None:
+            designation = getattr(node, "designation", "")
+            if designation:
+                return str(designation)
+            node = getattr(node, "parent", None)
+        return ""
+
+    def _flatten_table(self, elem: etree._Element, parent: Any) -> None:
+        """Render a table as running text and say so.
+
+        Tables are not modelled by this adapter yet. Turning one into a
+        paragraph loses its structure, so the loss is reported rather than
+        left for a reader to discover.
+        """
+        rows = elem.findall(".//TR")
+        cells = elem.findall(".//TD") + elem.findall(".//TH")
+        for row in rows or [elem]:
+            text = _clean(" | ".join(_clean(_text_of(c)) for c in row))
+            if text:
+                self._add_paragraph(parent, text)
+        self._warnings.append(
+            {
+                "type": "table_flattened",
+                "element": elem.tag,
+                "section": self._section_of(parent),
+                "rows": len(rows),
+                "cells": len(cells),
+                "message": (
+                    f"Table rendered as text ({len(rows)} row(s), {len(cells)} cell(s)); "
+                    f"column structure is lost"
+                ),
+            }
+        )
+
+    def _note_unsupported(self, elem: etree._Element, parent: Any, reason: str) -> None:
+        self._unknown.append(
+            {
+                "element": elem.tag,
+                "section": self._section_of(parent),
+                "message": f"{elem.tag}: {reason}",
+            }
+        )
 
     def _parse_container(self, elem: etree._Element, parent: Any) -> int:
         section = RegulationSection()

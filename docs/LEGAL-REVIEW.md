@@ -1,12 +1,14 @@
-# Redistribution of EASA publications — groundwork for a decision
+# Redistribution of EASA publications — findings and decision
 
-**Status: awaiting the repository owner's decision. Nothing in git history has been rewritten.**
+**Status: resolved 2026-08-10. Git history is not being rewritten.**
 
-This document exists because the repository used to contain complete EASA Easy
-Access Rules publications under an MIT licence that covers the whole tree. That
-is a licensing question, not an engineering one, so this file only assembles the
-facts. The decision — and the history rewrite that may follow from it — is the
-owner's.
+This file existed because the repository used to contain complete EASA Easy
+Access Rules publications under an MIT licence covering the whole tree. Below is
+what was actually found, and what was decided.
+
+> Not legal advice. This is a reading of publicly available terms by the people
+> building the tool. If this project is used commercially, get a qualified
+> opinion.
 
 ---
 
@@ -17,57 +19,68 @@ owner's.
 | `tests/real_samples/cs-vla.xml` | 6 402 678 B (~6.1 MiB) | Easy Access Rules for Very Light Aeroplanes (CS-VLA), Amendment 1 | `b24a3ab4fe969d646fe3ffb217e693e596ad490e9bf1ae5907723ca754f05bee` |
 | `tests/real_samples/cs-23.xml` | 4 184 733 B (~4.0 MiB) | Easy Access Rules for Normal-Category Aeroplanes (CS-23) | `cbaf332c96b4c7b54e6776f8a74df36a8d411885b7d135fbab2f363e76504743` |
 
-Both are complete XML exports of the published regulation text — not excerpts.
+Both complete XML exports of the published regulation text, introduced by a
+single commit (`59fcb91`) and never modified afterwards.
 
-## 2. Where they appear in history
+## 2. Finding: reproduction is authorised
 
-Introduced by a single commit:
+EASA's [copyright page](https://www.easa.europa.eu/copyright-disclaimer)
+carries the standard EU formula: reproduction is authorised provided the source
+is acknowledged, save where otherwise stated. Where prior permission is
+required, that requirement cancels the general permission and must say so
+explicitly.
 
-```text
-59fcb91  M10: English README, real EAR samples, expanded catalog, table merges
-```
+Two things were checked before relying on this:
 
-No later commit modified them. That makes a history rewrite comparatively cheap
-if one is wanted: a single blob pair, one commit, no interleaved edits.
+1. **The "Official Publication of the Agency" carve-out does not apply here.**
+   An earlier draft of this document assumed it might. It does not: that clause
+   (referencing Executive Director Decision 2012/163/E) sits in the **Disclaimer**
+   section and concerns accuracy and completeness of website material. It is not
+   a copyright exception.
+2. **The publications state no reproduction restriction of their own.** The
+   front matter of CS-VLA is a liability disclaimer — it notes that the document
+   is a consolidated, unofficial compilation and that EASA accepts no liability.
+   There is no "otherwise stated" restriction to trigger.
 
-## 3. What has already been done (no decision required)
+**Conclusion:** redistributing EAR XML with attribution appears to be permitted.
+Committing those files was not a licensing violation, and rewriting history
+would solve a problem that does not exist.
 
-- The two XML files are **untracked** as of this change; the working copies stay
-  on disk and `.gitignore` prevents them coming back.
-- The pins (`cs-vla.meta.yaml`, `cs-23.meta.yaml`) remain tracked. They contain
-  download URL, version label, sha256 and size — metadata about the publication,
-  not the publication.
-- `tests/real_samples/fetch_samples.py` reconstructs the files from the pins and
-  refuses any download whose bytes do not match.
-- Tests needing a sample are marked `real_sample` and skip when it is absent, so
-  `pytest` passes on a clean clone with no network.
+## 3. The real issue: the MIT grant
 
-The result: nothing at `HEAD` redistributes regulatory text. **The blobs remain
-reachable in history** until a rewrite is performed.
+The sharper problem the review raised remains valid, and is independent of
+whether redistribution is allowed. MIT grants any recipient the right to use,
+modify, sublicense and sell the covered work. Applied to a tree containing
+regulatory text, it purports to grant rights over that text which nobody here
+holds.
 
-## 4. What still needs a decision
+That is fixed by stating the boundary, not by deleting files. See the root
+[`NOTICE`](../NOTICE), which carves regulatory text out of the MIT grant and
+records the attribution EASA's policy requires.
 
-### 4.1 Are the terms of use compatible with redistribution?
+## 4. Decision
 
-Do not assume the general EU reuse policy (Decision 2011/833/EU) applies. EASA
-publishes Easy Access Rules under its own terms and the documents carry their own
-disclaimer and copyright notice. What needs establishing:
+| Question | Decision |
+|----------|----------|
+| Rewrite git history? | **No.** Nothing was violated; a rewrite would invalidate every clone, fork and the v0.1.x tags for no benefit. |
+| Keep publications out of the repository? | **Yes** — but for engineering reasons, not legal ones (see below). |
+| Address the MIT scope? | **Yes** — root `NOTICE`, carving regulatory text out of the grant. |
 
-- the terms attached to the EAR XML exports specifically, not the EASA website in general;
-- whether redistribution in a third-party repository is permitted, and under what attribution;
-- whether an MIT-licensed repository containing them misrepresents their licensing status
-  (this is the sharper issue: MIT grants rights over the whole tree that the owner does not hold).
+Publications stay out of the repository because:
 
-Even if redistribution turns out to be permitted, the licence mismatch is worth
-resolving — a `LICENSES` note carving the regulatory text out of the MIT grant.
+- 11 MiB of binary-ish XML in a repository of ~3.5k lines of code is a poor
+  trade, and it bloats every clone forever;
+- the pins (`*.meta.yaml`) already guarantee reproducibility by sha256, so
+  nothing is lost — `fetch_samples.py` reconstructs the exact bytes and refuses
+  anything that does not match;
+- it keeps the sdist on PyPI lean.
 
-### 4.2 Rewrite history, or leave it?
+The blobs remain reachable in history. That is now a deliberate choice, not an
+oversight.
 
-Leaving the blobs in history is a defensible choice if 4.1 comes back permissive.
-If it does not, the rewrite is straightforward but **invalidates every existing
-clone, fork and tag**, and PyPI releases already published cannot be altered.
+## 5. If the decision is ever revisited
 
-Prepared, not executed:
+A rewrite was prepared and deliberately not executed:
 
 ```bash
 # 1. Full backup first — this rewrite is not reversible in place.
@@ -85,10 +98,5 @@ git log --all --oneline -- tests/real_samples/cs-vla.xml   # expect no output
 git push --force --all && git push --force --tags
 ```
 
-Do not run step 2 without a decision on 4.1 and without the backup from step 1.
-
-## 5. Recommendation
-
-Resolve 4.1 first — it determines whether 4.2 is required or merely tidy. The
-engineering side is already in the safe state either way: `HEAD` ships no
-regulatory text, and the smoke tests still work through the pinned fetch.
+It invalidates existing clones, forks and tags, and PyPI releases already
+published cannot be altered.

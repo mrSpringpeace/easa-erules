@@ -18,6 +18,23 @@ from .parsing import parse_any
 from .sources.provenance import SourceProvenance, build_provenance
 
 
+def _reject_if_not_convertible(source: str) -> None:
+    """Fail early and clearly for catalog entries EASA publishes only as PDF."""
+    from .sources.registry import get_source
+
+    try:
+        entry = get_source(source)
+    except KeyError:
+        return
+    if entry.get("xml_available") is False:
+        raise ToolError(
+            Status.ERROR,
+            f"{entry['id']} is published by EASA as PDF only — there is no XML "
+            f"export to parse. See {entry.get('landing_page', 'the EASA document library')}.",
+            source=source,
+        )
+
+
 def authority_of(source: str) -> str:
     """Authority for a catalog id/alias; empty string for plain file paths."""
     from .sources.registry import get_source
@@ -45,6 +62,8 @@ def resolve_source_path(
         resolve_source_id(source)
     except KeyError:
         known = Path(source).exists()
+
+    _reject_if_not_convertible(source)
 
     if authority_of(source) == "FAA":
         return _resolve_faa_path(source, version=version, auto_fetch=auto_fetch)
@@ -136,9 +155,15 @@ def provenance_for(source: str, source_path: Path, document: Any) -> SourceProve
     )
 
 
-def find_rule(node: Any, designation: str) -> Any | None:
-    """Find a rule node by designation or ERules id (case/space insensitive)."""
+def find_rules(node: Any, designation: str) -> list[Any]:
+    """Every node matching a designation or ERules id (case/space insensitive).
+
+    Usually one. An AMC or GM that covers several rules is printed once under
+    each of them with the same ERulesId, so a lookup by id legitimately finds
+    the same item several times.
+    """
     needle = designation.replace(" ", "-").upper()
+    found: list[Any] = []
 
     def matches(n: Any) -> bool:
         for attr in ("designation", "erules_id"):
@@ -147,13 +172,20 @@ def find_rule(node: Any, designation: str) -> Any | None:
                 return True
         return False
 
-    if matches(node):
-        return node
-    for child in getattr(node, "children", []):
-        found = find_rule(child, designation)
-        if found:
-            return found
-    return None
+    def walk(n: Any) -> None:
+        if matches(n):
+            found.append(n)
+        for child in getattr(n, "children", []):
+            walk(child)
+
+    walk(node)
+    return found
+
+
+def find_rule(node: Any, designation: str) -> Any | None:
+    """First node matching a designation or ERules id, or None."""
+    matches = find_rules(node, designation)
+    return matches[0] if matches else None
 
 
 # --- Operations ------------------------------------------------------------
@@ -211,6 +243,8 @@ def fetch_regulation(
             source=doc_id,
         ) from exc
 
+    _reject_if_not_convertible(doc_id)
+
     if str(entry.get("authority", "")).upper() == "FAA":
         path = _resolve_faa_path(doc_id, version=version, auto_fetch=True)
         prov = provenance_for(doc_id, path, None)
@@ -250,15 +284,23 @@ def extract_rule(
 
     result, source_path = parse_source(source, version=version, auto_fetch=auto_fetch)
     prov = provenance_for(source, source_path, result.document)
-    target = find_rule(result.document, rule)
+    matches = find_rules(result.document, rule)
 
-    status = Status.OK if target is not None else Status.NO_MATCH
+    warnings = list(prov.warnings)
+    if len(matches) > 1:
+        # The publisher prints this item under each rule it covers. One body is
+        # returned; the count says how many times it appears so an agent does
+        # not mistake the pick for the whole picture.
+        warnings.append("repeated_in_source")
+
+    status = Status.OK if matches else Status.NO_MATCH
     return envelope(
         status,
         source=prov.to_dict(),
-        warnings=prov.warnings,
+        warnings=warnings,
         query=rule,
-        rule=render_json(target) if target is not None else None,
+        occurrences=len(matches),
+        rule=render_json(matches[0]) if matches else None,
     )
 
 

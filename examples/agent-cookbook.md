@@ -147,9 +147,10 @@ easa-erules inspect cs-25
 
 GitHub Actions: workflow **Live EASA smoke** (manual dispatch or weekly).
 
-## 9. FAA parts (14 CFR)
+## 9. FAA parts (14 CFR) — experimental
 
-Same commands, different authority — the AST is shared:
+Same commands, different authority — the AST is shared. This branch is a
+prototype; its shape may change between releases:
 
 ```bash
 easa-erules fetch far-23
@@ -162,6 +163,13 @@ FAA versions are eCFR issue dates, not amendment numbers:
 ```bash
 easa-erules fetch far-23 --version 2026-08-05
 ```
+
+Cross-references work here too — `refs far-25 "14 CFR 25.1309"` follows `§`
+citations found in the text.
+
+**Fidelity.** Tables are flattened to text and images are skipped. Both are
+reported in `conversion-report.json` (`table_flattened` warnings, `img` unknown
+elements), so check it before trusting anything structural from 14 CFR 25/27/29.
 
 **Scope.** This is a mirror of eCFR regulation text. It carries no Advisory
 Circulars, policy or preamble, and it is not a substitute for the applicable

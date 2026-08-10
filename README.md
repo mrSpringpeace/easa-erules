@@ -6,11 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/mrSpringpeace/easa-erules)](https://github.com/mrSpringpeace/easa-erules/releases)
 
-**Deterministic, local toolkit for airworthiness regulations — built for LLM agents.**
+**Deterministic, local toolkit for EASA Easy Access Rules — built for LLM agents.**
 
-Turns official publications into structured data an agent can quote from:
-EASA Easy Access Rules (CS-*, AMC, GM) from the EAR XML exports, and 14 CFR
-from the public eCFR API.
+Turns the official EAR XML exports (CS-*, AMC, GM) into structured data an
+agent can quote from. An experimental FAA branch serves 14 CFR through the
+public eCFR API using the same interface.
 
 - fetch a regulation, or a pinned version, into a local cache
 - parse into a **canonical Regulation AST** (Flat OPC / OOXML, or eCFR XML)
@@ -63,7 +63,10 @@ pip install "easa-erules[mcp]"
 
 Entry points: `easa-erules`, `easa-erules-mcp`.
 
-> **Disclaimer:** Unofficial toolkit. Always verify critical interpretations against the official EASA Easy Access Rules publication. This software does not re-license regulatory text.
+> **Disclaimer:** Unofficial toolkit, not endorsed by EASA or the FAA. Always
+> verify critical interpretations against the official publication. The MIT
+> licence covers this software only — see [`NOTICE`](NOTICE) for the attribution
+> and licensing of regulatory text.
 
 ---
 
@@ -87,7 +90,7 @@ easa-erules query cs-vla "factor of safety" --json
 easa-erules refs cs-vla CS-VLA.303 --json
 easa-erules validate ./out
 
-# FAA parts work the same way
+# FAA parts work the same way (experimental)
 easa-erules fetch far-23
 easa-erules extract far-23 "14 CFR 23.2005" --format json
 ```
@@ -202,16 +205,25 @@ Local XML/DOCX ───────────────────┤
 **EASA** — `sources/easa.yaml`, keyed on stable landing pages rather than
 fragile direct URLs:
 
-`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `cs-p`, `cs-etso`, `part-21`, `uas-rules`
+`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `part-21`, `uas-rules`
 
-**FAA** — `sources/faa.yaml`, served by the public eCFR API:
+`cs-p` and `cs-etso` are catalogued but **PDF-only** — EASA publishes no XML
+export for them, so commands fail with an explanation instead of a confusing
+parse error.
+
+**FAA — experimental** — `sources/faa.yaml`, served by the public eCFR API:
 
 `far-21`, `far-23`, `far-25`, `far-27`, `far-43`, `far-91`
 
-A weekly workflow probes every entry and reports drift without failing the build:
+This branch is a prototype: it mirrors regulation text only, its shape may
+change, and it is **not** a source for the FAA certification basis. EASA is
+where this project is maintained.
+
+A weekly workflow resolves, downloads and parses every entry, and reports drift
+without failing the build:
 
 ```bash
-python scripts/catalog_health.py
+python scripts/catalog_health.py --deep
 ```
 
 ---
@@ -271,4 +283,9 @@ ruff check src tests scripts
 
 ## License
 
-MIT
+MIT for the software — see [`LICENSE`](LICENSE).
+
+The MIT grant does **not** extend to regulatory text retrieved through this
+tool. EASA Easy Access Rules are reproduced with acknowledgement per
+[EASA's copyright policy](https://www.easa.europa.eu/copyright-disclaimer);
+14 CFR is US Government work in the public domain. See [`NOTICE`](NOTICE).

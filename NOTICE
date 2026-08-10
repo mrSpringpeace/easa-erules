@@ -1,0 +1,47 @@
+NOTICE
+======
+
+This project is licensed under the MIT License (see LICENSE).
+
+The MIT grant covers the software in this repository only. It does NOT extend
+to regulatory text obtained through this tool. Nobody involved in this project
+holds the rights that MIT would otherwise purport to grant over that text.
+
+
+EASA Easy Access Rules
+----------------------
+
+Copyright European Union Aviation Safety Agency.
+
+Reproduction is authorised provided the source is acknowledged, per EASA's
+copyright policy: https://www.easa.europa.eu/copyright-disclaimer
+
+Easy Access Rules are consolidated, easy-to-read compilations. EASA states in
+the publications themselves that they are not official publications and that
+EASA accepts no liability for their use. The authoritative texts are the
+Certification Specifications and the Executive Director Decisions that
+introduce or amend them.
+
+Always verify critical interpretations against the official EASA publication.
+This toolkit is unofficial and is not endorsed by EASA.
+
+
+14 CFR (FAA)
+------------
+
+Title 14 of the Code of Federal Regulations is a work of the United States
+Government and is in the public domain. It is retrieved from the eCFR API
+(https://www.ecfr.gov). The eCFR is an editorial compilation; the Federal
+Register and the annual CFR edition are the authoritative sources.
+
+This toolkit is not a source for the FAA certification basis. It mirrors
+regulation text only — no Advisory Circulars, policy or preamble material.
+
+
+Storage
+-------
+
+No regulatory text is stored in this repository. `tests/real_samples/` contains
+only pins (download URL, version label, sha256, size); the publications are
+fetched on demand by `tests/real_samples/fetch_samples.py` and verified against
+those hashes.

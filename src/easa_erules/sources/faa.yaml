@@ -1,5 +1,10 @@
 # FAA source catalog — 14 CFR parts served by the public eCFR API.
 #
+# EXPERIMENTAL. EASA is the maintained branch of this project; the FAA branch
+# exists because public-domain text over a structured API is cheap to support.
+# It mirrors regulation text only and is not a source for the FAA certification
+# basis.
+#
 # 14 CFR is US Government work in the public domain, and eCFR publishes it as
 # structured XML, so this branch needs neither OOXML parsing nor the licensing
 # care the EASA branch does.

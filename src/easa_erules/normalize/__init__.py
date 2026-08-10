@@ -11,13 +11,18 @@ from .references import normalize_references
 from .whitespace import normalize_whitespace
 
 
-def normalize_document(root: Any, *, detect_references: bool = True) -> Any:
+def normalize_document(
+    root: Any,
+    *,
+    detect_references: bool = True,
+    authority: str = "",
+) -> Any:
     """Run all normalization passes in-place and return the root."""
     normalize_whitespace(root)
     normalize_headings(root)
     normalize_numbering(root)
     if detect_references:
-        detect_text_references(root)
+        detect_text_references(root, authority=authority)
     normalize_references(root)
     return root
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -14,6 +15,18 @@ from easa_erules.model import ParagraphNode, RegulationRequirement, RegulationSe
 from easa_erules.parsing import is_ecfr_xml, parse_any
 
 LIVE = os.environ.get("EASA_ERULES_LIVE", "").strip() in {"1", "true", "yes"}
+
+ECFR_TABLE_SAMPLE = """<?xml version="1.0"?>
+<DIV8 N="25.1517" TYPE="SECTION" hierarchy_metadata="{&quot;citation&quot;:&quot;14 CFR 25.1517&quot;}">
+<HEAD>&#xA7; 25.1517 Rough air speed.</HEAD>
+<P>Compliance with &#xA7;&#xA0;25.1309 and &#xA7;&#xA7;&#xA0;25.1322, 25.1353 is required.</P>
+<TABLE>
+<TR><TH>Condition</TH><TH>Speed</TH></TR>
+<TR><TD>Rough air</TD><TD>V_RA</TD></TR>
+</TABLE>
+<img src="/graphics/er01.gif"/>
+</DIV8>
+"""
 
 ECFR_SAMPLE = """<?xml version="1.0"?>
 <DIV6 N="A" TYPE="SUBPART" hierarchy_metadata="{&amp;quot;citation&amp;quot;:&amp;quot;14 CFR Part 23 Subpart A&amp;quot;}">
@@ -71,7 +84,8 @@ def test_parses_into_the_shared_ast(ecfr_file: Path):
     doc = result.document
 
     assert doc.authority == "FAA"
-    assert result.source_topic_count == 2
+    # One subpart container plus the two sections inside it
+    assert result.source_topic_count == 3
 
     subparts = [c for c in doc.children if isinstance(c, RegulationSection)]
     assert len(subparts) == 1
@@ -92,6 +106,80 @@ def test_extract_works_through_the_normal_api(ecfr_file: Path):
     assert payload["status"] == "ok"
     assert payload["rule"]["rule"] == "14 CFR 23.2005"
     assert payload["source"]["sha256"]
+
+
+@pytest.fixture
+def ecfr_table_file(tmp_path: Path) -> Path:
+    path = tmp_path / "far-25-sample.xml"
+    path.write_text(ECFR_TABLE_SAMPLE, encoding="utf-8")
+    return path
+
+
+def test_far_citations_become_references(ecfr_table_file: Path):
+    """620 citations in far-25 used to produce an empty reference graph."""
+    from easa_erules.model import InternalReferenceNode
+
+    result = parse_any(ecfr_table_file)
+    refs: list[InternalReferenceNode] = []
+
+    def walk(node: Any) -> None:
+        if isinstance(node, InternalReferenceNode):
+            refs.append(node)
+        for child in getattr(node, "children", []) or []:
+            walk(child)
+
+    walk(result.document)
+    assert [r.target_designation for r in refs] == [
+        "14 CFR 25.1309",
+        "14 CFR 25.1322",
+        "14 CFR 25.1353",
+    ]
+
+
+def test_flattened_tables_are_reported_not_dropped(ecfr_table_file: Path):
+    """The 'no silent content loss' rule applies to the experimental branch too."""
+    result = parse_any(ecfr_table_file)
+
+    flattened = [w for w in result.warnings if w["type"] == "table_flattened"]
+    assert len(flattened) == 1
+    assert flattened[0]["rows"] == 2
+    assert flattened[0]["cells"] == 4
+    assert flattened[0]["section"] == "14 CFR 25.1517"
+
+    # The text survives even though the structure does not
+    from easa_erules.model import ParagraphNode
+
+    texts = []
+
+    def walk(node: Any) -> None:
+        if isinstance(node, ParagraphNode):
+            texts.append(node.get_text())
+        for child in getattr(node, "children", []) or []:
+            walk(child)
+
+    walk(result.document)
+    assert any("Rough air | V_RA" in t for t in texts)
+
+
+def test_images_are_reported_as_unknown_elements(ecfr_table_file: Path):
+    result = parse_any(ecfr_table_file)
+    assert [u["element"] for u in result.unknown_elements] == ["img"]
+    assert "not extracted" in result.unknown_elements[0]["message"]
+
+
+def test_topic_count_matches_the_source(ecfr_file: Path):
+    """A mismatch is how content loss surfaces; containers count as topics."""
+    from easa_erules.validation import validate_document
+
+    result = parse_any(ecfr_file)
+    report = validate_document(
+        result.document,
+        result.assets,
+        result.references,
+        source_topic_count=result.source_topic_count,
+    )
+    assert report.topics == result.source_topic_count
+    assert not report.topic_count_mismatch
 
 
 def test_designation_normalization():

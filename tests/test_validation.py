@@ -71,7 +71,7 @@ def test_duplicate_erules_id_is_error():
     count_and_check_structure(doc, report)
     report.finalize()
     assert "DUP" in report.duplicate_erules_ids
-    assert any(e.get("type") == "duplicate_erules_id" for e in report.errors)
+    assert any(e.get("type") == "conflicting_erules_id" for e in report.errors)
     assert not report.ok
 
 

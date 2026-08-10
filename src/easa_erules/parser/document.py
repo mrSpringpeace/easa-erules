@@ -24,6 +24,61 @@ from .topics import TopicParser
 _SUBPARAGRAPH_SUFFIX = re.compile(r"(\([a-z0-9]+\))+$", re.IGNORECASE)
 
 
+def resolve_document_references(document: Any, references: Any = None) -> None:
+    """Link internal references to the topics they name, in place.
+
+    Shared by both authorities: the EASA parser and the FAA adapter build the
+    same AST, so they resolve it the same way.
+    """
+    from ..model import InternalReferenceNode
+
+    by_designation: dict[str, Any] = {}
+
+    def index(node: Any) -> None:
+        for attr in ("designation", "erules_id"):
+            value = getattr(node, attr, "")
+            if value:
+                by_designation.setdefault(value, node)
+        for child in getattr(node, "children", []) or []:
+            index(child)
+
+    index(document)
+
+    def normalize(designation: str) -> str:
+        return designation.replace(" ", "-").upper()
+
+    norm_index = {normalize(k): v for k, v in by_designation.items()}
+
+    def find_target(designation: str) -> Any | None:
+        node = by_designation.get(designation) or norm_index.get(normalize(designation))
+        if node is not None:
+            return node
+        base = base_designation(designation)
+        if base:
+            return by_designation.get(base) or norm_index.get(normalize(base))
+        return None
+
+    if references is not None:
+        for ref in references.by_designation.values():
+            if ref.target_designation and not ref.resolved:
+                target = find_target(ref.target_designation)
+                if target:
+                    ref.target_id = target.id
+                    ref.resolved = True
+                    if ref.target_id:
+                        references.by_target.setdefault(ref.target_id, []).append(ref)
+
+    def walk(node: Any) -> None:
+        if isinstance(node, InternalReferenceNode) and node.target_designation:
+            target = find_target(node.target_designation)
+            if target:
+                node.target_id = target.id
+        for child in getattr(node, "children", []) or []:
+            walk(child)
+
+    walk(document)
+
+
 def base_designation(designation: str) -> str:
     """Strip sub-paragraph markers from a citation.
 

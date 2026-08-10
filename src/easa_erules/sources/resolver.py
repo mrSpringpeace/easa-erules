@@ -95,11 +95,13 @@ class EasaSourceResolver:
         doc_id: str,
         *,
         version: str | None = None,
-        preferred_format: str = "xml",
+        preferred_format: str | None = None,
     ) -> ResolveResult:
         """Open the landing page, list publications, select latest or pinned version."""
         source = get_source(doc_id)
         landing = source["landing_page"]
+        # The catalog entry wins unless the caller asks for a specific format —
+        # CS-ETSO is pdf-only, and a hardcoded "xml" default silently overrode it.
         preferred = preferred_format or source.get("preferred_format") or "xml"
 
         publications = self.discover_publications(landing)
@@ -137,7 +139,14 @@ class EasaSourceResolver:
         preferred = preferred_format.lower()
         candidates = [p for p in publications if p.format == preferred]
         if not candidates:
-            candidates = list(publications)
+            # Falling back to another format looks like success and fails a
+            # layer down with a confusing message: CS-ETSO is PDF-only, and a
+            # PDF selected as "the XML" reaches the OOXML reader as garbage.
+            available = ", ".join(sorted({p.format for p in publications})) or "none"
+            raise LookupError(
+                f"No {preferred!r} publication on this landing page "
+                f"(available formats: {available})"
+            )
 
         if version:
             needle = _slugify_version(version)
@@ -147,14 +156,6 @@ class EasaSourceResolver:
                     or needle in pub.version_slug
                     or needle in _slugify_version(pub.version_label)
                     or needle in _slugify_version(pub.title)
-                    or version.lower() in pub.title.lower()
-                    or version.lower() in pub.version_label.lower()
-                ):
-                    return pub
-            # Fallback: match across all formats
-            for pub in publications:
-                if (
-                    needle == pub.version_slug
                     or version.lower() in pub.title.lower()
                     or version.lower() in pub.version_label.lower()
                 ):

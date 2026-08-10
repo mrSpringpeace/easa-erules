@@ -37,9 +37,9 @@ for how to use the tool see the [README](../README.md) and the
 
 | Area | Status | Notes |
 |------|--------|--------|
-| EASA catalog | **12 entries** | cs-vla/lsa/22/23/25/27/29, cs-e/p/etso, part-21, uas-rules |
-| FAA catalog | **6 entries** | far-21/23/25/27/43/91 via the public eCFR API |
-| FAA adapter | **Prototype** | Fetch + parse + search working; ACs and in-part tables not yet |
+| EASA catalog | **12 entries, all verified** | 10 convert; `cs-p` and `cs-etso` are PDF-only and flagged as such |
+| FAA catalog | **6 entries, experimental** | far-21/23/25/27/43/91 via the public eCFR API |
+| FAA adapter | **Experimental** | Fetch, parse, search, refs. Tables flattened and images skipped — both reported, never silent. Output shape may change. |
 | ASTM | **Out of scope** | Paywalled, cannot be redistributed — adapter removed |
 
 ## Testing and CI
@@ -49,19 +49,35 @@ for how to use the tool see the [README](../README.md) and the
 | Offline suite | **Green** | `pytest` passes with no network and no samples present |
 | Real-document smokes | **Pinned fetch** | Publications no longer committed; `fetch_samples.py` reproduces them by sha256 |
 | CI | **Done** | ruff + pytest matrix, adapter smoke, pinned real-sample smoke |
-| Catalog health | **Done** | Weekly probe of all 18 entries, reports drift as an artifact |
+| Catalog health | **Done, deep** | Weekly resolve + download + parse of all 18 entries; reports drift as an artifact |
 | Live smoke | **Done** | Manual / weekly `cs-vla` + `cs-25` fetch |
 
 ## Open items
 
-1. **Redistribution of EASA text in git history** — awaiting the owner's legal
-   assessment. `HEAD` is clean; the blobs remain reachable in history. See
-   [LEGAL-REVIEW.md](LEGAL-REVIEW.md).
-2. **Package naming** — `easa-erules` no longer describes a toolkit that also
-   serves 14 CFR. Rename or split is an owner decision; adoption is still low
-   enough that it is cheap now.
-3. **FAA coverage** — Advisory Circulars have no structured public API; tables
-   and appendices inside parts are currently flattened to paragraphs.
-4. **Table edge cases** — exotic nested layouts may still need field fixes.
-5. **Large packages** — CS-25 and larger are catalogued but excluded from the
+1. **FAA tables and images** — flattened / skipped, and reported as such
+   (32 tables and 88 images on 14 CFR 25). Modelling them properly is only
+   worth doing if the FAA branch is promoted out of experimental. Advisory
+   Circulars have no structured public API at all.
+2. **Table edge cases** — exotic nested layouts may still need field fixes.
+4. **Large packages** — CS-25 and larger are catalogued but excluded from the
    default smoke matrix on runtime grounds.
+
+## Resolved
+
+- **Catalog verification** (2026-08-10) — all 18 entries checked end to end for
+  the first time. Found and fixed: the resolver silently substituted a PDF when
+  no XML existed (`cs-p`, `cs-etso`), and the health check reported those as
+  green because it never verified the format. Repeated ERulesIds on `part-21`
+  and `uas-rules` turned out to be how EASA publishes multi-rule AMC/GM, not a
+  parser defect, and are now recorded rather than failed. Narrowing the catalog
+  proved unnecessary — it needed verifying, not shrinking.
+- **Package naming** (2026-08-10) — kept as `easa-erules`. EASA remains the
+  maintained branch and the name is what people searching for Easy Access Rules
+  will find; the FAA branch is labelled experimental instead. Revisit only if
+  FAA is ever promoted to production, while adoption is still low.
+- **Redistribution of EASA text** (2026-08-10) — EASA's copyright policy
+  authorises reproduction with acknowledgement, and the "Official Publication"
+  clause is a disclaimer, not a copyright carve-out. History is not being
+  rewritten; the MIT scope is bounded by the root `NOTICE`. Publications stay
+  out of the repository on engineering grounds. See
+  [LEGAL-REVIEW.md](LEGAL-REVIEW.md).

@@ -21,13 +21,54 @@ from ..model import (
 from .report import ValidationReport
 
 
+def _topic_identity(node: Any) -> tuple[str, str, str]:
+    """What makes two nodes the same published item: label, title and body.
+
+    Comparing bodies alone is not enough — two different rules sharing an
+    ERulesId both have their own designation, and that is a real conflict even
+    if the AST happens to hold no paragraphs for either.
+    """
+    return (
+        getattr(node, "designation", "") or "",
+        getattr(node, "title", "") or "",
+        _topic_text(node),
+    )
+
+
+def _topic_text(node: Any) -> str:
+    """Flatten a topic's own paragraphs, without descending into nested topics."""
+    parts: list[str] = []
+    nested = (
+        RegulationRequirement,
+        RegulationSection,
+        GuidanceNode,
+        AcceptableMeansOfComplianceNode,
+    )
+
+    def walk(n: Any) -> None:
+        if isinstance(n, ParagraphNode):
+            text = n.get_text().strip()
+            if text:
+                parts.append(text)
+        for child in getattr(n, "children", []) or []:
+            if isinstance(child, nested):
+                continue
+            walk(child)
+
+    walk(node)
+    return "\n".join(parts)
+
+
 def count_and_check_structure(
     doc: Any,
     report: ValidationReport,
 ) -> None:
     """Walk the AST, count nodes, and check structural integrity."""
-    seen_erules_ids: set[str] = set()
-    duplicate_ids: set[str] = set()
+    # An AMC or GM that relates to several rules is printed once under each of
+    # them, carrying the same ERulesId every time. That is how EASA publishes
+    # it, not a parse failure — so repeats of an identical body are recorded
+    # and repeats with differing bodies are errors.
+    items_by_erules_id: dict[str, list[tuple[str, str, str]]] = {}
 
     def walk(node: Any) -> None:
         if isinstance(node, RegulationRequirement):
@@ -62,10 +103,7 @@ def count_and_check_structure(
 
         erules_id = getattr(node, "erules_id", None)
         if erules_id:
-            if erules_id in seen_erules_ids:
-                duplicate_ids.add(erules_id)
-            else:
-                seen_erules_ids.add(erules_id)
+            items_by_erules_id.setdefault(erules_id, []).append(_topic_identity(node))
 
         # Table cells are stored as lists of nodes, not in children
         if isinstance(node, TableNode):
@@ -82,14 +120,41 @@ def count_and_check_structure(
 
     walk(doc)
 
-    report.unique_erules_ids = len(seen_erules_ids)
-    report.duplicate_erules_ids = sorted(duplicate_ids)
+    report.unique_erules_ids = len(items_by_erules_id)
+
+    repeated: dict[str, int] = {}
+    conflicting: list[str] = []
+    for erules_id, items in items_by_erules_id.items():
+        if len(items) < 2:
+            continue
+        if len(set(items)) == 1:
+            repeated[erules_id] = len(items)
+        else:
+            conflicting.append(erules_id)
+
+    report.repeated_erules_ids = dict(sorted(repeated.items()))
+    report.duplicate_erules_ids = sorted(conflicting)
+
+    if repeated:
+        report.warnings.append({
+            "type": "repeated_erules_ids",
+            "count": len(repeated),
+            "occurrences": sum(repeated.values()),
+            "message": (
+                f"{len(repeated)} item(s) published more than once with identical "
+                f"content (AMC/GM covering several rules); "
+                f"{sum(repeated.values())} occurrences in total"
+            ),
+        })
 
     for dup_id in report.duplicate_erules_ids:
         report.errors.append({
-            "type": "duplicate_erules_id",
+            "type": "conflicting_erules_id",
             "erules_id": dup_id,
-            "message": f"Duplicate ERulesId: {dup_id}",
+            "message": (
+                f"ERulesId {dup_id} is used by items with different content — "
+                f"the id no longer identifies one item"
+            ),
         })
 
     if report.empty_text_nodes:
