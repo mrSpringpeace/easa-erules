@@ -1,0 +1,84 @@
+# FAA source catalog — 14 CFR parts served by the public eCFR API.
+#
+# 14 CFR is US Government work in the public domain, and eCFR publishes it as
+# structured XML, so this branch needs neither OOXML parsing nor the licensing
+# care the EASA branch does.
+#
+# Fetch URLs are built from the eCFR versioner API rather than a landing page:
+#   https://www.ecfr.gov/api/versioner/v1/full/{date}/title-14.xml?part={part}
+
+sources:
+
+  far-21:
+    title: "Certification Procedures for Products and Articles (14 CFR 21)"
+    authority: "FAA"
+    type: "regulation"
+    aliases:
+      - 14CFR21
+      - part-21-faa
+      - far21
+    ecfr:
+      title: 14
+      part: "21"
+    preferred_format: xml
+
+  far-23:
+    title: "Airworthiness Standards: Normal Category Airplanes (14 CFR 23)"
+    authority: "FAA"
+    type: "airworthiness-standard"
+    aliases:
+      - 14CFR23
+      - far23
+      - part-23-faa
+    ecfr:
+      title: 14
+      part: "23"
+    preferred_format: xml
+
+  far-25:
+    title: "Airworthiness Standards: Transport Category Airplanes (14 CFR 25)"
+    authority: "FAA"
+    type: "airworthiness-standard"
+    aliases:
+      - 14CFR25
+      - far25
+    ecfr:
+      title: 14
+      part: "25"
+    preferred_format: xml
+
+  far-27:
+    title: "Airworthiness Standards: Normal Category Rotorcraft (14 CFR 27)"
+    authority: "FAA"
+    type: "airworthiness-standard"
+    aliases:
+      - 14CFR27
+      - far27
+    ecfr:
+      title: 14
+      part: "27"
+    preferred_format: xml
+
+  far-43:
+    title: "Maintenance, Preventive Maintenance, Rebuilding, and Alteration (14 CFR 43)"
+    authority: "FAA"
+    type: "regulation"
+    aliases:
+      - 14CFR43
+      - far43
+    ecfr:
+      title: 14
+      part: "43"
+    preferred_format: xml
+
+  far-91:
+    title: "General Operating and Flight Rules (14 CFR 91)"
+    authority: "FAA"
+    type: "regulation"
+    aliases:
+      - 14CFR91
+      - far91
+    ecfr:
+      title: 14
+      part: "91"
+    preferred_format: xml

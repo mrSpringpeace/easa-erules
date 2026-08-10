@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-08-10
+
+Agent-facing release. The JSON shape changed — see **Breaking** below.
+
+### Fixed
+
+- **`query` crashed on CS-VLA.** Sections sharing a title (CS-VLA has five
+  `GENERAL` sections) were assigned the same node id, which violated the unique
+  constraint on the FTS index. Deterministic ids are now deduplicated within a
+  document.
+- **Broken image and rule links for parenthesised designations.** `AMC VLA
+  613(c)` produced `![](assets/amc-vla-613(c).png)`, which truncates at the
+  first `(`. Markdown link destinations are percent-encoded; the validator
+  decodes before checking the path.
+- **`--json` output was not always parseable.** `rich` soft-wrapped long values,
+  so piping into `jq` could fail. Machine-readable output now goes to stdout as
+  plain JSON.
+
+### Breaking
+
+- Every machine-readable output is wrapped in a versioned envelope:
+  `schema_version`, `status`, `source`, `warnings`, then the command payload.
+  `extract` results moved under `rule`, `refs` under `refs`, `fetch` under
+  `fetch`. `schema_version` is `1.0` and is versioned independently of the
+  package.
+- Commands exit with a status-specific code: `ok`/`no_match` 0, `not_cached` 3,
+  `index_missing` 4, `fetch_failed` 5, `source_drift` 6, `parse_error` 7,
+  `error` 1.
+- Real EASA publications are no longer committed to the repository. Fetch them
+  with `python tests/real_samples/fetch_samples.py`; tests marked `real_sample`
+  skip when they are absent. See `docs/LEGAL-REVIEW.md`.
+- The ASTM adapter stub was removed. Those standards are paywalled and cannot be
+  redistributed, so the extension point promised something that was never coming.
+
+### Added
+
+- **Provenance in every output.** A `source` block naming the regulation, issue,
+  amendment, sha256, retrieval time and download URL. Issue and amendment fail
+  fast to `unknown` with a warning rather than a silent `null`. The same block
+  appears in Markdown frontmatter, `metadata.yaml` and `conversion-report.json`.
+- **Cross-references detected in running text.** Official EAR packages rarely
+  mark citations up as elements, so the reference graph was near-empty on real
+  documents. A normalization pass now finds designations in text — including
+  ones Word split across runs — and sub-paragraph citations resolve to their
+  parent rule.
+- **MCP server** (`easa-erules-mcp`, optional `[mcp]` extra) exposing
+  `list_regulations`, `regulation_info`, `extract_rule`, `query_regulation`,
+  `rule_references` and `fetch_regulation` over stdio.
+- **FAA adapter** for 14 CFR via the public eCFR API, with six catalogued parts
+  (`far-21`, `far-23`, `far-25`, `far-27`, `far-43`, `far-91`). Produces the same
+  AST, so `extract` / `query` / `refs` work unchanged.
+- **`easa_erules.api`** — front-end-independent operations shared by the CLI and
+  the MCP server, so both return identical results.
+- **Scope guardrail** in all four skill adapters: this is an EASA source and is
+  not a substitute for the FAA certification basis; `no_match` is not evidence
+  that a requirement does not exist.
+- **Catalog health workflow** (`catalog-health.yml` + `scripts/catalog_health.py`)
+  probing all 18 entries weekly and reporting drift as an artifact, without
+  failing the build.
+- `docs/STATUS.md` (moved out of the README) and `docs/LEGAL-REVIEW.md`.
+
 ## [0.1.2] - 2026-08-09
 
 ### Fixed

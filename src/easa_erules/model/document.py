@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from .. import __version__
 from .node import RegulationDocument
 
 
@@ -19,7 +20,7 @@ class DocumentMetadata:
     publication_date: str | None = None
     source_url: str | None = None
     source_sha256: str | None = None
-    parser_version: str = "0.1.0"
+    parser_version: str = __version__
     parsed_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
 
 

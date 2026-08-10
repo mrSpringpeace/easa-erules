@@ -7,6 +7,8 @@ recursive-include src/easa_erules py.typed
 recursive-include skills *
 recursive-include docs *.md
 recursive-include examples *.md
-# Keep the sdist lean: do not ship multi‑MB real EAR samples on PyPI.
+recursive-include scripts *.py
+# Real EAR publications are never committed (docs/LEGAL-REVIEW.md); the pins are
+# test scaffolding and have no place in a distribution either.
 prune tests/real_samples
 global-exclude *.pyc __pycache__ .pytest_cache .ruff_cache .mypy_cache

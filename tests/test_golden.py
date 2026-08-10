@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,13 @@ from easa_erules.render import render_json, render_markdown
 from easa_erules.validation import validate_document
 
 GOLDEN_ROOT = Path("tests/golden")
+
+#: Frontmatter reports the parser version; goldens should not churn on a release.
+_PARSER_VERSION = re.compile(r"(?m)^(\s*version:\s*)\S+$")
+
+
+def _stable(text: str) -> str:
+    return _PARSER_VERSION.sub(r"\g<1>PARSER_VERSION", text)
 
 
 def _cases() -> list[Path]:
@@ -38,11 +46,11 @@ def test_golden_markdown(case_dir: Path):
         }
         assert set(files.keys()) == set(expected_files.keys())
         for name, content in files.items():
-            assert content == expected_files[name], f"Mismatch in {name}"
+            assert _stable(content) == _stable(expected_files[name]), f"Mismatch in {name}"
     else:
         expected = (case_dir / "expected.md").read_text(encoding="utf-8")
         actual = next(iter(files.values()))
-        assert actual == expected
+        assert _stable(actual) == _stable(expected)
 
 
 @pytest.mark.parametrize("case_dir", _cases(), ids=lambda p: p.name)

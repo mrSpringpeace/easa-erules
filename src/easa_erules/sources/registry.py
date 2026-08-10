@@ -10,30 +10,55 @@ from typing import Any
 import yaml
 
 _REGISTRY_FILENAME = "easa.yaml"
+#: Catalogs merged into the registry, in order. Later files may not override
+#: earlier ids — a collision is a packaging bug, not a precedence rule.
+_CATALOG_FILENAMES = ("easa.yaml", "faa.yaml")
+
+
+def _catalog_path(filename: str) -> Path:
+    """Locate a packaged catalog file (editable install or wheel)."""
+    try:
+        ref = resources.files("easa_erules.sources").joinpath(filename)
+        with resources.as_file(ref) as path:
+            return Path(path)
+    except (FileNotFoundError, ModuleNotFoundError, TypeError, AttributeError):
+        return Path(__file__).with_name(filename)
 
 
 def _default_registry_path() -> Path:
     """Locate packaged easa.yaml (editable install or wheel)."""
-    try:
-        ref = resources.files("easa_erules.sources").joinpath(_REGISTRY_FILENAME)
-        with resources.as_file(ref) as path:
-            return Path(path)
-    except (FileNotFoundError, ModuleNotFoundError, TypeError, AttributeError):
-        return Path(__file__).with_name(_REGISTRY_FILENAME)
+    return _catalog_path(_REGISTRY_FILENAME)
+
+
+def _read_catalog(reg_path: Path) -> dict[str, dict[str, Any]]:
+    data = yaml.safe_load(reg_path.read_text(encoding="utf-8")) or {}
+    sources = data.get("sources") or data
+    if not isinstance(sources, dict):
+        raise ValueError(f"Invalid registry format in {reg_path}")
+    return {str(k).lower(): dict(v) for k, v in sources.items()}
 
 
 @lru_cache(maxsize=4)
 def load_registry(path: str | None = None) -> dict[str, dict[str, Any]]:
     """Load the sources catalog.
 
-    Returns mapping of canonical id → source dict (without the outer ``sources`` key).
+    Returns mapping of canonical id → source dict (without the outer ``sources``
+    key). With no explicit *path*, every packaged catalog is merged so FAA and
+    EASA documents share one id space.
     """
-    reg_path = Path(path) if path else _default_registry_path()
-    data = yaml.safe_load(reg_path.read_text(encoding="utf-8")) or {}
-    sources = data.get("sources") or data
-    if not isinstance(sources, dict):
-        raise ValueError(f"Invalid registry format in {reg_path}")
-    return {str(k).lower(): dict(v) for k, v in sources.items()}
+    if path:
+        return _read_catalog(Path(path))
+
+    merged: dict[str, dict[str, Any]] = {}
+    for filename in _CATALOG_FILENAMES:
+        catalog_path = _catalog_path(filename)
+        if not catalog_path.is_file():
+            continue
+        for key, value in _read_catalog(catalog_path).items():
+            if key in merged:
+                raise ValueError(f"Duplicate source id {key!r} in {filename}")
+            merged[key] = value
+    return merged
 
 
 def clear_registry_cache() -> None:

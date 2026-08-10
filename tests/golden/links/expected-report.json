@@ -1,6 +1,8 @@
 {
+  "schema_version": "1.0",
   "ok": true,
-  "parser_version": "0.1.0",
+  "parser_version": "0.2.0",
+  "source": null,
   "topics": 2,
   "paragraphs": 4,
   "tables": 0,

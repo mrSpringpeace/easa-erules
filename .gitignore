@@ -36,4 +36,8 @@ htmlcov/
 .easa-erules/
 *.xml
 !tests/fixtures/*.xml
-!tests/real_samples/*.xml
+
+# Real EASA publications are fetched, never committed (see docs/LEGAL-REVIEW.md).
+# Only the *.meta.yaml pins are tracked.
+tests/real_samples/*.xml
+tests/real_samples/*.docx

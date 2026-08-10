@@ -1,7 +1,8 @@
 """Smoke tests for real EASA publications.
 
-Uses checked-in XML under tests/real_samples/ when present.
-Optional live re-fetch: EASA_ERULES_LIVE=1.
+The publications are not stored in this repository. Fetch them with
+``python tests/real_samples/fetch_samples.py``; without them these tests skip.
+Optional live re-fetch of the whole pipeline: ``EASA_ERULES_LIVE=1``.
 """
 
 from __future__ import annotations
@@ -10,6 +11,8 @@ import os
 from pathlib import Path
 
 import pytest
+import yaml
+from conftest import require_sample, sample_manifests, sample_path
 
 from easa_erules.input.package import OpcPackage
 from easa_erules.parser import EasaDocumentParser
@@ -20,19 +23,15 @@ REAL_DIR = Path("tests/real_samples")
 LIVE = os.environ.get("EASA_ERULES_LIVE", "").strip() in {"1", "true", "yes"}
 
 
-def _local_real_files() -> list[Path]:
-    if not REAL_DIR.is_dir():
-        return []
-    return sorted(REAL_DIR.glob("*.xml")) + sorted(REAL_DIR.glob("*.docx"))
-
-
+@pytest.mark.real_sample
 @pytest.mark.parametrize(
-    "path",
-    _local_real_files(),
-    ids=lambda p: p.name if isinstance(p, Path) else str(p),
+    "manifest",
+    sample_manifests(),
+    ids=lambda p: p.name.split(".")[0] if isinstance(p, Path) else str(p),
 )
-def test_real_sample_parse_validate_convert(path: Path):
+def test_real_sample_parse_validate_convert(manifest: Path):
     """parse → validate → markdown/json/html smoke on real EAR XML."""
+    path = require_sample(sample_path(manifest))
     result = EasaDocumentParser(OpcPackage.from_file(path)).parse()
     assert result.document is not None
     assert result.source_topic_count > 0
@@ -65,12 +64,15 @@ def test_real_sample_parse_validate_convert(path: Path):
     assert next(iter(html.values())).startswith("<!DOCTYPE html>")
 
 
-@pytest.mark.skipif(not _local_real_files(), reason="No XML in tests/real_samples/")
-def test_real_samples_present():
-    files = _local_real_files()
-    names = {p.name for p in files}
-    # Prefer at least CS-VLA as baseline
-    assert names, "expected real sample XML files"
+def test_sample_pins_are_complete():
+    """Every pin carries what fetch_samples.py needs to reproduce the file."""
+    manifests = sample_manifests()
+    assert manifests, "expected pinned sample manifests under tests/real_samples/"
+    for manifest in manifests:
+        meta = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}
+        assert (meta.get("source") or {}).get("download_url"), manifest.name
+        assert (meta.get("integrity") or {}).get("sha256"), manifest.name
+        assert (meta.get("version") or {}).get("label"), manifest.name
 
 
 @pytest.mark.skipif(not LIVE, reason="Set EASA_ERULES_LIVE=1 for network fetch smoke")

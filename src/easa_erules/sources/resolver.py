@@ -10,9 +10,10 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from lxml import html
 
+from .. import __version__
 from .registry import get_source
 
-DEFAULT_USER_AGENT = "easa-erules/0.1.0 (+https://github.com/mrSpringpeace/easa-erules)"
+DEFAULT_USER_AGENT = f"easa-erules/{__version__} (+https://github.com/mrSpringpeace/easa-erules)"
 
 
 @dataclass(slots=True)

@@ -1,5 +1,6 @@
 """EASA document parser - main entry point."""
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,6 +19,20 @@ from .metadata import MetadataParser
 from .paragraphs import ParagraphParser
 from .tables import TableParser
 from .topics import TopicParser
+
+#: Trailing sub-paragraph markers on a citation, e.g. ``(a)(1)`` in ``CS-23.2240(a)(1)``.
+_SUBPARAGRAPH_SUFFIX = re.compile(r"(\([a-z0-9]+\))+$", re.IGNORECASE)
+
+
+def base_designation(designation: str) -> str:
+    """Strip sub-paragraph markers from a citation.
+
+    ``CS-23.2240(a)`` → ``CS-23.2240``. Running text cites sub-paragraphs, but
+    only the rule itself is a topic, so resolution needs the base form.
+    Returns an empty string when there is nothing to strip.
+    """
+    stripped = _SUBPARAGRAPH_SUFFIX.sub("", designation or "").strip()
+    return stripped if stripped and stripped != designation else ""
 
 
 @dataclass
@@ -233,12 +248,24 @@ class EasaDocumentParser:
 
         norm_index = {normalize(k): v for k, v in by_designation.items()}
 
+        def find_target(designation: str) -> Any | None:
+            """Exact match, else fall back to the parent rule of a sub-paragraph.
+
+            Running text cites ``CS-23.2240(a)``; only ``CS-23.2240`` is a topic.
+            Resolving to the parent keeps the sub-paragraph in the designation
+            while still producing a usable edge.
+            """
+            node = by_designation.get(designation) or norm_index.get(normalize(designation))
+            if node is not None:
+                return node
+            base = base_designation(designation)
+            if base:
+                return by_designation.get(base) or norm_index.get(normalize(base))
+            return None
+
         for ref in self.references.by_designation.values():
             if ref.target_designation and not ref.resolved:
-                target_node = (
-                    by_designation.get(ref.target_designation)
-                    or norm_index.get(normalize(ref.target_designation))
-                )
+                target_node = find_target(ref.target_designation)
                 if target_node:
                     ref.target_id = target_node.id
                     ref.resolved = True
@@ -248,10 +275,7 @@ class EasaDocumentParser:
         # Update inline InternalReferenceNode instances
         def walk(node: Any) -> None:
             if isinstance(node, InternalReferenceNode) and node.target_designation:
-                target_node = (
-                    by_designation.get(node.target_designation)
-                    or norm_index.get(normalize(node.target_designation))
-                )
+                target_node = find_target(node.target_designation)
                 if target_node:
                     node.target_id = target_node.id
             for child in getattr(node, "children", []):

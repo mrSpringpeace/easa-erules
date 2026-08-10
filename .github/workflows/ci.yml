@@ -31,16 +31,22 @@ jobs:
       - name: Ruff
         run: ruff check src tests
 
-      - name: Pytest (unit, golden, real samples)
+      - name: Pytest (offline — real-sample tests skip)
         run: pytest -q
 
-      - name: Adapter scaffold smoke
+      - name: Adapter smoke
         run: |
           python - <<'PY'
           from easa_erules.adapters import get_adapter
-          easa = get_adapter("easa")
-          assert easa.capabilities().parse
-          faa = get_adapter("faa")
-          assert not faa.capabilities().parse
-          print("adapters ok", easa.capabilities().authority, faa.capabilities().authority)
+          for authority in ("easa", "faa"):
+              caps = get_adapter(authority).capabilities()
+              assert caps.parse, f"{authority} adapter cannot parse"
+              print("adapter ok:", caps.authority)
           PY
+
+      - name: Real-sample smoke (pinned fetch)
+        if: matrix.python-version == '3.12'
+        continue-on-error: true
+        run: |
+          python tests/real_samples/fetch_samples.py
+          pytest -q -m real_sample

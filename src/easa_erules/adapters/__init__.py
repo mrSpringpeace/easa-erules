@@ -1,4 +1,4 @@
-"""Multi-authority adapters (EASA implemented; FAA/ASTM scaffolded).
+"""Multi-authority adapters.
 
 The Regulation AST is authority-agnostic. Each adapter is responsible for:
 
@@ -6,32 +6,31 @@ The Regulation AST is authority-agnostic. Each adapter is responsible for:
 2. parsing into the shared AST,
 3. optional authority-specific designation normalization.
 
-Only the EASA adapter is production-ready. FAA and ASTM modules define the
-extension points and raise ``NotImplementedError`` until packages are available.
+EASA is production. FAA (14 CFR via the public eCFR API) is a working
+prototype. ASTM is deliberately absent: those standards are paywalled and
+cannot be redistributed, so there is nothing for an adapter to fetch.
 """
 
-from .astm import AstmAdapter
 from .base import AdapterCapabilities, RegulationAdapter
 from .easa import EasaAdapter
-from .faa import FaaAdapter
+from .faa import FaaAdapter, FaaEcfrAdapter
 
 __all__ = [
     "AdapterCapabilities",
-    "AstmAdapter",
     "EasaAdapter",
     "FaaAdapter",
+    "FaaEcfrAdapter",
     "RegulationAdapter",
     "get_adapter",
 ]
 
 
 def get_adapter(authority: str) -> RegulationAdapter:
-    """Return an adapter instance for ``authority`` (easa / faa / astm)."""
+    """Return an adapter instance for ``authority`` (easa / faa)."""
     key = (authority or "").strip().lower()
     mapping: dict[str, type[RegulationAdapter]] = {
         "easa": EasaAdapter,
-        "faa": FaaAdapter,
-        "astm": AstmAdapter,
+        "faa": FaaEcfrAdapter,
     }
     try:
         cls = mapping[key]

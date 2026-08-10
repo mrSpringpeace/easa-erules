@@ -28,10 +28,35 @@ from .frontmatter import (
 )
 
 
+def md_link_target(path: str) -> str:
+    """Percent-encode characters that would terminate a Markdown link destination.
+
+    EASA designations routinely contain parentheses (``AMC VLA 613(c)``), which
+    end up in asset and rule filenames. Left raw, ``![](assets/x-613(c).png)``
+    truncates at the first ``(`` and the link resolves to nothing.
+    """
+    if not path:
+        return path
+    return (
+        path.replace("%", "%25")
+        .replace("(", "%28")
+        .replace(")", "%29")
+        .replace(" ", "%20")
+        .replace("<", "%3C")
+        .replace(">", "%3E")
+    )
+
+
 class MarkdownRenderer:
     """Renderer for converting Regulation AST to Markdown."""
 
-    def __init__(self, split_by_rule: bool = False, asset_prefix: str = "assets"):
+    def __init__(
+        self,
+        split_by_rule: bool = False,
+        asset_prefix: str = "assets",
+        provenance: dict[str, Any] | None = None,
+    ):
+        self.provenance = provenance
         self.split_by_rule = split_by_rule
         self.asset_prefix = asset_prefix
         self.output_files: dict[str, str] = {}
@@ -67,7 +92,7 @@ class MarkdownRenderer:
         easa_meta = None
         if req.metadata.get("easa"):
             easa_meta = EasaMetadata.from_dict(req.metadata["easa"])
-        buf.write(generate_requirement_frontmatter(req, easa_meta))
+        buf.write(generate_requirement_frontmatter(req, easa_meta, self.provenance))
         buf.write("\n\n")
         buf.write(f"# {req.designation}: {req.title}\n\n")
         if req.erules_id:
@@ -103,7 +128,7 @@ class MarkdownRenderer:
         easa_meta = None
         if doc.metadata.get("easa"):
             easa_meta = EasaMetadata.from_dict(doc.metadata["easa"])
-        buf.write(generate_document_frontmatter(doc, easa_meta))
+        buf.write(generate_document_frontmatter(doc, easa_meta, self.provenance))
         buf.write("\n\n")
 
         # Document title
@@ -124,7 +149,7 @@ class MarkdownRenderer:
         easa_meta = None
         if doc.metadata.get("easa"):
             easa_meta = EasaMetadata.from_dict(doc.metadata["easa"])
-        index_buf.write(generate_document_frontmatter(doc, easa_meta))
+        index_buf.write(generate_document_frontmatter(doc, easa_meta, self.provenance))
         index_buf.write("\n\n")
         index_buf.write(f"# {doc.title}\n\n")
 
@@ -161,7 +186,7 @@ class MarkdownRenderer:
         easa_meta = None
         if rule.metadata.get("easa"):
             easa_meta = EasaMetadata.from_dict(rule.metadata["easa"])
-        buf.write(generate_requirement_frontmatter(rule, easa_meta))
+        buf.write(generate_requirement_frontmatter(rule, easa_meta, self.provenance))
         buf.write("\n\n")
 
         # Title
@@ -179,7 +204,7 @@ class MarkdownRenderer:
         self._active_asset_prefix = self.asset_prefix
 
         # Add to index
-        index_buf.write(f"- [{rule.designation}: {rule.title}]({filename})\n")
+        index_buf.write(f"- [{rule.designation}: {rule.title}]({md_link_target(filename)})\n")
 
     def _render_section_file(self, section: RegulationSection, doc: RegulationDocument, index_buf: StringIO) -> None:
         """Render a section to its own file."""
@@ -188,7 +213,7 @@ class MarkdownRenderer:
 
         buf = StringIO()
 
-        buf.write(generate_section_frontmatter(section))
+        buf.write(generate_section_frontmatter(section, self.provenance))
         buf.write("\n\n")
 
         heading_level = min(section.level + 1, 6)
@@ -200,7 +225,7 @@ class MarkdownRenderer:
         self.output_files[filename] = buf.getvalue()
         self._active_asset_prefix = self.asset_prefix
 
-        index_buf.write(f"- [{section.designation}: {section.title}]({filename})\n")
+        index_buf.write(f"- [{section.designation}: {section.title}]({md_link_target(filename)})\n")
 
     def _render_node(self, node: Node, buf: StringIO, level: int = 1) -> None:
         """Dispatch rendering based on node type."""
@@ -414,7 +439,7 @@ class MarkdownRenderer:
             return self._render_inline_children(cell)
 
     def _render_figure(self, node: FigureNode, buf: StringIO, level: int) -> None:
-        asset_path = f"{self._active_asset_prefix}/{node.image_path}"
+        asset_path = md_link_target(f"{self._active_asset_prefix}/{node.image_path}")
         alt = node.alt_text or node.caption or "Figure"
         buf.write(f"![{alt}]({asset_path})\n")
         if node.caption:
@@ -451,11 +476,13 @@ class MarkdownRenderer:
             # Prefer split-mode rule file links when available
             path = self._rule_paths.get(node.target_designation) if node.target_designation else None
             if path:
-                return f"[{label}]({path})"
+                return f"[{label}]({md_link_target(path)})"
             if node.target_id:
                 return f"[{label}](#{node.target_id})"
-            if node.target_designation:
-                return f"[{label}]"
+            # References detected in running text stay plain when unresolved:
+            # bracketing them would invent link syntax the source never had.
+            if node.metadata.get("detected"):
+                return label
             return f"[{label}]"
         elif node.type == NodeType.LINE_BREAK:
             return "\n"
@@ -468,9 +495,14 @@ def render_markdown(
     doc: RegulationDocument | RegulationRequirement,
     split_by_rule: bool = False,
     asset_prefix: str = "assets",
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     """Convenience function to render document (or single requirement) to Markdown."""
-    renderer = MarkdownRenderer(split_by_rule=split_by_rule, asset_prefix=asset_prefix)
+    renderer = MarkdownRenderer(
+        split_by_rule=split_by_rule,
+        asset_prefix=asset_prefix,
+        provenance=provenance,
+    )
     if isinstance(doc, RegulationDocument):
         return renderer.render(doc)
     if isinstance(doc, RegulationRequirement):

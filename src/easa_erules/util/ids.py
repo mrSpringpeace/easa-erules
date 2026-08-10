@@ -29,18 +29,29 @@ def assign_deterministic_ids(root: Node) -> None:
     Preference order:
     1. document_id / erules_id / designation
     2. Path-based sequential IDs under the parent (stable across re-parses)
+
+    IDs are guaranteed unique within the tree. Real EAR documents repeat
+    generic section titles (five ``GENERAL`` sections in CS-VLA), so an
+    explicit id that collides gets a ``--N`` discriminator in document order.
     """
     counters: dict[str, int] = defaultdict(int)
+    seen: dict[str, int] = defaultdict(int)
+
+    def unique(candidate: str) -> str:
+        seen[candidate] += 1
+        if seen[candidate] == 1:
+            return candidate
+        return f"{candidate}--{seen[candidate]}"
 
     def walk(node: Node, parent_id: str) -> None:
         explicit = _explicit_id(node)
         if explicit:
-            node.id = explicit
+            node.id = unique(explicit)
         else:
             kind = node.type.value if node.type else "node"
             counters[kind] += 1
             suffix = f"{kind}-{counters[kind]:04d}"
-            node.id = f"{parent_id}/{suffix}" if parent_id else suffix
+            node.id = unique(f"{parent_id}/{suffix}" if parent_id else suffix)
 
         for child in node.children:
             walk(child, node.id)

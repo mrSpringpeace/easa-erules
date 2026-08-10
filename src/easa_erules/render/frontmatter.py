@@ -4,6 +4,7 @@ from typing import Any
 
 import yaml
 
+from .. import __version__
 from ..model import EasaMetadata, RegulationDocument
 
 
@@ -26,7 +27,11 @@ def _easa_block(easa_meta: EasaMetadata | None, fallback: dict[str, Any] | None 
     return None
 
 
-def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetadata | None = None) -> str:
+def generate_document_frontmatter(
+    doc: RegulationDocument,
+    easa_meta: EasaMetadata | None = None,
+    source: dict[str, Any] | None = None,
+) -> str:
     """Generate YAML frontmatter for a document."""
     frontmatter: dict[str, Any] = {
         "id": doc.document_id or doc.id,
@@ -35,9 +40,11 @@ def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetada
         "version": doc.version,
         "type": "document",
         "parser": {
-            "version": "0.1.0",
+            "version": __version__,
         },
     }
+    if source is not None:
+        frontmatter["source"] = source
 
     easa = _easa_block(easa_meta, doc.metadata.get("easa") if doc.metadata else None)
     if easa:
@@ -46,7 +53,11 @@ def generate_document_frontmatter(doc: RegulationDocument, easa_meta: EasaMetada
     return _wrap(frontmatter)
 
 
-def generate_requirement_frontmatter(req: Any, easa_meta: EasaMetadata | None = None) -> str:
+def generate_requirement_frontmatter(
+    req: Any,
+    easa_meta: EasaMetadata | None = None,
+    source: dict[str, Any] | None = None,
+) -> str:
     """Generate YAML frontmatter for a requirement / AMC / GM node."""
     node_type = getattr(getattr(req, "type", None), "value", None) or "requirement"
     frontmatter: dict[str, Any] = {
@@ -57,12 +68,14 @@ def generate_requirement_frontmatter(req: Any, easa_meta: EasaMetadata | None = 
         "requirement_type": getattr(req, "requirement_type", None) or (
             "AMC" if "amc" in node_type else "GM" if "guidance" in node_type else "CS"
         ),
-        "source": {
+        "source": source
+        if source is not None
+        else {
             "agency": "EASA",
             "document": (req.metadata.get("document_id", "") if getattr(req, "metadata", None) else "") or "",
         },
         "parser": {
-            "version": "0.1.0",
+            "version": __version__,
         },
     }
 
@@ -73,7 +86,7 @@ def generate_requirement_frontmatter(req: Any, easa_meta: EasaMetadata | None = 
     return _wrap(frontmatter)
 
 
-def generate_section_frontmatter(section: Any) -> str:
+def generate_section_frontmatter(section: Any, source: dict[str, Any] | None = None) -> str:
     """Generate YAML frontmatter for a section."""
     frontmatter: dict[str, Any] = {
         "id": getattr(section, "erules_id", "") or getattr(section, "designation", "") or section.id,
@@ -82,9 +95,11 @@ def generate_section_frontmatter(section: Any) -> str:
         "type": "section",
         "level": getattr(section, "level", 1),
         "parser": {
-            "version": "0.1.0",
+            "version": __version__,
         },
     }
+    if source is not None:
+        frontmatter["source"] = source
 
     easa = _easa_block(None, section.metadata.get("easa") if section.metadata else None)
     if easa:

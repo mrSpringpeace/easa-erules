@@ -89,6 +89,40 @@ easa-erules inspect ./local-export.xml
 
 Check topic counts, warnings, and unknown elements. Real packages should show **zero duplicate ERulesIds** after designation/metadata polish.
 
+## 6b. Read the envelope before reading the payload
+
+Every `--json` result starts with the same four fields:
+
+```bash
+easa-erules extract cs-vla CS-VLA.303 --format json | jq '{status, amendment: .source.amendment, warnings}'
+```
+
+```json
+{"status": "ok", "amendment": "Amendment 1", "warnings": []}
+```
+
+Branch on `status`, not on whether the payload looks empty:
+
+```bash
+easa-erules query cs-vla "zero lift drag" --json > out.json
+case "$(jq -r .status out.json)" in
+  ok)          jq -r '.hits[].designation' out.json ;;
+  no_match)    echo "nothing matched — check the regulation and amendment first" ;;
+  not_cached)  easa-erules fetch cs-vla ;;
+esac
+```
+
+Exit codes carry the same information for shell-driven agents: `ok`/`no_match` 0,
+`not_cached` 3, `index_missing` 4, `fetch_failed` 5, `source_drift` 6,
+`parse_error` 7, `error` 1.
+
+**`no_match` is not proof of absence.** It means this document, at this
+amendment, with these terms, returned nothing.
+
+Never quote a requirement without `source.designation` and `source.amendment`.
+If `warnings` contains `amendment_not_determined`, say that the provenance is
+incomplete rather than presenting the quote as pinned.
+
 ## 7. Typical agent loop
 
 ```text
@@ -113,16 +147,35 @@ easa-erules inspect cs-25
 
 GitHub Actions: workflow **Live EASA smoke** (manual dispatch or weekly).
 
-## 9. Multi-authority adapters (future)
+## 9. FAA parts (14 CFR)
 
-```python
-from easa_erules.adapters import get_adapter
+Same commands, different authority — the AST is shared:
 
-easa = get_adapter("easa")
-result = easa.parse("tests/real_samples/cs-vla.xml")
-
-# Scaffolds — raise NotImplementedError on fetch/parse:
-# get_adapter("faa"), get_adapter("astm")
+```bash
+easa-erules fetch far-23
+easa-erules extract far-23 "14 CFR 23.2005" --format json
+easa-erules query far-23 "stall speed" --json
 ```
 
-See `src/easa_erules/adapters/README.md`.
+FAA versions are eCFR issue dates, not amendment numbers:
+
+```bash
+easa-erules fetch far-23 --version 2026-08-05
+```
+
+**Scope.** This is a mirror of eCFR regulation text. It carries no Advisory
+Circulars, policy or preamble, and it is not a substitute for the applicable
+FAA certification basis. Never answer an FAA question with CS material without
+saying explicitly that it is comparative.
+
+## 10. Over MCP instead of the shell
+
+```bash
+pip install "easa-erules[mcp]"
+easa-erules-mcp        # stdio transport
+```
+
+Tools: `list_regulations`, `regulation_info`, `extract_rule`,
+`query_regulation`, `rule_references`, `fetch_regulation`. They return the same
+envelopes as the CLI, including `status` and `source` — a typed failure comes
+back as a payload, not a transport error.

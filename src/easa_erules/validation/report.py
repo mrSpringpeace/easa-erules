@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .. import __version__
+
 
 @dataclass
 class ValidationReport:
@@ -43,8 +45,10 @@ class ValidationReport:
     errors: list[dict[str, Any]] = field(default_factory=list)
 
     # Meta
-    parser_version: str = "0.1.0"
+    parser_version: str = __version__
     ok: bool = True
+    #: Provenance of the converted publication, when known (see sources.provenance)
+    source: dict[str, Any] | None = None
 
     def finalize(self) -> ValidationReport:
         """Recompute overall ok flag from errors and hard failures."""
@@ -55,9 +59,13 @@ class ValidationReport:
         return self
 
     def to_dict(self) -> dict[str, Any]:
+        from ..contract import SCHEMA_VERSION
+
         return {
+            "schema_version": SCHEMA_VERSION,
             "ok": self.ok,
             "parser_version": self.parser_version,
+            "source": self.source,
             "topics": self.topics,
             "paragraphs": self.paragraphs,
             "tables": self.tables,

@@ -1,0 +1,67 @@
+name: Catalog health
+
+# The landing-page resolver is the most fragile link in the chain: EASA
+# restructures its document library from time to time and the failure is silent
+# until someone tries to fetch. This job watches every catalog entry and reports
+# drift as an artifact — it never fails the build, so a website change does not
+# turn the main CI red for everyone.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 05:30 UTC, before the live smoke
+    - cron: "30 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  check-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Probe every catalog entry
+        id: probe
+        continue-on-error: true
+        run: python scripts/catalog_health.py --output catalog-health.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-health
+          path: catalog-health.json
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f catalog-health.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          report = json.load(open("catalog-health.json"))
+          print(f"## Catalog health — {report['ok']}/{report['total']} reachable\n")
+          print("| Source | Authority | Status | Detail |")
+          print("|--------|-----------|--------|--------|")
+          for entry in report["entries"]:
+              print(
+                  f"| `{entry['id']}` | {entry['authority']} | {entry['status']} "
+                  f"| {entry.get('detail', '')} |"
+              )
+          PY
+          fi

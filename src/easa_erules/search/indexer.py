@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 from .. import __version__
-from ..input.package import OpcPackage
 from ..model import (
     AcceptableMeansOfComplianceNode,
     GuidanceNode,
@@ -22,7 +21,8 @@ from ..model import (
 )
 from ..model.assets import AssetCollection
 from ..model.references import ReferenceIndex
-from ..parser import EasaDocumentParser, ParseResult
+from ..parser import ParseResult
+from ..parsing import parse_any
 from ..sources.cache import document_cache_dir
 from .sqlite import connect, set_meta
 
@@ -77,8 +77,7 @@ def ensure_index(
         finally:
             conn.close()
 
-    package = OpcPackage.from_file(source_path)
-    result = EasaDocumentParser(package).parse()
+    result = parse_any(source_path)
     build_index(
         result,
         db_path=db_path,

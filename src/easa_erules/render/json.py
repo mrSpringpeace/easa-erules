@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from ..contract import SCHEMA_VERSION
 from ..model import (
     AcceptableMeansOfComplianceNode,
     AssetCollection,
@@ -31,16 +32,25 @@ from ..model import (
 class JSONRenderer:
     """Renderer for converting Regulation AST to JSON."""
 
-    def __init__(self, include_assets: bool = True, include_references: bool = True):
+    def __init__(
+        self,
+        include_assets: bool = True,
+        include_references: bool = True,
+        provenance: dict[str, Any] | None = None,
+    ):
         self.include_assets = include_assets
         self.include_references = include_references
+        self.provenance = provenance
 
     def render(self, doc: RegulationDocument, assets: AssetCollection | None = None,
                references: ReferenceIndex | None = None) -> dict[str, Any]:
         """Render document to JSON-serializable dict."""
-        result = {
+        result: dict[str, Any] = {
+            "schema_version": SCHEMA_VERSION,
             "document": self._render_node(doc),
         }
+        if self.provenance is not None:
+            result["source"] = self.provenance
 
         if self.include_assets and assets:
             result["assets"] = assets.to_dict()
@@ -163,9 +173,14 @@ def render_json(
     references: ReferenceIndex | None = None,
     include_assets: bool = True,
     include_references: bool = True,
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Convenience function to render document or a single node to JSON."""
-    renderer = JSONRenderer(include_assets=include_assets, include_references=include_references)
+    renderer = JSONRenderer(
+        include_assets=include_assets,
+        include_references=include_references,
+        provenance=provenance,
+    )
     if isinstance(doc, RegulationDocument):
         return renderer.render(doc, assets, references)
     # Single-rule / node extract shape preferred by agent workflows

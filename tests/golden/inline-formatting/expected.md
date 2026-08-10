@@ -5,7 +5,7 @@ authority: EASA
 version: null
 type: document
 parser:
-  version: 0.1.0
+  version: 0.2.0
 easa:
   erules_id: ERULES-TEST-001
   regulatory_source:

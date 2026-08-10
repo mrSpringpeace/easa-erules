@@ -71,6 +71,7 @@ def build_conversion_report(
     unknown_elements: list[dict[str, Any]] | None = None,
     source_topic_count: int | None = None,
     output_dir: Path | None = None,
+    provenance: dict[str, Any] | None = None,
 ) -> ValidationReport:
     """Build a full conversion report, optionally including on-disk checks."""
     report = validate_document(
@@ -81,6 +82,7 @@ def build_conversion_report(
         unknown_elements=unknown_elements,
         source_topic_count=source_topic_count,
     )
+    report.source = provenance
 
     if output_dir is not None:
         # Merge disk asset checks into the same report

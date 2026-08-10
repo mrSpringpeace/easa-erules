@@ -70,6 +70,7 @@ def check_output_assets(
 ) -> None:
     """Validate markdown image references resolve to files under output_dir."""
     import re
+    from urllib.parse import unquote
 
     assets_dir = output_dir / assets_dir_name
     if assets_dir.is_dir():
@@ -82,7 +83,8 @@ def check_output_assets(
             rel = match.group(1).strip()
             if rel.startswith(("http://", "https://", "data:")):
                 continue
-            target = (md_file.parent / rel).resolve()
+            # Link destinations are percent-encoded by the renderer
+            target = (md_file.parent / unquote(rel)).resolve()
             try:
                 target.relative_to(output_dir.resolve())
             except ValueError:

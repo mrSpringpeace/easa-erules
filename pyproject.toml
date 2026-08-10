@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "easa-erules"
-version = "0.1.2"
+version = "0.2.0"
 description = "Deterministic toolkit for EASA Easy Access Rules (EAR) XML: fetch, parse, convert, search, extract for humans and LLM agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -53,6 +53,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+mcp = [
+    "mcp>=2.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "ruff>=0.1.0",
@@ -72,6 +75,7 @@ Documentation = "https://github.com/mrSpringpeace/easa-erules/blob/main/docs/MAN
 
 [project.scripts]
 easa-erules = "easa_erules.cli:app"
+easa-erules-mcp = "easa_erules.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -81,6 +85,9 @@ easa_erules = ["sources/*.yaml", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "real_sample: requires a real EASA publication under tests/real_samples/ (see fetch_samples.py)",
+]
 
 [tool.ruff]
 line-length = 100

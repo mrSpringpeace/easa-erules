@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 import typer
 import yaml
@@ -11,7 +11,34 @@ from rich.json import JSON
 from rich.table import Table
 
 from . import __version__
-from .input.package import OpcPackage
+from .api import (
+    document_key as _document_key,
+)
+from .api import (
+    extract_rule as api_extract_rule,
+)
+from .api import (
+    fetch_regulation as api_fetch_regulation,
+)
+from .api import (
+    find_rule as _find_rule,
+)
+from .api import (
+    parse_source as _parse_source,
+)
+from .api import (
+    provenance_for as _provenance,
+)
+from .api import (
+    query_regulation as api_query_regulation,
+)
+from .api import (
+    resolve_source_path as _resolve_source_path,
+)
+from .api import (
+    rule_references as api_rule_references,
+)
+from .contract import SCHEMA_VERSION, Status, ToolError, exit_code
 from .model import (
     AcceptableMeansOfComplianceNode,
     FigureNode,
@@ -24,7 +51,6 @@ from .model import (
     RegulationSection,
     TableNode,
 )
-from .parser import EasaDocumentParser, parse_easa_document
 from .render import render_html, render_json, render_markdown
 from .validation import build_conversion_report, validate_document
 
@@ -37,29 +63,36 @@ app = typer.Typer(
 console = Console()
 
 
-def _load_package(
-    source: str,
-    *,
-    version: str | None = None,
-    auto_fetch: bool = False,
-) -> tuple[OpcPackage, str]:
-    """Load an OOXML/Flat OPC package from a path or cached document id.
+def _print_json(payload: dict[str, Any]) -> None:
+    """Write JSON straight to stdout.
 
-    Returns (package, stem_id).
+    Not via ``rich`` — it soft-wraps long values and colourises them, which
+    turns the output of a piped ``--json`` call into something ``jq`` cannot
+    parse. Machine-readable means machine-readable.
     """
-    from .sources import resolve_local_source
+    typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
 
-    try:
-        path = resolve_local_source(source, version=version, auto_fetch=auto_fetch)
-    except FileNotFoundError as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(1) from exc
-    except KeyError as exc:
-        console.print(f"[red]Unknown source: {source}[/red]")
-        console.print("Use 'easa-erules list' to see available documents.")
-        raise typer.Exit(1) from exc
 
-    return OpcPackage.from_file(path), path.stem
+def _emit(payload: dict[str, Any], status: Status) -> None:
+    """Print a machine-readable payload and exit with the matching code."""
+    _print_json(payload)
+    code = exit_code(status)
+    if code:
+        raise typer.Exit(code)
+
+
+def _fail(exc: ToolError, json_out: bool) -> NoReturn:
+    """Report a typed failure on the requested channel and exit."""
+    if json_out:
+        _print_json(exc.to_dict())
+    else:
+        console.print(f"[red]{exc.message}[/red]")
+        from .contract import STATUS_HINTS
+
+        hint = STATUS_HINTS.get(exc.status)
+        if hint:
+            console.print(f"[dim]{hint}[/dim]")
+    raise typer.Exit(exit_code(exc.status))
 
 
 @app.command("list")
@@ -127,39 +160,27 @@ def fetch(
     force: bool = typer.Option(False, "--force", "-f", help="Re-download even if cached"),
     json_out: bool = typer.Option(False, "--json", help="Print machine-readable result"),
 ):
-    """Download an EASA Easy Access Rules publication into the local cache."""
-    from .sources import EasaDownloader, get_source
-
+    """Download a publication (EASA or FAA) into the local cache."""
     try:
-        get_source(doc_id)
-    except KeyError:
-        console.print(f"[red]Unknown document: {doc_id}[/red]")
-        console.print("Use 'easa-erules list' to see available documents.")
-        raise typer.Exit(1)
-
-    try:
-        with EasaDownloader() as downloader, console.status(f"Fetching {doc_id}..."):
-            result = downloader.fetch(doc_id, version=version, force=force)
-    except LookupError as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(1) from exc
-    except Exception as exc:
-        console.print(f"[red]Fetch failed: {exc}[/red]")
-        raise typer.Exit(1) from exc
+        with console.status(f"Fetching {doc_id}..."):
+            payload = api_fetch_regulation(doc_id, version=version, force=force)
+    except ToolError as exc:
+        _fail(exc, json_out)
 
     if json_out:
-        console.print(JSON.from_data(result.to_dict()))
+        _emit(payload, Status.OK)
         return
 
-    origin = "cache" if result.from_cache else "download"
-    console.print(f"[green]Fetched {result.document_id}[/green] ({origin})")
-    console.print(f"  Version: {result.version_label} [{result.version_slug}]")
-    console.print(f"  Path: {result.source_path}")
-    console.print(f"  SHA256: {result.sha256}")
-    console.print(f"  Size: {result.size} bytes")
-    console.print(f"  Landing page: {result.landing_page}")
-    console.print(f"  Download URL: {result.download_url}")
-    console.print(f"  Metadata: {result.meta_path}")
+    result = payload["fetch"]
+    prov = payload["source"]
+    origin = "cache" if result.get("from_cache") else "download"
+    console.print(f"[green]Fetched {result.get('document_id', doc_id)}[/green] ({origin})")
+    console.print(f"  Version: {prov['amendment']}")
+    console.print(f"  Path: {result.get('source_path', '')}")
+    console.print(f"  SHA256: {prov['sha256']}")
+    console.print(f"  Download URL: {prov['download_url']}")
+    if payload["warnings"]:
+        console.print(f"  [yellow]Warnings: {', '.join(payload['warnings'])}[/yellow]")
 
 
 @app.command()
@@ -168,14 +189,10 @@ def inspect(
     version: str | None = typer.Option(None, "--version", "-V", help="Cached version pin"),
 ):
     """Inspect an EASA XML document structure."""
-    package, _ = _load_package(source, version=version)
-
-    parser = EasaDocumentParser(package)
     try:
-        result = parser.parse()
-    except Exception as e:
-        console.print(f"[red]Parse error: {e}[/red]")
-        raise typer.Exit(1)
+        result, _source_path = _parse_source(source, version=version)
+    except ToolError as exc:
+        _fail(exc, False)
 
     doc = result.document
     stats = _collect_stats(doc)
@@ -265,14 +282,20 @@ def _write_assets(output: Path, assets: Any, asset_dir_name: str = "assets") -> 
     return count
 
 
-def _write_metadata_yaml(output: Path, doc: RegulationDocument) -> None:
+def _write_metadata_yaml(
+    output: Path,
+    doc: RegulationDocument,
+    provenance: dict[str, Any] | None = None,
+) -> None:
     """Write metadata.yaml sidecar for split/single conversions."""
     meta = {
+        "schema_version": SCHEMA_VERSION,
         "document_id": doc.document_id,
         "title": doc.title,
         "authority": doc.authority or "EASA",
         "version": doc.version,
         "parser_version": __version__,
+        "source": provenance,
         "easa": doc.metadata.get("easa") or doc.easa_metadata,
     }
     (output / "metadata.yaml").write_text(
@@ -301,13 +324,17 @@ def convert(
     ),
 ):
     """Convert EASA XML to Markdown or JSON."""
-    package, doc_id = _load_package(source, version=version, auto_fetch=fetch_if_missing)
-
-    parser = EasaDocumentParser(package)
-    with console.status("Parsing document..."):
-        result = parser.parse()
+    try:
+        with console.status("Parsing document..."):
+            result, source_path = _parse_source(
+                source, version=version, auto_fetch=fetch_if_missing
+            )
+    except ToolError as exc:
+        _fail(exc, format == "json")
 
     doc = result.document
+    doc_id = source_path.stem
+    prov = _provenance(source, source_path, doc).to_dict()
 
     with console.status("Validating document..."):
         validation_report = validate_document(
@@ -321,9 +348,14 @@ def convert(
 
     with console.status("Rendering output..."):
         if format == "markdown":
-            files = render_markdown(doc, split_by_rule=split, asset_prefix=asset_prefix)
+            files = render_markdown(
+                doc,
+                split_by_rule=split,
+                asset_prefix=asset_prefix,
+                provenance=prov,
+            )
         elif format == "json":
-            result_json = render_json(doc, result.assets, result.references)
+            result_json = render_json(doc, result.assets, result.references, provenance=prov)
             files = {
                 f"{doc.document_id or doc_id}.json": json.dumps(
                     result_json, indent=2, ensure_ascii=False
@@ -344,12 +376,12 @@ def convert(
 
         # Always emit full JSON AST + metadata for document-oriented formats
         if format in ("markdown", "html"):
-            doc_json = render_json(doc, result.assets, result.references)
+            doc_json = render_json(doc, result.assets, result.references, provenance=prov)
             (output / "document.json").write_text(
                 json.dumps(doc_json, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
-            _write_metadata_yaml(output, doc)
+            _write_metadata_yaml(output, doc, prov)
 
         written = _write_assets(output, result.assets, asset_prefix)
 
@@ -362,6 +394,7 @@ def convert(
             unknown_elements=result.unknown_elements,
             source_topic_count=result.source_topic_count,
             output_dir=output,
+            provenance=prov,
         )
 
         report_path = output / "conversion-report.json"
@@ -410,21 +443,29 @@ def extract(
     ),
 ):
     """Extract a single rule by designation."""
-    package, _ = _load_package(source, version=version, auto_fetch=fetch_if_missing)
-    doc = parse_easa_document(package)
+    json_out = format == "json"
 
-    target = _find_rule(doc, rule)
+    if json_out:
+        try:
+            payload = api_extract_rule(
+                source, rule, version=version, auto_fetch=fetch_if_missing
+            )
+        except ToolError as exc:
+            _fail(exc, True)
+        _emit(payload, Status(payload["status"]))
+        return
+
+    try:
+        result, _path = _parse_source(source, version=version, auto_fetch=fetch_if_missing)
+    except ToolError as exc:
+        _fail(exc, False)
+
+    target = _find_rule(result.document, rule)
     if not target:
-        console.print(f"[red]Rule not found: {rule}[/red]")
-        raise typer.Exit(1)
-
-    if format == "json":
-        result = render_json(target)
-        console.print(JSON.from_data(result))
-    else:
-        files = render_markdown(target)
-        for content in files.values():
-            console.print(content)
+        console.print(f"[yellow]Rule not found: {rule}[/yellow]")
+        raise typer.Exit(exit_code(Status.NO_MATCH))
+    for content in render_markdown(target).values():
+        console.print(content)
 
 
 @app.command()
@@ -440,18 +481,27 @@ def refs(
     ),
 ):
     """Show outgoing and incoming references for a rule."""
+    if json_out:
+        try:
+            payload = api_rule_references(
+                source, rule, version=version, auto_fetch=fetch_if_missing
+            )
+        except ToolError as exc:
+            _fail(exc, True)
+        _emit(payload, Status(payload["status"]))
+        return
+
     from .model.graph import lookup_refs
 
-    package, _ = _load_package(source, version=version, auto_fetch=fetch_if_missing)
-    result = EasaDocumentParser(package).parse()
+    try:
+        result, _path = _parse_source(source, version=version, auto_fetch=fetch_if_missing)
+    except ToolError as exc:
+        _fail(exc, False)
+
     node = lookup_refs(result.document, rule)
     if not node:
-        console.print(f"[red]Rule not found: {rule}[/red]")
-        raise typer.Exit(1)
-
-    if json_out:
-        console.print(JSON.from_data(node.to_dict()))
-        return
+        console.print(f"[yellow]Rule not found: {rule}[/yellow]")
+        raise typer.Exit(exit_code(Status.NO_MATCH))
 
     console.print(node.to_text_tree())
     if node.title:
@@ -475,47 +525,47 @@ def query(
     ),
 ):
     """Search a regulation using a local SQLite FTS5 index."""
+    if json_out:
+        try:
+            payload = api_query_regulation(
+                source,
+                search_text,
+                limit=limit,
+                rebuild=rebuild,
+                version=version,
+                auto_fetch=fetch_if_missing,
+            )
+        except ToolError as exc:
+            _fail(exc, True)
+        _emit(payload, Status(payload["status"]))
+        return
+
     from .search import ensure_index
     from .search import search as run_search
-    from .sources import resolve_local_source
 
     try:
-        source_path = resolve_local_source(
+        source_path = _resolve_source_path(
             source, version=version, auto_fetch=fetch_if_missing
         )
-    except FileNotFoundError as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(1) from exc
-    except KeyError:
-        console.print(f"[red]Unknown source: {source}[/red]")
-        raise typer.Exit(1)
+    except ToolError as exc:
+        _fail(exc, False)
 
-    # Document key for index path: registry id when known, else file stem
-    document_key = source_path.stem
+    document_key = _document_key(source, source_path)
+
     try:
-        from .sources.registry import resolve_source_id
-
-        document_key = resolve_source_id(source)
-    except KeyError:
-        pass
-
-    with console.status("Indexing (if needed)..."):
-        db_path = ensure_index(
-            source_path,
-            document_key=document_key,
-            force=rebuild,
+        with console.status("Indexing (if needed)..."):
+            db_path = ensure_index(source_path, document_key=document_key, force=rebuild)
+    except Exception as exc:
+        _fail(
+            ToolError(
+                Status.INDEX_MISSING,
+                f"Search index could not be built: {exc}",
+                source=str(source_path),
+            ),
+            False,
         )
 
-    result = run_search(
-        db_path,
-        search_text,
-        limit=limit,
-        document_key=document_key,
-    )
-
-    if json_out:
-        console.print(JSON.from_data(result.to_dict()))
-        return
+    result = run_search(db_path, search_text, limit=limit, document_key=document_key)
 
     console.print(
         f"[bold]{result.title or result.document_id or document_key}[/bold] "
@@ -542,27 +592,6 @@ def query(
     console.print(table)
 
 
-def _find_rule(node: Any, designation: str) -> Any | None:
-    """Find a rule by designation (case-insensitive)."""
-    needle = designation.replace(" ", "-").upper()
-
-    def matches(n: Any) -> bool:
-        for attr in ("designation", "erules_id"):
-            val = getattr(n, attr, None)
-            if val and val.replace(" ", "-").upper() == needle:
-                return True
-        return False
-
-    if matches(node):
-        return node
-
-    for child in getattr(node, "children", []):
-        found = _find_rule(child, designation)
-        if found:
-            return found
-    return None
-
-
 @app.command()
 def validate(
     source: str = typer.Argument(..., help="Path to converted output directory"),
@@ -572,8 +601,7 @@ def validate(
 
     path = Path(source)
     if not path.exists():
-        console.print(f"[red]Path not found: {source}[/red]")
-        raise typer.Exit(1)
+        _fail(ToolError(Status.ERROR, f"Path not found: {source}", source=source), False)
 
     with console.status("Validating..."):
         report = validate_conversion(path)
