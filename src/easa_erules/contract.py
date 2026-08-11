@@ -21,7 +21,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 class Status(str, Enum):
@@ -34,6 +34,7 @@ class Status(str, Enum):
     FETCH_FAILED = "fetch_failed"
     SOURCE_DRIFT = "source_drift"
     PARSE_ERROR = "parse_error"
+    INTEGRITY_ERROR = "integrity_error"
     ERROR = "error"
 
 
@@ -47,6 +48,7 @@ EXIT_CODES: dict[Status, int] = {
     Status.FETCH_FAILED: 5,
     Status.SOURCE_DRIFT: 6,
     Status.PARSE_ERROR: 7,
+    Status.INTEGRITY_ERROR: 8,
     Status.ERROR: 1,
 }
 
@@ -61,6 +63,8 @@ STATUS_HINTS: dict[Status, str] = {
     Status.SOURCE_DRIFT: "The EASA landing page no longer matches the expected "
     "structure. The catalog entry needs updating.",
     Status.PARSE_ERROR: "The source could not be parsed into a Regulation AST.",
+    Status.INTEGRITY_ERROR: "The cached source bytes do not match the stored SHA-256. "
+    "Do not use this copy until it has been fetched again or otherwise audited.",
 }
 
 

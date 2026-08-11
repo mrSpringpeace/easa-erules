@@ -8,7 +8,7 @@ source:
   agency: EASA
   document: ''
 parser:
-  version: 0.2.1
+  version: 0.3.0
 easa:
   erules_id: CS-VLA.305
   regulatory_source: []

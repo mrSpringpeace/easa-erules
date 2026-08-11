@@ -1,6 +1,6 @@
 # Project status
 
-Development state as of **0.2.0**. This is a working log, not documentation —
+Development state as of **0.3.0**. This is a working log, not documentation —
 for how to use the tool see the [README](../README.md) and the
 [manual](MANUAL.md).
 
@@ -13,7 +13,11 @@ for how to use the tool see the [README](../README.md) and the
 | Deterministic IDs + normalize | **Done** | Stable, collision-free ids; whitespace/heading/list/ref passes |
 | Markdown / JSON / HTML export | **Done** | Split-by-rule MD; frontmatter; HTML document |
 | Registry + `fetch` + cache | **Done** | YAML catalogs; landing-page resolver; sha256 metadata |
+| Multi-version inventory + integrity | **Done** | Exact slugs, remote freshness/deep verify, safe deletion |
 | `extract` / `query` / `refs` | **Done** | Agent-oriented JSON; FTS5 index with invalidation |
+| Outline / rule context / assets | **Done** | Breadcrumbs, neighbours, AMC/GM map, safe fragments |
+| Search schema v2 | **Done** | Per-amendment DB, filters, facets, exact total, subtree scope |
+| Parse memory LRU | **Done** | Thread-safe, bounded to 3 document versions, explicit invalidation |
 | Validation + conversion report | **Done** | Topic count vs source; assets; duplicates; unresolved refs |
 | Golden + unit tests | **Done** | Fixtures + frozen goldens |
 | Complex tables (colspan/rowspan) | **Improved** | HTML path emits merge attrs; nested tables; header-row fix |
@@ -25,8 +29,8 @@ for how to use the tool see the [README](../README.md) and the
 
 | Area | Status | Notes |
 |------|--------|--------|
-| Output contract (`schema_version`, `status`, `source`) | **Done** | 0.2.0; see MANUAL §3.5 |
-| Exit codes per status | **Done** | `no_match` 0 · `not_cached` 3 · `index_missing` 4 · `fetch_failed` 5 · `source_drift` 6 · `parse_error` 7 |
+| Output contract (`schema_version`, `status`, `source`) | **Done** | schema 1.1; see MANUAL §3.5 |
+| Exit codes per status | **Done** | Adds `integrity_error` 8 for proven local byte/hash mismatch |
 | Provenance in every output | **Done** | Amendment/issue fail-fast to `unknown` + warning, never silent `null` |
 | Cross-references detected in plain text | **Done** | Official EAR marks few refs up as elements |
 | MCP server | **Done** | `easa-erules-mcp`, optional `[mcp]` extra |

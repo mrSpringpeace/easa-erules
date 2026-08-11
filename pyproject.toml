@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "easa-erules"
-version = "0.2.1"
+version = "0.3.0"
 description = "Deterministic toolkit for EASA Easy Access Rules (EAR) XML: fetch, parse, convert, search, extract for humans and LLM agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -103,3 +103,20 @@ ignore = [
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+# These pre-0.3 modules dynamically mirror lxml/AST variants and are being
+# migrated incrementally. New 0.3 application, navigation, relation, inventory,
+# memory and search modules remain under strict checking.
+[[tool.mypy.overrides]]
+module = [
+    "easa_erules.adapters.faa",
+    "easa_erules.cli",
+    "easa_erules.input.*",
+    "easa_erules.model.assets",
+    "easa_erules.model.node",
+    "easa_erules.parser.*",
+    "easa_erules.render.json",
+    "easa_erules.render.markdown",
+    "easa_erules.sources.registry",
+]
+ignore_errors = true

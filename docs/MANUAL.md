@@ -1,6 +1,6 @@
 # easa-erules — User & agent manual
 
-**Version:** 0.2.x  
+**Version:** 0.3.x
 **Audience:** terminal users and LLM agents working with EASA Easy Access Rules (EAR)
 
 This manual is the full reference. For short agent recipes see [`examples/agent-cookbook.md`](../examples/agent-cookbook.md).
@@ -90,12 +90,18 @@ On official EAR packages, **opaque ERulesIds** (e.g. `ERULES-1963177438-8056`) a
   <doc-id>/
     source.xml
     meta.yaml
-    search.sqlite
     versions/<slug>/
       source.xml
       meta.yaml
+      search.sqlite
       original.zip
 ```
+
+Migration from 0.2: the shared `<doc-id>/search.sqlite` is no longer used for
+versioned catalog sources. The first 0.3 `prepare`/`query` creates schema v2 as
+`versions/<slug>/search.sqlite`; schema, parser-version or source-hash mismatch
+causes a deterministic rebuild. Ad-hoc local files retain their compatible
+per-document cache location.
 
 ### 3.4 Built-in catalog
 
@@ -135,13 +141,14 @@ Every machine-readable output carries the same envelope:
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "status": "ok",
   "source": {
     "regulation_id": "cs-vla",
     "designation": "CS-VLA",
     "issue": "unknown",
     "amendment": "Amendment 1",
+    "version_slug": "amendment-1",
     "sha256": "…",
     "retrieved_at": "2026-08-10T09:12:00Z",
     "download_url": "…",
@@ -185,6 +192,7 @@ version fields fall back to whatever the document states.
 | `fetch_failed` | 5 | Download failed |
 | `source_drift` | 6 | Landing page no longer matches the catalog entry |
 | `parse_error` | 7 | Source could not be parsed |
+| `integrity_error` | 8 | Cached source differs from the recorded SHA-256 |
 | `error` | 1 | Everything else (unknown id, bad path) |
 
 `no_match` and `not_cached` are deliberately distinct. An agent that reads an
@@ -200,16 +208,19 @@ agent pipeline goes quietly wrong.
 | `list` | Built-in regulation catalog |
 | `info <id>` | Metadata + cache presence |
 | `fetch <id>` | Landing page → download XML → cache + integrity |
+| `versions <id>` | List/verify/check/delete exact cached amendments or query remote versions |
+| `outline <id\|path> --version SLUG` | Lightweight ordered navigation tree |
 | `inspect <id\|path>` | Structure stats, warnings, unknown elements |
 | `convert <id\|path> -o DIR` | Markdown / JSON / HTML (`--split`, `--format`) |
 | `extract <id\|path> <RULE>` | Single rule (prefer `--format json`) |
-| `query <id\|path> "terms"` | Local FTS5 search (`--json`, `--rebuild`) |
+| `query <id\|path> "terms"` | Filtered/paginated FTS5 search or filter-only browse |
 | `refs <id\|path> <RULE>` | Outgoing / incoming cross-reference graph |
 | `validate DIR` | Check a conversion output directory |
 
-MCP server (optional extra): `easa-erules-mcp` exposes `list_regulations`,
-`regulation_info`, `extract_rule`, `query_regulation`, `rule_references` and
-`fetch_regulation` over stdio, returning the same envelopes as the CLI.
+MCP server (optional extra): `easa-erules-mcp` exposes the catalog, local and
+remote version inventory, version checking, outline, filtered search, rule
+context, assets and the legacy operations over stdio. Destructive cache delete
+is intentionally not exposed over MCP.
 
 Most commands accept a **registry id/alias** or a **local path**. Use `--fetch` when the id is not cached yet (where supported).
 
@@ -219,13 +230,51 @@ Most commands accept a **registry id/alias** or a **local path**. Use `--fetch` 
 easa-erules list
 easa-erules info vla
 easa-erules fetch cs-vla
+easa-erules versions cs-vla --verify
+easa-erules versions cs-vla --remote
+easa-erules outline cs-vla --version amendment-1 --json
 easa-erules inspect cs-vla
 easa-erules convert cs-vla -o ./out --split
 easa-erules extract cs-vla CS-VLA.1 --format json
-easa-erules query cs-vla "factor of safety" --json
+easa-erules query cs-vla "factor of safety" --offset 0 --limit 20 --json
+easa-erules query cs-vla "" --material amc --structure appendix --json
 easa-erules refs cs-vla CS-VLA.303 --json
 easa-erules validate ./out
 ```
+
+### 4.1 Public Python workflow for a UI
+
+The application layer is UI-neutral. A client imports only `easa_erules.api`:
+
+```python
+from easa_erules import api
+
+remote = api.list_remote_versions("cs-23")
+download = api.fetch_regulation("cs-23", version="Amendment 6")
+prepared = api.prepare_regulation("cs-23", "amendment-6")
+outline = api.document_outline("cs-23", "amendment-6")
+hits = api.query_regulation(
+    "cs-23",
+    "flight controls",
+    version="amendment-6",
+    material_categories=["amc", "gm"],
+    structure_kinds=["subpart", "chapter"],
+    limit=20,
+    offset=0,
+)
+context = api.get_rule_context(
+    "cs-23", version="amendment-6", node_id=hits["hits"][0]["id"]
+)
+```
+
+`query_regulation()` supports `material_categories`, `structure_kinds`,
+`within_node_id`, `has_table`, `has_figure`, `fields`, facets and exact totals.
+Filters within a group are OR; groups combine with AND. An empty query plus at
+least one filter is a deterministic browse operation.
+
+Every parsed read is pinned to `document_id + version_slug`. Parse results use
+a thread-safe bounded LRU (three versions by default); `api.clear_memory_cache()`
+is the service/testing invalidation hook.
 
 ---
 

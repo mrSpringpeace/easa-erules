@@ -52,7 +52,7 @@ uv pip install -e ".[dev]"
 Pinned git tag (if PyPI is unavailable):
 
 ```bash
-pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.2.0"
+pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.3.0"
 ```
 
 Optional MCP server (for agent hosts that speak MCP rather than shell):
@@ -80,13 +80,16 @@ easa-erules info vla
 # Download latest XML into the cache
 easa-erules fetch cs-vla
 easa-erules fetch cs-vla --version "Amendment 1"
+easa-erules versions cs-vla --verify
+easa-erules versions cs-vla --remote
+easa-erules outline cs-vla --version amendment-1 --json
 
 # Inspect / convert / extract / search / refs
 easa-erules inspect cs-vla
 easa-erules convert cs-vla -o ./out --split
 easa-erules convert ./local.xml -o ./out --format html
 easa-erules extract cs-vla CS-VLA.303 --format json
-easa-erules query cs-vla "factor of safety" --json
+easa-erules query cs-vla "factor of safety" --material certification_specification --json
 easa-erules refs cs-vla CS-VLA.303 --json
 easa-erules validate ./out
 
@@ -104,7 +107,7 @@ without guessing:
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "status": "ok",
   "source": {"regulation_id": "cs-vla", "amendment": "Amendment 1", "sha256": "…"},
   "warnings": [],
@@ -121,6 +124,7 @@ without guessing:
 | `fetch_failed` | 5 | Download failed |
 | `source_drift` | 6 | Landing page no longer matches the catalog entry |
 | `parse_error` | 7 | Source could not be parsed |
+| `integrity_error` | 8 | Cached bytes do not match the stored SHA-256 |
 | `error` | 1 | Unknown id, bad path, everything else |
 
 `no_match` is **not** evidence that a requirement does not exist. Amendment and
@@ -134,10 +138,10 @@ issue are never silently `null`: when they cannot be established the field reads
   cs-vla/
     source.xml                 # latest convenience copy
     meta.yaml
-    search.sqlite              # FTS index (built on first query)
     versions/<slug>/
       source.xml
       meta.yaml                # sha256, download_url, retrieved_at, …
+      search.sqlite            # schema v2; isolated per amendment
       original.zip
 ```
 
@@ -164,10 +168,12 @@ out/
 | `list` | Built-in regulation catalog |
 | `info` | Metadata + cache presence for an id/alias |
 | `fetch` | Resolve landing page → download XML → cache + integrity |
+| `versions` | Local/remote amendments, integrity/freshness, safe deletion |
+| `outline` | Lightweight ordered navigation tree for a pinned version |
 | `inspect` | Structure stats, warnings, unknown elements |
 | `convert` | Markdown / JSON / HTML (`--split`, `--format`) |
 | `extract` | Single rule (JSON preferred for agents) |
-| `query` | Local FTS5 search (`--json`, `--rebuild`) |
+| `query` | Paginated/filterable FTS5 search and filter-only browse |
 | `refs` | Outgoing / incoming cross-reference graph |
 | `validate` | Check a conversion output directory |
 
@@ -233,8 +239,8 @@ python scripts/catalog_health.py --deep
 Two integration routes, same results:
 
 - **Shell** — the thin skills under `skills/` (generic / Codex / Claude Code / OpenCode)
-- **MCP** — `easa-erules-mcp`, exposing `list_regulations`, `regulation_info`,
-  `extract_rule`, `query_regulation`, `rule_references`, `fetch_regulation`
+- **MCP** — `easa-erules-mcp`, exposing the catalog/version inventory,
+  outline, filtered search, rule context, assets and legacy operations
 
 **Cookbook:** [`examples/agent-cookbook.md`](examples/agent-cookbook.md)  
 **Full manual:** [`docs/MANUAL.md`](docs/MANUAL.md)

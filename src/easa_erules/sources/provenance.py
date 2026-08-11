@@ -36,6 +36,7 @@ class SourceProvenance:
     title: str = ""
     issue: str = UNKNOWN
     amendment: str = UNKNOWN
+    version_slug: str = ""
     sha256: str = ""
     retrieved_at: str = ""
     download_url: str = ""
@@ -50,6 +51,7 @@ class SourceProvenance:
             "title": self.title,
             "issue": self.issue,
             "amendment": self.amendment,
+            "version_slug": self.version_slug,
             "sha256": self.sha256,
             "retrieved_at": self.retrieved_at,
             "download_url": self.download_url,
@@ -135,6 +137,7 @@ def build_provenance(
     prov.regulation_id = meta.get("document") or document_key or source_path.stem
     prov.title = meta.get("title") or getattr(document, "title", "") or ""
     prov.retrieved_at = meta.get("retrieved_at") or ""
+    prov.version_slug = str(version_meta.get("slug") or "")
     prov.download_url = source_meta.get("download_url") or ""
     prov.landing_page = source_meta.get("landing_page") or ""
     prov.sha256 = integrity.get("sha256") or sha256_file(source_path)

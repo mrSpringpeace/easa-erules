@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 from io import StringIO
 from typing import Any
+from urllib.parse import urlparse
 
 from ..model import (
     AcceptableMeansOfComplianceNode,
@@ -37,6 +38,18 @@ class HTMLRenderer:
     def __init__(self, asset_prefix: str = "assets", title: str | None = None):
         self.asset_prefix = asset_prefix
         self.title_override = title
+        self._fragment_mode = False
+
+    def render_fragment(self, node: Node) -> str:
+        """Render one safe semantic fragment without document chrome or scripts."""
+        buf = StringIO()
+        previous = self._fragment_mode
+        self._fragment_mode = True
+        try:
+            self._render_node(node, buf, level=2)
+        finally:
+            self._fragment_mode = previous
+        return buf.getvalue().strip()
 
     def render(self, doc: RegulationDocument) -> dict[str, str]:
         """Render document to a single HTML file."""
@@ -194,7 +207,7 @@ class HTMLRenderer:
             buf.write("        </tbody>\n")
         buf.write("      </table>\n")
 
-    def _cell_meta(self, cell: Any) -> dict:
+    def _cell_meta(self, cell: Any) -> dict[str, Any]:
         if isinstance(cell, list) and cell:
             return dict(getattr(cell[0], "metadata", {}).get("cell") or {})
         if hasattr(cell, "metadata"):
@@ -230,10 +243,22 @@ class HTMLRenderer:
         return self._render_inline_children(cell)
 
     def _render_figure(self, node: FigureNode, buf: StringIO, level: int) -> None:
-        src = html.escape(f"{self.asset_prefix}/{node.image_path}")
         alt = html.escape(node.alt_text or node.caption or "Figure")
         buf.write("      <figure>\n")
-        buf.write(f'        <img src="{src}" alt="{alt}"/>\n')
+        if self._fragment_mode:
+            asset_name = node.image_path
+            if (
+                not asset_name
+                or "/" in asset_name
+                or "\\" in asset_name
+                or asset_name in {".", ".."}
+            ):
+                asset_name = ""
+            asset = html.escape(asset_name, quote=True)
+            buf.write(f'        <img data-erules-asset="{asset}" alt="{alt}"/>\n')
+        else:
+            src = html.escape(f"{self.asset_prefix}/{node.image_path}", quote=True)
+            buf.write(f'        <img src="{src}" alt="{alt}"/>\n')
         if node.caption:
             buf.write(f"        <figcaption>{html.escape(node.caption)}</figcaption>\n")
         buf.write("      </figure>\n")
@@ -245,21 +270,40 @@ class HTMLRenderer:
         if isinstance(node, TextNode) or node.type == NodeType.TEXT:
             return html.escape(getattr(node, "text", "") or "")
         if isinstance(node, BoldNode) or node.type == NodeType.BOLD:
-            return f"<strong>{self._render_inline_children(node) or html.escape(node.text)}</strong>"
+            return f"<strong>{self._render_inline_children(node) or html.escape(getattr(node, 'text', ''))}</strong>"
         if isinstance(node, ItalicNode) or node.type == NodeType.ITALIC:
-            return f"<em>{self._render_inline_children(node) or html.escape(node.text)}</em>"
+            return f"<em>{self._render_inline_children(node) or html.escape(getattr(node, 'text', ''))}</em>"
         if isinstance(node, SuperscriptNode) or node.type == NodeType.SUPERSCRIPT:
-            return f"<sup>{self._render_inline_children(node) or html.escape(node.text)}</sup>"
+            return f"<sup>{self._render_inline_children(node) or html.escape(getattr(node, 'text', ''))}</sup>"
         if isinstance(node, SubscriptNode) or node.type == NodeType.SUBSCRIPT:
-            return f"<sub>{self._render_inline_children(node) or html.escape(node.text)}</sub>"
+            return f"<sub>{self._render_inline_children(node) or html.escape(getattr(node, 'text', ''))}</sub>"
         if isinstance(node, HyperlinkNode) or node.type == NodeType.HYPERLINK:
-            label = self._render_inline_children(node) or html.escape(node.text)
-            return f'<a href="{html.escape(node.url)}">{label}</a>'
+            url = str(getattr(node, "url", "") or "")
+            label = self._render_inline_children(node) or html.escape(getattr(node, "text", ""))
+            parsed = urlparse(url)
+            if parsed.scheme.lower() not in {"http", "https"}:
+                return f'<span class="external-link-invalid">{label}</span>'
+            return f'<a href="{html.escape(url, quote=True)}">{label}</a>'
         if isinstance(node, InternalReferenceNode) or node.type == NodeType.INTERNAL_REFERENCE:
+            target_id = str(getattr(node, "target_id", "") or "")
+            target_designation = str(getattr(node, "target_designation", "") or "")
             label = self._render_inline_children(node) or html.escape(
-                node.text or node.target_designation
+                getattr(node, "text", "") or target_designation
             )
-            href = f"#{html.escape(node.target_id)}" if node.target_id else "#"
+            if self._fragment_mode:
+                attrs = []
+                if target_id:
+                    attrs.append(
+                        f'data-erules-target-id="{html.escape(target_id, quote=True)}"'
+                    )
+                if target_designation:
+                    attrs.append(
+                        "data-erules-target-designation=\""
+                        + html.escape(target_designation, quote=True)
+                        + "\""
+                    )
+                return f'<a class="internal-ref" {" ".join(attrs)}>{label}</a>'
+            href = f"#{html.escape(target_id, quote=True)}" if target_id else "#"
             return f'<a class="internal-ref" href="{href}">{label}</a>'
         if node.type == NodeType.LINE_BREAK:
             return "<br/>"
@@ -293,3 +337,8 @@ def render_html(
     if isinstance(doc, RegulationRequirement):
         return renderer.render_requirement(doc)
     raise TypeError(f"Unsupported type for HTML render: {type(doc)!r}")
+
+
+def render_html_fragment(node: Node) -> str:
+    """Render a safe embeddable fragment for any AST node."""
+    return HTMLRenderer().render_fragment(node)

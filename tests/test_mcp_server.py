@@ -16,9 +16,15 @@ mcp = pytest.importorskip("mcp", reason="MCP server needs the optional 'mcp' ext
 FIXTURE = Path("tests/fixtures/cs-vla-sample.xml")
 
 EXPECTED_TOOLS = {
+    "check_regulation_version",
+    "document_outline",
     "list_regulations",
+    "list_cached_versions",
+    "list_remote_versions",
     "regulation_info",
     "extract_rule",
+    "get_asset",
+    "get_rule_context",
     "query_regulation",
     "rule_references",
     "fetch_regulation",
@@ -79,3 +85,16 @@ def test_catalog_lists_both_authorities(server: Any):
     payload = _call(server, "list_regulations", {})
     authorities = {r["authority"] for r in payload["regulations"]}
     assert {"EASA", "FAA"} <= authorities
+
+
+def test_rule_context_matches_library_result(server: Any):
+    args = {
+        "regulation": str(FIXTURE),
+        "version": "fixture",
+        "designation": "CS-VLA.303",
+    }
+    via_mcp = _call(server, "get_rule_context", args)
+    direct = api.get_rule_context(
+        str(FIXTURE), version="fixture", designation="CS-VLA.303"
+    )
+    assert via_mcp == direct

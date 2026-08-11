@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-08-11
+
+UI-enabling release. The core remains presentation-neutral; a separate UI can
+complete catalog → versions → fetch → prepare → outline → filtered search →
+rule context → asset using only public operations.
+
+### Added
+
+- Contract schema 1.1 and `integrity_error` (exit 8).
+- Local/remote version inventories, exact version resolution, shallow/deep
+  freshness checks and safe amendment deletion with latest-pointer repair.
+- `prepare_regulation`, deterministic outline/breadcrumb navigation, previous
+  and next topics, Requirement ↔ AMC/GM relationships and uniform rule context.
+- Safe embeddable HTML fragments and parser-owned base64 asset retrieval.
+- Thread-safe bounded parse LRU with explicit invalidation hook.
+- Search schema v2 with per-amendment databases, exact totals, offset/limit,
+  material and structure filters, subtree scope, table/figure flags, field
+  restriction, facets and filter-only browse.
+- CLI `versions` and `outline`; filtered query options; corresponding read-only
+  MCP operations (destructive deletion remains CLI/library only).
+
+### Changed
+
+- Every ordinary cached read verifies a present sidecar SHA-256.
+- Search indexes now live beside each version's source rather than being shared
+  by all amendments. Old indexes are rebuilt automatically.
+- Table cells, nested tables, captions and figure descriptions participate in
+  deterministic plain-text search.
+- Package version is 0.3.0; existing extract/query/refs, CLI and MCP inputs stay
+  backward compatible.
+
 ## [0.2.1] - 2026-08-10
 
 Follow-up to 0.2.0, working through the four escalated decisions. The catalog

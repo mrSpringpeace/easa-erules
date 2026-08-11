@@ -23,6 +23,10 @@ from .cache import (
 from .resolver import DEFAULT_USER_AGENT, EasaSourceResolver, Publication
 
 
+class CachedIntegrityError(ValueError):
+    """A cached source differs from the digest stored beside it."""
+
+
 @dataclass(slots=True)
 class FetchResult:
     """Result of fetching a document into the local cache."""
@@ -111,14 +115,20 @@ class EasaDownloader:
 
         if source_path.exists() and meta_path.exists() and not force:
             meta = yaml.safe_load(meta_path.read_text(encoding="utf-8")) or {}
+            expected = (meta.get("integrity") or {}).get("sha256")
+            actual = _sha256_file(source_path)
+            if expected and expected != actual:
+                raise CachedIntegrityError(
+                    f"Cached source SHA-256 mismatch for {resolved.document_id}/{pub.version_slug}: "
+                    f"expected {expected}, got {actual}"
+                )
             return FetchResult(
                 document_id=resolved.document_id,
                 version_label=pub.version_label,
                 version_slug=pub.version_slug,
                 source_path=source_path,
                 meta_path=meta_path,
-                sha256=meta.get("integrity", {}).get("sha256")
-                or _sha256_file(source_path),
+                sha256=expected or actual,
                 size=int(meta.get("integrity", {}).get("size") or source_path.stat().st_size),
                 download_url=pub.download_url,
                 landing_page=resolved.landing_page,
@@ -153,6 +163,7 @@ class EasaDownloader:
                 "download_url": pub.download_url,
                 "filename": pub.filename or original_name,
                 "format": pub.format,
+                "reported_size": pub.size,
             },
             "retrieved_at": retrieved_at,
             "integrity": {
@@ -171,6 +182,14 @@ class EasaDownloader:
             yaml.dump(meta, allow_unicode=True, sort_keys=False),
             encoding="utf-8",
         )
+
+        # A replaced source must never leave a stale in-process AST behind.
+        try:
+            from ..memory import clear_memory_cache
+
+            clear_memory_cache(source_path)
+        except ImportError:  # pragma: no cover - only during unusual partial installs
+            pass
 
         # Update latest pointer when fetching unpinned latest
         if version is None:
@@ -209,19 +228,10 @@ class EasaDownloader:
 
         key = resolve_source_id(doc_id)
         if version:
-            from .resolver import _slugify_version
+            from .inventory import resolve_cached_version
 
-            slug = _slugify_version(version)
-            path = version_cache_dir(key, slug, self.cache_root) / "source.xml"
-            if path.exists():
-                return path
-            # try partial match under versions/
-            versions_root = document_cache_dir(key, self.cache_root) / "versions"
-            if versions_root.is_dir():
-                for child in versions_root.iterdir():
-                    if slug in child.name and (child / "source.xml").exists():
-                        return child / "source.xml"
-            return None
+            cached = resolve_cached_version(key, version, cache_root=self.cache_root)
+            return cached.source_path if cached and cached.source_path.is_file() else None
 
         latest = document_cache_dir(key, self.cache_root) / "source.xml"
         if latest.exists():

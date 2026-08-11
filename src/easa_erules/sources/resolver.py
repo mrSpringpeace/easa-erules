@@ -282,7 +282,7 @@ def _slugify_version(text: str) -> str:
     return text or "unknown"
 
 
-def _publication_sort_key(pub: Publication) -> tuple:
+def _publication_sort_key(pub: Publication) -> tuple[int, int, int, int, str]:
     """Higher is newer. Prefer amendment numbers, then initial issue last."""
     label = pub.version_label.lower()
     amdt = re.search(r"(?:amendment|amdt)\s*(\d+)", label)

@@ -12,7 +12,16 @@ from rich.table import Table
 
 from . import __version__
 from .api import (
+    check_regulation_version as api_check_regulation_version,
+)
+from .api import (
+    delete_cached_version as api_delete_cached_version,
+)
+from .api import (
     document_key as _document_key,
+)
+from .api import (
+    document_outline as api_document_outline,
 )
 from .api import (
     extract_rule as api_extract_rule,
@@ -22,6 +31,12 @@ from .api import (
 )
 from .api import (
     find_rule as _find_rule,
+)
+from .api import (
+    list_cached_versions as api_list_cached_versions,
+)
+from .api import (
+    list_remote_versions as api_list_remote_versions,
 )
 from .api import (
     parse_source as _parse_source,
@@ -58,9 +73,25 @@ app = typer.Typer(
     name="easa-erules",
     help="Universal toolkit for EASA Easy Access Rules XML publications",
     add_completion=False,
+    invoke_without_command=True,
 )
 
 console = Console()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Show the installed easa-erules version and exit",
+        is_eager=True,
+    ),
+) -> None:
+    """EASA Easy Access Rules toolkit."""
+    if version:
+        typer.echo(__version__)
+        raise typer.Exit()
 
 
 def _print_json(payload: dict[str, Any]) -> None:
@@ -181,6 +212,80 @@ def fetch(
     console.print(f"  Download URL: {prov['download_url']}")
     if payload["warnings"]:
         console.print(f"  [yellow]Warnings: {', '.join(payload['warnings'])}[/yellow]")
+
+
+@app.command()
+def versions(
+    doc_id: str = typer.Argument(..., help="Catalog document ID or alias"),
+    remote: bool = typer.Option(False, "--remote", help="Query EASA's remote inventory"),
+    verify: bool = typer.Option(False, "--verify", help="Hash every local source"),
+    check: str | None = typer.Option(None, "--check", help="Check one exact local version"),
+    deep: bool = typer.Option(False, "--deep", help="Download and hash the matching remote XML"),
+    delete: str | None = typer.Option(None, "--delete", help="Delete one exact local version"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Confirm destructive deletion"),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable JSON"),
+):
+    """List, verify, compare or delete cached publication versions."""
+    try:
+        if delete:
+            if not yes and not typer.confirm(f"Delete cached {doc_id}/{delete}?"):
+                raise typer.Abort()
+            payload = api_delete_cached_version(doc_id, delete)
+        elif check:
+            payload = api_check_regulation_version(doc_id, check, deep=deep)
+        elif remote:
+            payload = api_list_remote_versions(doc_id)
+        else:
+            payload = api_list_cached_versions(doc_id, verify_integrity=verify)
+    except ToolError as exc:
+        _fail(exc, json_out)
+
+    if json_out:
+        _emit(payload, Status(payload["status"]))
+        return
+    if "freshness" in payload:
+        console.print(JSON.from_data(payload))
+        return
+    table = Table(title=f"Versions: {doc_id}")
+    table.add_column("Version", style="cyan")
+    table.add_column("Format/state", style="yellow")
+    table.add_column("Latest", justify="center")
+    table.add_column("Source", style="dim")
+    for item in payload.get("versions", []):
+        state = item.get("format") or (item.get("integrity") or {}).get("state", "")
+        latest = item.get("is_latest", item.get("is_latest_pointer", False))
+        table.add_row(
+            item.get("version_label") or item.get("version_slug", ""),
+            str(state),
+            "yes" if latest else "",
+            item.get("download_url") or item.get("source_path", ""),
+        )
+    console.print(table)
+
+
+@app.command()
+def outline(
+    source: str = typer.Argument(..., help="Catalog document ID, alias or local source"),
+    version: str = typer.Option(..., "--version", "-V", help="Exact cached version pin"),
+    json_out: bool = typer.Option(False, "--json", help="Machine-readable JSON"),
+):
+    """Print the lightweight navigation outline for one pinned version."""
+    try:
+        payload = api_document_outline(source, version)
+    except ToolError as exc:
+        _fail(exc, json_out)
+    if json_out:
+        _emit(payload, Status(payload["status"]))
+        return
+
+    def walk(nodes: list[dict[str, Any]], depth: int = 0) -> None:
+        for node in nodes:
+            label = node.get("designation") or node.get("title") or node.get("id")
+            marker = "•" if node.get("navigable") else "▸"
+            console.print("  " * depth + f"{marker} {label}")
+            walk(node.get("children") or [], depth + 1)
+
+    walk(payload["outline"])
 
 
 @app.command()
@@ -511,8 +616,25 @@ def refs(
 @app.command()
 def query(
     source: str = typer.Argument(..., help="Path to XML/DOCX file or document ID"),
-    search_text: str = typer.Argument(..., help="Search query (e.g. 'factor of safety')"),
+    search_text: str = typer.Argument("", help="Search query; empty with filters browses"),
     limit: int = typer.Option(20, "--limit", "-n", help="Maximum number of hits"),
+    offset: int = typer.Option(0, "--offset", help="Pagination offset"),
+    material: list[str] | None = typer.Option(
+        None, "--material", help="Repeatable material category filter"
+    ),
+    structure: list[str] | None = typer.Option(
+        None, "--structure", help="Repeatable structure kind filter"
+    ),
+    within: str | None = typer.Option(None, "--within", help="Limit to descendants of node ID"),
+    has_table: bool | None = typer.Option(
+        None, "--has-table/--no-table", help="Filter topics by table presence"
+    ),
+    has_figure: bool | None = typer.Option(
+        None, "--has-figure/--no-figure", help="Filter topics by figure presence"
+    ),
+    field: list[str] | None = typer.Option(
+        None, "--field", help="Repeatable field: designation, title, body"
+    ),
     json_out: bool = typer.Option(False, "--json", help="Machine-readable JSON output"),
     rebuild: bool = typer.Option(
         False, "--rebuild", help="Force rebuild of the SQLite search index"
@@ -531,6 +653,13 @@ def query(
                 source,
                 search_text,
                 limit=limit,
+                offset=offset,
+                material_categories=material,
+                structure_kinds=structure,
+                within_node_id=within,
+                has_table=has_table,
+                has_figure=has_figure,
+                fields=field,
                 rebuild=rebuild,
                 version=version,
                 auto_fetch=fetch_if_missing,
@@ -565,7 +694,19 @@ def query(
             False,
         )
 
-    result = run_search(db_path, search_text, limit=limit, document_key=document_key)
+    result = run_search(
+        db_path,
+        search_text,
+        limit=limit,
+        offset=offset,
+        document_key=document_key,
+        material_categories=material,
+        structure_kinds=structure,
+        within_node_id=within,
+        has_table=has_table,
+        has_figure=has_figure,
+        fields=field,
+    )
 
     console.print(
         f"[bold]{result.title or result.document_id or document_key}[/bold] "
