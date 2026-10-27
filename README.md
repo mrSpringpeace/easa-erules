@@ -5,6 +5,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/easa-erules.svg)](https://pypi.org/project/easa-erules/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/mrSpringpeace/easa-erules)](https://github.com/mrSpringpeace/easa-erules/releases)
+[![Discord](https://img.shields.io/badge/Discord-join%20the%20server-5865F2?logo=discord&logoColor=white)](https://discord.gg/qHYEwrkfWm)
 
 **Deterministic, local toolkit for EASA Easy Access Rules — built for LLM agents.**
 
@@ -284,6 +285,12 @@ ruff check src tests scripts
 - **AST in the middle** — no direct XML → Markdown hacks  
 - **Agent-first CLI** — versioned, self-describing JSON for extract/query/refs
 - **Explicit over empty** — a result never leaves an agent guessing why it is empty
+
+---
+
+## Community
+
+Questions, ideas or feedback? Join the [Discord server](https://discord.gg/qHYEwrkfWm).
 
 ---
 
