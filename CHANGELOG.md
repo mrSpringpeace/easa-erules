@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- `sources/history.py`: parser and cache for EASA's
+  `publication-history.xml` (announced 2026-11-05), which lists every EAR
+  generation with its download link and MD5. Structural surprises raise
+  `PublicationHistoryFormatError`; a malformed download never replaces the
+  cached copy. Not yet used by the resolver or downloader.
+- Catalog: `ear_codes` on every EASA entry, the stable key into that file
+  (Part-21 has two). `tests/test_history.py` checks each code against a
+  committed subset of the 2026-11-06 file.
+
 ## [0.3.0] - 2026-08-11
 
 UI-enabling release. The core remains presentation-neutral; a separate UI can

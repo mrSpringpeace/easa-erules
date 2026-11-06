@@ -1,5 +1,11 @@
 # Built-in EASA Easy Access Rules source catalog.
 # Prefer stable landing pages over direct download URLs (those change with amendments).
+#
+# ear_codes: the six-character prefix of <fileName> in EASA's
+# publication-history.xml (see sources/history.py). It is the same for every
+# generation of one EAR and is the only stable key into that file; earName is
+# not. Quoted, because an unquoted code such as 1E5000 would load as a float.
+# tests/test_history.py checks every code against a snapshot of the real file.
 
 sources:
 
@@ -12,6 +18,7 @@ sources:
       - csvla
       - vla
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-very-light-aeroplanes-cs-vla"
+    ear_codes: ["FE9752"]
     preferred_format: xml
 
   cs-lsa:
@@ -23,6 +30,7 @@ sources:
       - cslsa
       - lsa
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-light-sport-aeroplanes-cs-lsa"
+    ear_codes: ["C48309"]
     preferred_format: xml
 
   cs-22:
@@ -33,6 +41,7 @@ sources:
       - CS-22
       - cs22
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-sailplanes-and-powered-sailplanes-cs-22"
+    ear_codes: ["E209A5"]
     preferred_format: xml
 
   cs-23:
@@ -44,6 +53,7 @@ sources:
       - CS23
       - cs23
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-normal-category-aeroplanes-cs-23"
+    ear_codes: ["5E178D"]
     preferred_format: xml
 
   cs-25:
@@ -55,6 +65,7 @@ sources:
       - CS25
       - cs25
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-large-aeroplanes-cs-25"
+    ear_codes: ["E2E5CC"]
     preferred_format: xml
 
   cs-27:
@@ -66,6 +77,7 @@ sources:
       - CS27
       - cs27
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-small-rotorcraft-cs-27"
+    ear_codes: ["8A2DAF"]
     preferred_format: xml
 
   cs-29:
@@ -77,6 +89,7 @@ sources:
       - CS29
       - cs29
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-large-rotorcraft-cs-29"
+    ear_codes: ["7643C9"]
     preferred_format: xml
 
   cs-e:
@@ -88,6 +101,7 @@ sources:
       - CSE
       - cse
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-engines-cs-e"
+    ear_codes: ["8544C0"]
     preferred_format: xml
 
   cs-p:
@@ -99,6 +113,7 @@ sources:
       - CSP
       - csp
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-propellers-cs-p"
+    ear_codes: ["DF6049"]
     # PDF only — EASA publishes no XML export for CS-P.
     preferred_format: pdf
     xml_available: false
@@ -112,6 +127,7 @@ sources:
       - ETSO
       - etso
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-european-technical-standard-orders-cs-etso"
+    ear_codes: ["D77B75"]
     # EASA publishes CS-ETSO as PDF only — there is no XML export to convert.
     # Kept in the catalog so 'info' can say so rather than the tool failing
     # somewhere deep in the OOXML reader.
@@ -127,6 +143,9 @@ sources:
       - Part21
       - part21
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-initial-airworthiness-and-environmental"
+    # Two codes in publication-history.xml (2026-11-06 copy): 450F3E holds the
+    # generations up to 2023-03-31, 313A4D those from 2024-07-01 onward.
+    ear_codes: ["450F3E", "313A4D"]
     preferred_format: xml
 
   uas-rules:
@@ -138,4 +157,5 @@ sources:
       - uas
       - drones
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-unmanned-aircraft-systems"
+    ear_codes: ["D0593E"]
     preferred_format: xml

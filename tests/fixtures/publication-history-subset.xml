@@ -1,0 +1,1429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Subset of https://www.easa.europa.eu/gcs/files/publication-history.xml
+     retrieved 2026-11-06, full file SHA-256
+     59db70e07336dcf676c7bb446fad0495be1b46e65da723eb331f9df6c83732eb. Kept: every <file> whose EAR code is in
+     the built-in catalog, plus 95CADA (its earName varies by a no-break space).
+     Elements are copied unchanged; only the browser <script> stubs, other
+     domains and indentation differ. Source: (c) EASA, reproduced with
+     acknowledgement as permitted by the EAR re-use notice. -->
+<XML>
+  <Title>EASA Easy Access Rules (EAR) Downloads</Title>
+  <Domain>
+    <Name>Initial Airworthiness and Environmental Protection</Name>
+    <file>
+      <id>35</id>
+      <fileName>8544C0_2023-12-07_13.23.38_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="xmlzip" md5="07ed2c7add8ebfb26b8c0157f43a2d00">/en/gcs/files/8544C0_2023-12-07_13.23.38_EAR-for-Engines-CS-E.zip</link>
+      </links>
+      <date>2023-12-07T13:23:38Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>36</id>
+      <fileName>8544C0_2020-02-04_11.56.22_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="1a5e4b723c82f47840a864181a8f6db6">/en/gcs/files/8544C0_2020-02-04_11.56.22_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2020-02-04T11:56:22Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>37</id>
+      <fileName>8544C0_2018-11-15_12.04.17_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="ba68e177384acda41006df819bc5b193">/en/gcs/files/8544C0_2018-11-15_12.04.17_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2018-11-15T12:04:17Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>38</id>
+      <fileName>8544C0_2018-11-15_11.40.29_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="f11ab8be0601c10eb6e5b0d172528de2">/en/gcs/files/8544C0_2018-11-15_11.40.29_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2018-11-15T11:40:29Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>39</id>
+      <fileName>8544C0_2018-11-15_11.14.31_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="4d5b73825464f88f404565b224191cec">/en/gcs/files/8544C0_2018-11-15_11.14.31_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2018-11-15T11:14:31Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>40</id>
+      <fileName>8544C0_2018-11-15_10.45.10_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="6fe3aa8f314c9d7a4df4f374a4142770">/en/gcs/files/8544C0_2018-11-15_10.45.10_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2018-11-15T10:45:10Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>41</id>
+      <fileName>8544C0_2018-11-15_10.35.42_EAR-for-Engines-CS-E</fileName>
+      <earName>Easy Access Rules for Engines (CS-E)</earName>
+      <links>
+        <link type="pdf" md5="209eb59d669ec061cf48b72bbf85ad97">/en/gcs/files/8544C0_2018-11-15_10.35.42_EAR-for-Engines-CS-E.pdf</link>
+      </links>
+      <date>2018-11-15T10:35:42Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>42</id>
+      <fileName>D77B75_2026-10-15_15.31.41_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="xmlzip" md5="696390fdb8f55068557d07380317aef7">/en/gcs/files/D77B75_2026-10-15_15.31.41_EAR-for-European-Technical-Standard-Orders-CS-ETSO.zip</link>
+        <link type="pdf" md5="ffed49f0e4511c4d7f0324cc440607b9">/en/gcs/files/D77B75_2026-10-15_15.31.41_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-10-15T13:28:07Z</date>
+      <notes>Amendment 17</notes>
+    </file>
+    <file>
+      <id>43</id>
+      <fileName>D77B75_2026-07-03_12.30.34_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="067892e9f1ac46041ab3c6e884d0fafd">/en/gcs/files/D77B75_2026-07-03_12.30.34_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-03T12:30:34Z</date>
+      <notes>Amendment 13</notes>
+    </file>
+    <file>
+      <id>44</id>
+      <fileName>D77B75_2026-07-03_10.42.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="5942a8b36e744f2f93d5380d0ff544ea">/en/gcs/files/D77B75_2026-07-03_10.42.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-03T10:42:51Z</date>
+      <notes>Amendment 16</notes>
+    </file>
+    <file>
+      <id>45</id>
+      <fileName>D77B75_2026-07-03_10.32.35_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="930f4b9d0f6e6918fba28bab9e6f0f36">/en/gcs/files/D77B75_2026-07-03_10.32.35_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-03T10:32:35Z</date>
+      <notes>Amendment 15</notes>
+    </file>
+    <file>
+      <id>46</id>
+      <fileName>D77B75_2026-07-03_10.17.54_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="9345bf73086fea813b4a9c7e7ded5718">/en/gcs/files/D77B75_2026-07-03_10.17.54_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-03T10:17:54Z</date>
+      <notes>Amendment 14</notes>
+    </file>
+    <file>
+      <id>47</id>
+      <fileName>D77B75_2026-07-03_09.45.40_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="d8356b890b178a7e6fa15d1730af0ca6">/en/gcs/files/D77B75_2026-07-03_09.45.40_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-03T09:45:40Z</date>
+      <notes>Amendment 12</notes>
+    </file>
+    <file>
+      <id>48</id>
+      <fileName>D77B75_2026-07-01_10.24.34_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="9f174db0e5149d8d166dd035b523f340">/en/gcs/files/D77B75_2026-07-01_10.24.34_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2026-07-01T10:24:34Z</date>
+      <notes>Amendment 11</notes>
+    </file>
+    <file>
+      <id>49</id>
+      <fileName>D77B75_2018-11-21_11.28.57_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="5f1627e8896b40248f7b131928021cb7">/en/gcs/files/D77B75_2018-11-21_11.28.57_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-21T11:28:57Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>50</id>
+      <fileName>D77B75_2018-11-21_11.03.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="09f56d504da6ef1dff669831bfb001e7">/en/gcs/files/D77B75_2018-11-21_11.03.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-21T11:03:51Z</date>
+      <notes>Amendment 9</notes>
+    </file>
+    <file>
+      <id>51</id>
+      <fileName>D77B75_2018-11-21_10.33.27_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="36bd2702d45866b56f2c6465aa0cb78e">/en/gcs/files/D77B75_2018-11-21_10.33.27_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-21T10:33:27Z</date>
+      <notes>Amendment 8</notes>
+    </file>
+    <file>
+      <id>52</id>
+      <fileName>D77B75_2018-11-21_09.59.39_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="8b1ba79702366c4c54c0dac146f7ffe6">/en/gcs/files/D77B75_2018-11-21_09.59.39_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-21T09:59:39Z</date>
+      <notes>Amendment 7</notes>
+    </file>
+    <file>
+      <id>53</id>
+      <fileName>D77B75_2018-11-21_09.34.52_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="30dd3bc32c1312129f2f7635965fd7cb">/en/gcs/files/D77B75_2018-11-21_09.34.52_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-21T09:34:52Z</date>
+      <notes>Amendment 6</notes>
+    </file>
+    <file>
+      <id>54</id>
+      <fileName>D77B75_2018-11-20_19.57.18_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="c56a13b8915fcaa9eeed26f51ee78514">/en/gcs/files/D77B75_2018-11-20_19.57.18_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T19:57:18Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>55</id>
+      <fileName>D77B75_2018-11-20_19.38.04_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="26cc567486ed82a80aa400c0ba5c6f1e">/en/gcs/files/D77B75_2018-11-20_19.38.04_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T19:38:04Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>56</id>
+      <fileName>D77B75_2018-11-20_19.18.28_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="6398d8b6bc8f24213f65761660cc71b4">/en/gcs/files/D77B75_2018-11-20_19.18.28_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T19:18:28Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>57</id>
+      <fileName>D77B75_2018-11-20_18.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="b526f5b2e138a9016efdbc099fff8924">/en/gcs/files/D77B75_2018-11-20_18.51_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T18:51:00Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>58</id>
+      <fileName>D77B75_2018-11-20_15.39.42_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="eb60567ee6ea757e520cd1ff8fdf7f70">/en/gcs/files/D77B75_2018-11-20_15.39.42_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T15:39:42Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>59</id>
+      <fileName>D77B75_2018-11-20_15.30.32_EAR-for-European-Technical-Standard-Orders-CS-ETSO</fileName>
+      <earName>Easy Access Rules for European Technical Standard Orders (CS-ETSO)</earName>
+      <links>
+        <link type="pdf" md5="3f8051451337232006ded0a04f515705">/en/gcs/files/D77B75_2018-11-20_15.30.32_EAR-for-European-Technical-Standard-Orders-CS-ETSO.pdf</link>
+      </links>
+      <date>2018-11-20T15:30:32Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>68</id>
+      <fileName>313A4D_2025-11-27_11.38.35_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="68fa6a880d8ab99d5e6e519171a700d0">/en/gcs/files/313A4D_2025-11-27_11.38.35_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012.pdf</link>
+        <link type="xmlzip" md5="eb9c9563d3c5b8a844695a331666495d">/en/gcs/files/313A4D_2025-11-27_11.38.35_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012.zip</link>
+      </links>
+      <date>2025-11-27T11:38:35Z</date>
+      <notes>Revision from November 2025</notes>
+    </file>
+    <file>
+      <id>69</id>
+      <fileName>313A4D_2024-07-01_21.19.12_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="8cb624a4a4ce01f91b503577b6755bb4">/en/gcs/files/313A4D_2024-07-01_21.19.12_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012.pdf</link>
+        <link type="xmlzip" md5="cb72c64fa17fb778b82c39c73cdb14da">/en/gcs/files/313A4D_2024-07-01_21.19.12_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012.zip</link>
+      </links>
+      <date>2024-07-01T21:19:12Z</date>
+      <notes>Revision from July 2024</notes>
+    </file>
+    <file>
+      <id>70</id>
+      <fileName>450F3E_2023-03-31_01.34.07_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="28ff39006ced51badbda9c08d431637b">/en/gcs/files/450F3E_2023-03-31_01.34.07_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2023-03-31T01:34:07Z</date>
+      <notes>Revision from March 2023</notes>
+    </file>
+    <file>
+      <id>71</id>
+      <fileName>450F3E_2023-03-30_19.20.51_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="xmlzip" md5="5ba612ad5b0a9fd012cef9f32d3948f2">/en/gcs/files/450F3E_2023-03-30_19.20.51_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.zip</link>
+      </links>
+      <date>2023-03-30T19:20:51Z</date>
+      <notes>Revision from March 2023</notes>
+    </file>
+    <file>
+      <id>72</id>
+      <fileName>450F3E_2022-10-21_14.10.30_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="0c398e6895e5abcd641e80e801cef49c">/en/gcs/files/450F3E_2022-10-21_14.10.30_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2022-10-21T14:10:30Z</date>
+      <notes>Revision from October 2022</notes>
+    </file>
+    <file>
+      <id>73</id>
+      <fileName>450F3E_2022-10-21_12.32.43_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="xmlzip" md5="e591b28616bb13f2f786871a1d63d33d">/en/gcs/files/450F3E_2022-10-21_12.32.43_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.zip</link>
+      </links>
+      <date>2022-10-21T12:32:43Z</date>
+      <notes>Revision from October 2022</notes>
+    </file>
+    <file>
+      <id>74</id>
+      <fileName>450F3E_2022-05-19_11.07.33_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="83825830d8c7042d42fc11088f4258cf">/en/gcs/files/450F3E_2022-05-19_11.07.33_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2022-05-19T11:07:33Z</date>
+      <notes>Revision from May 2022</notes>
+    </file>
+    <file>
+      <id>75</id>
+      <fileName>450F3E_2021-10-04_13.13.30_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="bc5ee483cd19d920445304ad57fac8b4">/en/gcs/files/450F3E_2021-10-04_13.13.30_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2021-10-04T13:13:30Z</date>
+      <notes>Revision from September 2021</notes>
+    </file>
+    <file>
+      <id>76</id>
+      <fileName>450F3E_2021-03-19_12.10.59_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="d5888b3e040dd18813bf7a0999cccb8f">/en/gcs/files/450F3E_2021-03-19_12.10.59_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2021-03-19T12:10:59Z</date>
+      <notes>Revision from March 2021</notes>
+    </file>
+    <file>
+      <id>77</id>
+      <fileName>450F3E_2020-11-05_16.12.55_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="d40c420138d91a4898435f424292e361">/en/gcs/files/450F3E_2020-11-05_16.12.55_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2020-11-05T16:12:55Z</date>
+      <notes>Revision from November 2020</notes>
+    </file>
+    <file>
+      <id>78</id>
+      <fileName>450F3E_2020-06-19_16.03.51_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="db892d4ed4bc0946463206c07d7cdae2">/en/gcs/files/450F3E_2020-06-19_16.03.51_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2020-06-19T16:03:51Z</date>
+      <notes>Revision from June 2020</notes>
+    </file>
+    <file>
+      <id>79</id>
+      <fileName>450F3E_2019-12-13_12.00.40_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012</fileName>
+      <earName>Easy Access Rules for Initial Airworthiness and Environmental Protection (Regulation (EU) No 748/2012)</earName>
+      <links>
+        <link type="pdf" md5="d36933eab35727278f9de7d83062438d">/en/gcs/files/450F3E_2019-12-13_12.00.40_EAR-for-Airworthiness-and-Environmental-Certification-Regulation-EU-No-748-2012.pdf</link>
+      </links>
+      <date>2019-12-13T12:00:40Z</date>
+      <notes>Revision from December 2019</notes>
+    </file>
+    <file>
+      <id>80</id>
+      <fileName>E2E5CC_2026-06-29_08.01.05_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="xmlzip" md5="9f3a7fde0576bb61a5857330824992fd">/en/gcs/files/E2E5CC_2026-06-29_08.01.05_EAR-for-Large-Aeroplanes-CS-25.zip</link>
+      </links>
+      <date>2026-06-29T08:01:05Z</date>
+      <notes>Amendment 27</notes>
+    </file>
+    <file>
+      <id>81</id>
+      <fileName>E2E5CC_2023-01-24_16.20.40_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="15bf8f6205f1e33e3f66565091310bea">/en/gcs/files/E2E5CC_2023-01-24_16.20.40_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-24T16:20:40Z</date>
+      <notes>Amendment 17</notes>
+    </file>
+    <file>
+      <id>82</id>
+      <fileName>E2E5CC_2023-01-18_15.32.45_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="e074278c4ea14b0e4739cc496973fb53">/en/gcs/files/E2E5CC_2023-01-18_15.32.45_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-18T15:32:45Z</date>
+      <notes>Amendment 27</notes>
+    </file>
+    <file>
+      <id>83</id>
+      <fileName>E2E5CC_2023-01-18_14.51.39_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="7757d6c64c607848ea6e607a0bb93c09">/en/gcs/files/E2E5CC_2023-01-18_14.51.39_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-18T14:51:39Z</date>
+      <notes>Amendment 26</notes>
+    </file>
+    <file>
+      <id>84</id>
+      <fileName>E2E5CC_2023-01-18_12.25.55_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="8b5bdd3a62cc6ae4901d2044db5ad761">/en/gcs/files/E2E5CC_2023-01-18_12.25.55_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-18T12:25:55Z</date>
+      <notes>Amendment 25</notes>
+    </file>
+    <file>
+      <id>85</id>
+      <fileName>E2E5CC_2023-01-18_01.27.44_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="b75aa571bd1daecc6fa067a8f5c57f26">/en/gcs/files/E2E5CC_2023-01-18_01.27.44_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-18T01:27:44Z</date>
+      <notes>Amendment 24</notes>
+    </file>
+    <file>
+      <id>86</id>
+      <fileName>E2E5CC_2023-01-18_00.26.57_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="e27fd8b19e764673ca668a2a1be12322">/en/gcs/files/E2E5CC_2023-01-18_00.26.57_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-18T00:26:57Z</date>
+      <notes>Amendment 23</notes>
+    </file>
+    <file>
+      <id>87</id>
+      <fileName>E2E5CC_2023-01-17_23.56.31_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="929a1dcae0fcb73704d3754373c9a1be">/en/gcs/files/E2E5CC_2023-01-17_23.56.31_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-17T23:56:31Z</date>
+      <notes>Amendment 22</notes>
+    </file>
+    <file>
+      <id>88</id>
+      <fileName>E2E5CC_2023-01-17_18.19.35_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="a30f6066e9091aa962f67cde5ec6dbd1">/en/gcs/files/E2E5CC_2023-01-17_18.19.35_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-17T18:19:35Z</date>
+      <notes>Amendment 21</notes>
+    </file>
+    <file>
+      <id>89</id>
+      <fileName>E2E5CC_2023-01-17_17.40.55_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="381e093b8605cee498371bf947c5b559">/en/gcs/files/E2E5CC_2023-01-17_17.40.55_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-17T17:40:55Z</date>
+      <notes>Amendment 20</notes>
+    </file>
+    <file>
+      <id>90</id>
+      <fileName>E2E5CC_2023-01-16_18.51.27_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="b1476ee672cc7ab81b8589e0860fc794">/en/gcs/files/E2E5CC_2023-01-16_18.51.27_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-16T18:51:27Z</date>
+      <notes>Amendment 19</notes>
+    </file>
+    <file>
+      <id>91</id>
+      <fileName>E2E5CC_2023-01-16_09.51.14_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="f393e1f78ce8af808ae085df0db63ff4">/en/gcs/files/E2E5CC_2023-01-16_09.51.14_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-16T09:51:14Z</date>
+      <notes>Amendment 18</notes>
+    </file>
+    <file>
+      <id>92</id>
+      <fileName>E2E5CC_2023-01-15_19.06.07_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="e26bf2e49565d2a1dd22ba58fb01f33a">/en/gcs/files/E2E5CC_2023-01-15_19.06.07_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T19:06:07Z</date>
+      <notes>Amendment 16</notes>
+    </file>
+    <file>
+      <id>93</id>
+      <fileName>E2E5CC_2023-01-15_18.10.45_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="e9e369633cb684064471dce77a284ae7">/en/gcs/files/E2E5CC_2023-01-15_18.10.45_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T18:10:45Z</date>
+      <notes>Amendment 15</notes>
+    </file>
+    <file>
+      <id>94</id>
+      <fileName>E2E5CC_2023-01-15_15.34.35_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="fc04c8fc71512dd881953acec2459974">/en/gcs/files/E2E5CC_2023-01-15_15.34.35_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T15:34:35Z</date>
+      <notes>Amendment 14</notes>
+    </file>
+    <file>
+      <id>95</id>
+      <fileName>E2E5CC_2023-01-15_12.48.32_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="8409644708dfeb55eb9569350021627c">/en/gcs/files/E2E5CC_2023-01-15_12.48.32_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T12:48:32Z</date>
+      <notes>Amendment 13</notes>
+    </file>
+    <file>
+      <id>96</id>
+      <fileName>E2E5CC_2023-01-15_12.21.14_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="0f983cf66939380a141533b2734092dc">/en/gcs/files/E2E5CC_2023-01-15_12.21.14_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T12:21:14Z</date>
+      <notes>Amendment 12</notes>
+    </file>
+    <file>
+      <id>97</id>
+      <fileName>E2E5CC_2023-01-15_01.36.38_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="55f3b963e27794a5c7e834f338d91f68">/en/gcs/files/E2E5CC_2023-01-15_01.36.38_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T01:36:38Z</date>
+      <notes>Amendment 11</notes>
+    </file>
+    <file>
+      <id>98</id>
+      <fileName>E2E5CC_2023-01-15_01.09.16_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="0611a5062e5f9088b07a4b90df5a29a2">/en/gcs/files/E2E5CC_2023-01-15_01.09.16_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-15T01:09:16Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>99</id>
+      <fileName>E2E5CC_2023-01-14_01.58.21_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="fd09b269a53eeff32891398f897c806a">/en/gcs/files/E2E5CC_2023-01-14_01.58.21_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-14T01:58:21Z</date>
+      <notes>Amendment 9</notes>
+    </file>
+    <file>
+      <id>100</id>
+      <fileName>E2E5CC_2023-01-13_11.48.40_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="2d194ed4de5e3b88ed705594de8f5a9a">/en/gcs/files/E2E5CC_2023-01-13_11.48.40_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-13T11:48:40Z</date>
+      <notes>Amendment 8</notes>
+    </file>
+    <file>
+      <id>101</id>
+      <fileName>E2E5CC_2023-01-13_10.14.24_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="0437b121879eac6dece6257a2023f378">/en/gcs/files/E2E5CC_2023-01-13_10.14.24_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-13T10:14:24Z</date>
+      <notes>Amendment 7</notes>
+    </file>
+    <file>
+      <id>102</id>
+      <fileName>E2E5CC_2023-01-13_09.18.34_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="36bfd4baa1d46b7b03960caa823d5f45">/en/gcs/files/E2E5CC_2023-01-13_09.18.34_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-13T09:18:34Z</date>
+      <notes>Amendment 6</notes>
+    </file>
+    <file>
+      <id>103</id>
+      <fileName>E2E5CC_2023-01-12_18.34.53_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="f41f7c5ee7cccf92486f2e5a51f4e4d9">/en/gcs/files/E2E5CC_2023-01-12_18.34.53_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-12T18:34:53Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>104</id>
+      <fileName>E2E5CC_2023-01-12_17.51.41_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="7fce9d97b363f5589f4268ecbeced926">/en/gcs/files/E2E5CC_2023-01-12_17.51.41_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-12T17:51:41Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>105</id>
+      <fileName>E2E5CC_2023-01-12_17.28.16_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="a9c65d2a8fb0ede34311fdbf50ead8d8">/en/gcs/files/E2E5CC_2023-01-12_17.28.16_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-12T17:28:16Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>106</id>
+      <fileName>E2E5CC_2023-01-12_17.08.16_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="d1c9a3e2feaa0388400a70c1e24099d5">/en/gcs/files/E2E5CC_2023-01-12_17.08.16_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-12T17:08:16Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>107</id>
+      <fileName>E2E5CC_2023-01-12_16.45.37_EAR-for-Large-Aeroplanes-CS-25</fileName>
+      <earName>Easy Access Rules for Large Aeroplanes (CS-25)</earName>
+      <links>
+        <link type="pdf" md5="16a8c1157ec23421007d4dcb84d3d0e8">/en/gcs/files/E2E5CC_2023-01-12_16.45.37_EAR-for-Large-Aeroplanes-CS-25.pdf</link>
+      </links>
+      <date>2023-01-12T16:45:37Z</date>
+      <notes>Amentment 2</notes>
+    </file>
+    <file>
+      <id>108</id>
+      <fileName>7643C9_2026-03-20_09.58.22_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="53362bb85b0c211f57ad5a3c9a167ac5">/en/gcs/files/7643C9_2026-03-20_09.58.22_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+        <link type="xmlzip" md5="7c21ce19fe931f8f70c82bfa6febdba3">/en/gcs/files/7643C9_2026-03-20_09.58.22_EAR-for-Large-Rotorcraft-CS-29.zip</link>
+      </links>
+      <date>2026-03-20T09:58:22Z</date>
+      <notes>Amendment 12</notes>
+    </file>
+    <file>
+      <id>109</id>
+      <fileName>7643C9_2023-12-18_12.27.24_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="xmlzip" md5="1d8a3d344469e9add253248d6e1b3613">/en/gcs/files/7643C9_2023-12-18_12.27.24_EAR-for-Large-Rotorcraft-CS-29.zip</link>
+      </links>
+      <date>2023-12-18T12:27:24Z</date>
+      <notes>Amendment 11</notes>
+    </file>
+    <file>
+      <id>110</id>
+      <fileName>7643C9_2023-12-06_13.29.28_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="6ba2710ff09b4b5ec9255951262de52d">/en/gcs/files/7643C9_2023-12-06_13.29.28_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2023-12-06T13:29:28Z</date>
+      <notes>Amendment 11</notes>
+    </file>
+    <file>
+      <id>111</id>
+      <fileName>7643C9_2022-12-20_13.42.48_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="124ad085ab01143935bab3ca6c903c2d">/en/gcs/files/7643C9_2022-12-20_13.42.48_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2022-12-20T13:42:48Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>112</id>
+      <fileName>7643C9_2022-12-20_09.37.06_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="a5e315dc21430b505d0e7ed3a53fadc5">/en/gcs/files/7643C9_2022-12-20_09.37.06_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2022-12-20T09:37:06Z</date>
+      <notes>Amendment 9</notes>
+    </file>
+    <file>
+      <id>113</id>
+      <fileName>7643C9_2022-12-20_00.13.28_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="b48aeed56861fc36fb11e1ff8e7b3dfa">/en/gcs/files/7643C9_2022-12-20_00.13.28_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2022-12-20T00:13:28Z</date>
+      <notes>Amendment 8</notes>
+    </file>
+    <file>
+      <id>114</id>
+      <fileName>7643C9_2022-12-19_22.58.24_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="5615be97158c072d7211e7ab3c36c42a">/en/gcs/files/7643C9_2022-12-19_22.58.24_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2022-12-19T22:58:24Z</date>
+      <notes>Amendment 7</notes>
+    </file>
+    <file>
+      <id>115</id>
+      <fileName>7643C9_2022-12-19_01.12.09_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="xmlzip" md5="9eb7ea26300f2b3a6e81e1be4759862a">/en/gcs/files/7643C9_2022-12-19_01.12.09_EAR-for-Large-Rotorcraft-CS-29.zip</link>
+      </links>
+      <date>2022-12-19T01:12:09Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>116</id>
+      <fileName>7643C9_2019-06-27_17.03.29_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="cd6988aa831fa7f89b10b4f168febd89">/en/gcs/files/7643C9_2019-06-27_17.03.29_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2019-06-27T17:03:29Z</date>
+      <notes>Amendment 6</notes>
+    </file>
+    <file>
+      <id>117</id>
+      <fileName>7643C9_2019-06-27_12.08.50_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="97ba5084bc0cf6df3f576d3dfb84147c">/en/gcs/files/7643C9_2019-06-27_12.08.50_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2019-06-27T12:08:50Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>118</id>
+      <fileName>7643C9_2018-06-07_11.11.26_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="39da098cfeb7d12e662dcda50000d31c">/en/gcs/files/7643C9_2018-06-07_11.11.26_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2018-06-07T11:11:26Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>119</id>
+      <fileName>7643C9_2018-06-07_11.04.54_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="98d0a61166e360c85a1b9eb71a24c6b8">/en/gcs/files/7643C9_2018-06-07_11.04.54_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2018-06-07T11:04:54Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>120</id>
+      <fileName>7643C9_2018-06-06_09.13.19_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="87f57cc9e4c0c3aecc0f4930a92101a4">/en/gcs/files/7643C9_2018-06-06_09.13.19_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2018-06-06T09:13:19Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>121</id>
+      <fileName>7643C9_2018-06-05_14.12.48_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="72630b0371b43f69ca07ead6c0648ea3">/en/gcs/files/7643C9_2018-06-05_14.12.48_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2018-06-05T14:12:48Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>122</id>
+      <fileName>7643C9_2018-06-05_14.00.49_EAR-for-Large-Rotorcraft-CS-29</fileName>
+      <earName>Easy Access Rules for Large Rotorcraft (CS-29)</earName>
+      <links>
+        <link type="pdf" md5="c918c9de6e920a79c88609bb47b2fef7">/en/gcs/files/7643C9_2018-06-05_14.00.49_EAR-for-Large-Rotorcraft-CS-29.pdf</link>
+      </links>
+      <date>2018-06-05T14:00:49Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>123</id>
+      <fileName>C48309_2026-05-06_10.53.23_EAR-for-Light-Sport-Aeroplanes-CS-LSA</fileName>
+      <earName>Easy Access Rules for Light Sport Aeroplanes (CS-LSA)</earName>
+      <links>
+        <link type="xmlzip" md5="188744ad7b53365f7ab36ef1caad82d4">/en/gcs/files/C48309_2026-05-06_10.53.23_EAR-for-Light-Sport-Aeroplanes-CS-LSA.zip</link>
+      </links>
+      <date>2026-05-06T10:53:23Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>124</id>
+      <fileName>C48309_2018-11-12_17.00.34_EAR-for-Light-Sport-Aeroplanes-CS-LSA</fileName>
+      <earName>Easy Access Rules for Light Sport Aeroplanes (CS-LSA)</earName>
+      <links>
+        <link type="pdf" md5="af6981122ac9dd988430206d12332c8b">/en/gcs/files/C48309_2018-11-12_17.00.34_EAR-for-Light-Sport-Aeroplanes-CS-LSA.pdf</link>
+      </links>
+      <date>2018-11-12T17:00:34Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>125</id>
+      <fileName>C48309_2018-11-12_16.47.17_EAR-for-Light-Sport-Aeroplanes-CS-LSA</fileName>
+      <earName>Easy Access Rules for Light Sport Aeroplanes (CS-LSA)</earName>
+      <links>
+        <link type="pdf" md5="95ff8cd2ec31971abb1fc01fbb106d4c">/en/gcs/files/C48309_2018-11-12_16.47.17_EAR-for-Light-Sport-Aeroplanes-CS-LSA.pdf</link>
+      </links>
+      <date>2018-11-12T16:47:17Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>131</id>
+      <fileName>5E178D_2026-05-13_19.03.46_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="4da6642d9347f22161e64b7c2f210f80">/en/gcs/files/5E178D_2026-05-13_19.03.46_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+        <link type="xmlzip" md5="0f1c95064b95de54ef0839e3c4edb22e">/en/gcs/files/5E178D_2026-05-13_19.03.46_EAR-for-Normal-Category-Aeroplanes-CS-23.zip</link>
+      </links>
+      <date>2026-05-13T19:03:46Z</date>
+      <notes>CS Amendment 6, AMC/GM Issue 5</notes>
+    </file>
+    <file>
+      <id>132</id>
+      <fileName>5E178D_2023-12-05_09.30.29_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="007c95b4ce524eea5555755ad6494471">/en/gcs/files/5E178D_2023-12-05_09.30.29_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2023-12-05T09:30:29Z</date>
+      <notes>CS Amendment 6, AMC/GM Issue 4</notes>
+    </file>
+    <file>
+      <id>133</id>
+      <fileName>5E178D_2023-12-04_11.06.02_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="xmlzip" md5="10c23f29267400d13825a233c999595e">/en/gcs/files/5E178D_2023-12-04_11.06.02_EAR-for-Normal-Category-Aeroplanes-CS-23.zip</link>
+      </links>
+      <date>2023-12-04T11:06:02Z</date>
+      <notes>CS Amendment 6, AMC/GM Issue 4</notes>
+    </file>
+    <file>
+      <id>134</id>
+      <fileName>5E178D_2023-06-27_00.54.08_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="9d761723d1d3014d95f7d244a5410a4b">/en/gcs/files/5E178D_2023-06-27_00.54.08_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2023-06-27T00:54:08Z</date>
+      <notes>CS Amendment 5, AMC/GM Issue 3</notes>
+    </file>
+    <file>
+      <id>135</id>
+      <fileName>5E178D_2023-06-15_15.24.49_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="xmlzip" md5="6bcb2b23dc8b43ed978667c5a5b1a11d">/en/gcs/files/5E178D_2023-06-15_15.24.49_EAR-for-Normal-Category-Aeroplanes-CS-23.zip</link>
+      </links>
+      <date>2023-06-15T15:24:49Z</date>
+      <notes>CS Amendment 5, AMC/GM Issue 3</notes>
+    </file>
+    <file>
+      <id>136</id>
+      <fileName>5E178D_2019-11-13_11.31.26_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="747e4466fdf59f0e2e9b4568ef53040a">/en/gcs/files/5E178D_2019-11-13_11.31.26_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2019-11-13T11:31:26Z</date>
+      <notes>CS Amendment 5, AMC/GM Issue 2</notes>
+    </file>
+    <file>
+      <id>137</id>
+      <fileName>5E178D_2018-06-07_11.55.48_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="5c64567e4bbe3519930d10a2cedc8822">/en/gcs/files/5E178D_2018-06-07_11.55.48_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-07T11:55:48Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>138</id>
+      <fileName>5E178D_2018-06-07_09.42.59_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="caa4a8ed33a878f24de90b772e81a6f6">/en/gcs/files/5E178D_2018-06-07_09.42.59_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-07T09:42:59Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>139</id>
+      <fileName>5E178D_2018-06-07_09.39.18_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="88bb2bdd5d5eb4dc19ae6ec661273e55">/en/gcs/files/5E178D_2018-06-07_09.39.18_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-07T09:39:18Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>140</id>
+      <fileName>5E178D_2018-06-07_09.34.42_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="2704b2715f1b9324874c79a7d33652e9">/en/gcs/files/5E178D_2018-06-07_09.34.42_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-07T09:34:42Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>141</id>
+      <fileName>5E178D_2018-06-05_12.03.51_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="bd11bbe4d5ed29f7eb07547a0d69a1c9">/en/gcs/files/5E178D_2018-06-05_12.03.51_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-05T12:03:51Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>142</id>
+      <fileName>5E178D_2018-06-05_11.56.36_EAR-for-Normal-Category-Aeroplanes-CS-23</fileName>
+      <earName>Easy Access Rules for Normal-Category Aeroplanes (CS-23)</earName>
+      <links>
+        <link type="pdf" md5="ffb768dd3d0f08581bb3ecffbc06087d">/en/gcs/files/5E178D_2018-06-05_11.56.36_EAR-for-Normal-Category-Aeroplanes-CS-23.pdf</link>
+      </links>
+      <date>2018-06-05T11:56:36Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>146</id>
+      <fileName>DF6049_2018-11-14_16.15.40_EAR-for-Propellers-CS-P</fileName>
+      <earName>Easy Access Rules for Propellers (CS-P)</earName>
+      <links>
+        <link type="pdf" md5="ab5cbfe4b4e47fd9210d4f0f27579ddf">/en/gcs/files/DF6049_2018-11-14_16.15.40_EAR-for-Propellers-CS-P.pdf</link>
+      </links>
+      <date>2018-11-14T16:15:40Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>147</id>
+      <fileName>DF6049_2018-11-14_15.59.34_EAR-for-Propellers-CS-P</fileName>
+      <earName>Easy Access Rules for Propellers (CS-P)</earName>
+      <links>
+        <link type="pdf" md5="4587579fa67e9fa3e7dcee432982da4e">/en/gcs/files/DF6049_2018-11-14_15.59.34_EAR-for-Propellers-CS-P.pdf</link>
+      </links>
+      <date>2018-11-14T15:59:34Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>148</id>
+      <fileName>E209A5_2026-06-29_07.43.40_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22</fileName>
+      <earName>Easy Access Rules for Sailplanes and Powered Sailplanes (CS-22)</earName>
+      <links>
+        <link type="xmlzip" md5="56ce6efa6a632a66f8f422d16bec8054">/en/gcs/files/E209A5_2026-06-29_07.43.40_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22.zip</link>
+      </links>
+      <date>2026-06-29T07:43:40Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>149</id>
+      <fileName>E209A5_2018-06-05_11.50.46_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22</fileName>
+      <earName>Easy Access Rules for Sailplanes and Powered Sailplanes (CS-22)</earName>
+      <links>
+        <link type="pdf" md5="4b721996f1227276899f4095a9f2075d">/en/gcs/files/E209A5_2018-06-05_11.50.46_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22.pdf</link>
+      </links>
+      <date>2018-06-05T11:50:46Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>150</id>
+      <fileName>E209A5_2018-06-05_11.47.33_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22</fileName>
+      <earName>Easy Access Rules for Sailplanes and Powered Sailplanes (CS-22)</earName>
+      <links>
+        <link type="pdf" md5="c136039257c48dd97e63eb103d57fe0d">/en/gcs/files/E209A5_2018-06-05_11.47.33_EAR-for-Sailplanes-and-Powered-Sailplanes-CS-22.pdf</link>
+      </links>
+      <date>2018-06-05T11:47:33Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>153</id>
+      <fileName>8A2DAF_2023-02-27_18.39.51_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="f4221c0764120b3883813b6491aa345a">/en/gcs/files/8A2DAF_2023-02-27_18.39.51_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2023-02-27T18:39:51Z</date>
+      <notes>Amendment 9</notes>
+    </file>
+    <file>
+      <id>154</id>
+      <fileName>8A2DAF_2023-02-27_17.53.49_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="a7492cb6417022c9fcf76fa5963f1dfe">/en/gcs/files/8A2DAF_2023-02-27_17.53.49_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2023-02-27T17:53:49Z</date>
+      <notes>Amendment 8</notes>
+    </file>
+    <file>
+      <id>155</id>
+      <fileName>8A2DAF_2023-02-27_17.40.46_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="f3b035a73f67e12776041e86cdef3ffc">/en/gcs/files/8A2DAF_2023-02-27_17.40.46_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2023-02-27T17:40:46Z</date>
+      <notes>Amendment 7</notes>
+    </file>
+    <file>
+      <id>156</id>
+      <fileName>8A2DAF_2023-02-27_17.29.09_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="15ab374c587ba87d3ffcf2add2e63156">/en/gcs/files/8A2DAF_2023-02-27_17.29.09_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2023-02-27T17:29:09Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>157</id>
+      <fileName>8A2DAF_2023-02-23_16.55.56_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="xmlzip" md5="9dcb3b513bf0cb024d54c40db55e4809">/en/gcs/files/8A2DAF_2023-02-23_16.55.56_EAR-for-Small-Rotorcraft-CS-27.zip</link>
+      </links>
+      <date>2023-02-23T16:55:56Z</date>
+      <notes>Amendment 10</notes>
+    </file>
+    <file>
+      <id>158</id>
+      <fileName>8A2DAF_2023-02-01_18.44.40_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="xmlzip" md5="3de1a743c9569e60fa552de0b5bdb428">/en/gcs/files/8A2DAF_2023-02-01_18.44.40_EAR-for-Small-Rotorcraft-CS-27.zip</link>
+      </links>
+      <date>2023-02-01T18:44:40Z</date>
+      <notes>Amendment 9</notes>
+    </file>
+    <file>
+      <id>159</id>
+      <fileName>8A2DAF_2019-06-27_15.39.50_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="b49a813c15941518efe2b04331f72a6f">/en/gcs/files/8A2DAF_2019-06-27_15.39.50_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2019-06-27T15:39:50Z</date>
+      <notes>Amendment 6</notes>
+    </file>
+    <file>
+      <id>160</id>
+      <fileName>8A2DAF_2019-06-27_14.26.08_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="fa88c65234288ef78fc20ced263664b2">/en/gcs/files/8A2DAF_2019-06-27_14.26.08_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2019-06-27T14:26:08Z</date>
+      <notes>Amendment 5</notes>
+    </file>
+    <file>
+      <id>161</id>
+      <fileName>8A2DAF_2018-06-05_12.56.20_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="befc0f19da1226cdaeb9474febe6ce44">/en/gcs/files/8A2DAF_2018-06-05_12.56.20_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2018-06-05T12:56:20Z</date>
+      <notes>Amendment 2</notes>
+    </file>
+    <file>
+      <id>162</id>
+      <fileName>8A2DAF_2018-06-05_12.51.14_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="7e5033caa9507ab996cc5e8d8aabc6bd">/en/gcs/files/8A2DAF_2018-06-05_12.51.14_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2018-06-05T12:51:14Z</date>
+      <notes>Amendment 3</notes>
+    </file>
+    <file>
+      <id>163</id>
+      <fileName>8A2DAF_2018-06-05_12.46.09_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="a49b2341f529264fd62c49bcee7865cb">/en/gcs/files/8A2DAF_2018-06-05_12.46.09_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2018-06-05T12:46:09Z</date>
+      <notes>Amendment 4</notes>
+    </file>
+    <file>
+      <id>164</id>
+      <fileName>8A2DAF_2018-06-05_12.26.11_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="60a8c28fb8a5f1f16c2f50c7d8d2be96">/en/gcs/files/8A2DAF_2018-06-05_12.26.11_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2018-06-05T12:26:11Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>165</id>
+      <fileName>8A2DAF_2018-06-05_12.17.19_EAR-for-Small-Rotorcraft-CS-27</fileName>
+      <earName>Easy Access Rules for Small Rotorcraft (CS-27)</earName>
+      <links>
+        <link type="pdf" md5="cbdcbc9022036419ed9cf97cf94f0823">/en/gcs/files/8A2DAF_2018-06-05_12.17.19_EAR-for-Small-Rotorcraft-CS-27.pdf</link>
+      </links>
+      <date>2018-06-05T12:17:19Z</date>
+      <notes>Initial issue</notes>
+    </file>
+    <file>
+      <id>168</id>
+      <fileName>FE9752_2022-06-28_07.52.05_EAR-for-Very-Light-Aeroplanes-CS-VLA</fileName>
+      <earName>Easy Access Rules for Very Light Aeroplanes (CS-VLA)</earName>
+      <links>
+        <link type="xmlzip" md5="0d94bccb82aab8989d410b79872322e9">/en/gcs/files/FE9752_2022-06-28_07.52.05_EAR-for-Very-Light-Aeroplanes-CS-VLA.zip</link>
+      </links>
+      <date>2022-06-28T07:52:05Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>169</id>
+      <fileName>FE9752_2018-11-14_16.32.33_EAR-for-Very-Light-Aeroplanes-CS-VLA</fileName>
+      <earName>Easy Access Rules for Very Light Aeroplanes (CS-VLA)</earName>
+      <links>
+        <link type="pdf" md5="5c62dddbad8a89f750d2da579fa04399">/en/gcs/files/FE9752_2018-11-14_16.32.33_EAR-for-Very-Light-Aeroplanes-CS-VLA.pdf</link>
+      </links>
+      <date>2018-11-14T16:32:33Z</date>
+      <notes>Amendment 1</notes>
+    </file>
+    <file>
+      <id>170</id>
+      <fileName>FE9752_2018-11-14_16.25.58_EAR-for-Very-Light-Aeroplanes-CS-VLA</fileName>
+      <earName>Easy Access Rules for Very Light Aeroplanes (CS-VLA)</earName>
+      <links>
+        <link type="pdf" md5="9793e23b02019f1c71f6bdc7435d54e2">/en/gcs/files/FE9752_2018-11-14_16.25.58_EAR-for-Very-Light-Aeroplanes-CS-VLA.pdf</link>
+      </links>
+      <date>2018-11-14T16:25:58Z</date>
+      <notes>Initial issue</notes>
+    </file>
+  </Domain>
+  <Domain>
+    <Name>Continuing Airworthiness</Name>
+    <file>
+      <id>1</id>
+      <fileName>95CADA_2021-04-23_14.10.37_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="de3c72413d9c7600b7874d232f88d08c">/en/gcs/files/95CADA_2021-04-23_14.10.37_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2021-04-23T14:10:37Z</date>
+      <notes>Revision from January 2017</notes>
+    </file>
+    <file>
+      <id>2</id>
+      <fileName>95CADA_2025-09-02_06.16.08_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="df3c5782c7976391d3eae298d2ee5017">/en/gcs/files/95CADA_2025-09-02_06.16.08_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+        <link type="xmlzip" md5="f4dd7979ccb7787224456264d7e525ef">/en/gcs/files/95CADA_2025-09-02_06.16.08_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.zip</link>
+      </links>
+      <date>2025-09-02T06:16:08Z</date>
+      <notes>Revision from September 2025</notes>
+    </file>
+    <file>
+      <id>3</id>
+      <fileName>95CADA_2024-07-17_12.27.27_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="afe7d9e64f64a11e4bf2de7dd86e796b">/en/gcs/files/95CADA_2024-07-17_12.27.27_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+        <link type="xmlzip" md5="1c095df64b327b06305fd3a29923554a">/en/gcs/files/95CADA_2024-07-17_12.27.27_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.zip</link>
+      </links>
+      <date>2024-07-17T12:27:27Z</date>
+      <notes>Revision from July 2024</notes>
+    </file>
+    <file>
+      <id>4</id>
+      <fileName>95CADA_2022-12-01_08.38.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="xmlzip" md5="39af0f09df2f9829c483aa17c7c20057">/en/gcs/files/95CADA_2022-12-01_08.38.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.zip</link>
+      </links>
+      <date>2022-12-01T08:38:22Z</date>
+      <notes>Revision from December 2022</notes>
+    </file>
+    <file>
+      <id>5</id>
+      <fileName>95CADA_2022-11-30_10.54.15_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="80ca0ddec3e425c56b8872eedfd8418e">/en/gcs/files/95CADA_2022-11-30_10.54.15_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2022-11-30T10:54:15Z</date>
+      <notes>Revision from December 2022</notes>
+    </file>
+    <file>
+      <id>6</id>
+      <fileName>95CADA_2022-10-07_17.32.51_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="4c93d0a51d1d43231c64db4161c92b5c">/en/gcs/files/95CADA_2022-10-07_17.32.51_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2022-10-07T17:32:51Z</date>
+      <notes>Revision from October 2022</notes>
+    </file>
+    <file>
+      <id>7</id>
+      <fileName>95CADA_2022-09-12_17.03.04_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="a88b66a028a03c190e927566e121ef20">/en/gcs/files/95CADA_2022-09-12_17.03.04_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2022-09-12T17:03:04Z</date>
+      <notes>Revision from September 2022</notes>
+    </file>
+    <file>
+      <id>8</id>
+      <fileName>95CADA_2022-09-12_12.05.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="xmlzip" md5="3ded52e1e061f5c02e38fd60dce2cb27">/en/gcs/files/95CADA_2022-09-12_12.05.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.zip</link>
+      </links>
+      <date>2022-09-12T12:05:22Z</date>
+      <notes>Revision from September 2022</notes>
+    </file>
+    <file>
+      <id>9</id>
+      <fileName>95CADA_2021-07-02_13.49.21_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="27b4b5a805afe358b0e7b0eefc7713f0">/en/gcs/files/95CADA_2021-07-02_13.49.21_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2021-07-02T13:49:21Z</date>
+      <notes>Revision from July 2021</notes>
+    </file>
+    <file>
+      <id>10</id>
+      <fileName>95CADA_2021-03-01_09.08.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="3bb8af1b99c003f30abcab6bf54e13f5">/en/gcs/files/95CADA_2021-03-01_09.08.22_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2021-03-01T09:08:22Z</date>
+      <notes>Revision from February 2021</notes>
+    </file>
+    <file>
+      <id>11</id>
+      <fileName>95CADA_2020-06-24_12.30.20_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="852fc828ea165137dc25b876e6d3d19e">/en/gcs/files/95CADA_2020-06-24_12.30.20_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2020-06-24T12:30:20Z</date>
+      <notes>Revision from June 2024</notes>
+    </file>
+    <file>
+      <id>12</id>
+      <fileName>95CADA_2017-06-13_11.08.44_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014</fileName>
+      <earName>Easy Access Rules for Continuing Airworthiness (Regulation (EU) No 1321/2014)</earName>
+      <links>
+        <link type="pdf" md5="1576a5b737dbc1fbda6d1d3649c9b46d">/en/gcs/files/95CADA_2017-06-13_11.08.44_EAR-for-Continuing-Airworthiness-Regulation-EU-No-1321-2014.pdf</link>
+      </links>
+      <date>2017-06-13T11:08:44Z</date>
+      <notes>Revision from June 2017</notes>
+    </file>
+  </Domain>
+  <Domain>
+    <Name>Unmanned Aircraft Systems</Name>
+    <file>
+      <id>1</id>
+      <fileName>D0593E_2026-06-29_05.22.30_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="81bb5259c31404c64389063300447788">/en/gcs/files/D0593E_2026-06-29_05.22.30_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+        <link type="xmlzip" md5="3b8e0eef950bffd916276b5353bca154">/en/gcs/files/D0593E_2026-06-29_05.22.30_EAR-for-Unmanned-Aircraft-Systems.zip</link>
+      </links>
+      <date>2026-06-29T05:22:30Z</date>
+      <notes>Revision from June 2026</notes>
+    </file>
+    <file>
+      <id>2</id>
+      <fileName>D0593E_2024-07-10_06.26.37_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="90b1f0dcda2fb487b09d6cff201f060f">/en/gcs/files/D0593E_2024-07-10_06.26.37_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+        <link type="xmlzip" md5="b057412f5cf5907c97dfcbd7f76ae15e">/en/gcs/files/D0593E_2024-07-10_06.26.37_EAR-for-Unmanned-Aircraft-Systems.zip</link>
+      </links>
+      <date>2024-07-10T06:26:37Z</date>
+      <notes>Revision from July 2024</notes>
+    </file>
+    <file>
+      <id>3</id>
+      <fileName>D0593E_2024-04-25_12.47.41_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="609ee87a931ca9fa687c5d4f287b9ff2">/en/gcs/files/D0593E_2024-04-25_12.47.41_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2024-04-25T12:47:41Z</date>
+      <notes>Revision from April 2024</notes>
+    </file>
+    <file>
+      <id>4</id>
+      <fileName>D0593E_2024-04-25_11.10.04_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="xmlzip" md5="8173f375f7340f6dbdd94801b1165dd2">/en/gcs/files/D0593E_2024-04-25_11.10.04_EAR-for-Unmanned-Aircraft-Systems.zip</link>
+      </links>
+      <date>2024-04-25T11:10:04Z</date>
+      <notes>Revision from April 2024</notes>
+    </file>
+    <file>
+      <id>5</id>
+      <fileName>D0593E_2022-09-27_15.35.30_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="5781c08871786ba7656ad23cb371072a">/en/gcs/files/D0593E_2022-09-27_15.35.30_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2022-09-27T15:35:30Z</date>
+      <notes>Revision from September 2022</notes>
+    </file>
+    <file>
+      <id>6</id>
+      <fileName>D0593E_2022-09-27_15.03.25_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="xmlzip" md5="0a8fa15b84dd846d4cc250c340172291">/en/gcs/files/D0593E_2022-09-27_15.03.25_EAR-for-Unmanned-Aircraft-Systems.zip</link>
+      </links>
+      <date>2022-09-27T15:03:25Z</date>
+      <notes>Revision from September 2022</notes>
+    </file>
+    <file>
+      <id>7</id>
+      <fileName>D0593E_2021-09-22_12.20.28_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="0e8704ece8374dd0f82271e993216f89">/en/gcs/files/D0593E_2021-09-22_12.20.28_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2021-09-22T12:20:28Z</date>
+      <notes>Revision from September 2021</notes>
+    </file>
+    <file>
+      <id>8</id>
+      <fileName>D0593E_2021-04-21_12.37.42_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="6acd57de7e9504aa40970344cf380f56">/en/gcs/files/D0593E_2021-04-21_12.37.42_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2021-04-21T12:37:42Z</date>
+      <notes>Revision from April 2021</notes>
+    </file>
+    <file>
+      <id>9</id>
+      <fileName>D0593E_2021-01-13_12.46.47_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="0f1a8c02469bd1f2c25b1e08831c8d7b">/en/gcs/files/D0593E_2021-01-13_12.46.47_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2021-01-13T12:46:47Z</date>
+      <notes>Revision from January 2021</notes>
+    </file>
+    <file>
+      <id>10</id>
+      <fileName>D0593E_2020-12-03_13.36.27_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="db362b68c58a43f9313c43e04fd2753b">/en/gcs/files/D0593E_2020-12-03_13.36.27_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2020-12-03T13:36:27Z</date>
+      <notes>Revision from December 2020</notes>
+    </file>
+    <file>
+      <id>11</id>
+      <fileName>D0593E_2020-11-03_13.01.48_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="bad743f80d757e3873ca3e1c2d8bd050">/en/gcs/files/D0593E_2020-11-03_13.01.48_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2020-11-03T13:01:48Z</date>
+      <notes>Revision from November 2020</notes>
+    </file>
+    <file>
+      <id>12</id>
+      <fileName>D0593E_2020-03-04_11.17.05_EAR-for-Unmanned-Aircraft-Systems</fileName>
+      <earName>Easy Access Rules for Unmanned Aircraft Systems (Regulations (EU) 2019/947 and 2019/945)</earName>
+      <links>
+        <link type="pdf" md5="a041d7236315d3c1a2d46a04774f2d95">/en/gcs/files/D0593E_2020-03-04_11.17.05_EAR-for-Unmanned-Aircraft-Systems.pdf</link>
+      </links>
+      <date>2020-03-04T11:17:05Z</date>
+      <notes>Revision from March 2020</notes>
+    </file>
+  </Domain>
+</XML>
