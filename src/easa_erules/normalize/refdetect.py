@@ -47,6 +47,13 @@ _EASA_REF_RE = re.compile(
     rf"|(?:AMC|GM)\d*\s+[A-Z]{{2,12}}\s+\d+{_SUB}"
     rf"|CS[-\s][A-Z]{{2,12}}[.\s]\d+{_SUB}"
     rf"|CS[-\s]\d+\.\d+{_SUB}"
+    # ETSO numbers as CS-ETSO cites them: "ETSO-C6e", "ETSO-2C521",
+    # "ETSO-C44c A1" (A1 = first amendment). Only the regular form
+    # (optional digits, C, digits, optional lowercase letter). The irregular
+    # numbers of Amdt 17 ("ETSO-72c" 4x, "ETSO-C2C512" 3x in the source,
+    # titles included) are not detected: matching them would need a pattern
+    # loose enough to catch prose.
+    r"|ETSO-\d*C\d+[a-z]?(?:\s+A\d{1,2}(?!\w))?(?![\w-])"
     r")"
 )
 

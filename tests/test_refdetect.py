@@ -156,3 +156,40 @@ def test_real_document_produces_resolved_reference_edges():
 
     designations = {r.target_designation for r in resolved}
     assert any(d.startswith("CS-23.") for d in designations)
+
+
+# --- CS-ETSO --------------------------------------------------------------------
+# Measured on CS-ETSO Amdt 17 (fetched 2026-11-06): 324 ETSO citations detected,
+# 263 resolve. The rest name another revision ("ETSO-C113" vs the catalogued
+# "ETSO-C113b") or an ETSO not in this amendment, and stay unresolved on purpose.
+# Detection in cs-vla, cs-22, cs-23 (Amdt 5 and 6), cs-lsa, uas-rules: identical.
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("in accordance with ETSO-C6e and ETSO-2C521.", ["ETSO-C6e", "ETSO-2C521"]),
+        ("see ETSO-C44c A1, paragraph 3", ["ETSO-C44c A1"]),
+        ("(ETSO-C112d)", ["ETSO-C112d"]),
+        ("ETSO-C44c A320 installations", ["ETSO-C44c"]),  # not an amendment suffix
+        ("ETSO authorisation holders", []),
+        ("ETSO-Cxx", []),
+    ],
+)
+def test_etso_citations(text, expected):
+    assert [hit[2] for hit in find_designations(text, authority="EASA")] == expected
+
+
+def test_unamended_citation_resolves_to_the_only_amendment():
+    from easa_erules.parser.document import amended_etso_target
+
+    index = {"ETSO-C146E-A1": "c146e-a1", "ETSO-C113B": "c113b", "ETSO-C5F": "c5f"}
+    assert amended_etso_target("ETSO-C146E", index) == "c146e-a1"
+    # Another revision letter is another ETSO:
+    assert amended_etso_target("ETSO-C113", index) is None
+    # Already amended, or not an ETSO: nothing to infer.
+    assert amended_etso_target("ETSO-C146E-A1", index) is None
+    assert amended_etso_target("CS-23.2000", index) is None
+    # Two amendments of one ETSO: ambiguous, not guessed.
+    index["ETSO-C146E-A2"] = "c146e-a2"
+    assert amended_etso_target("ETSO-C146E", index) is None

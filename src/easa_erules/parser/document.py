@@ -56,7 +56,7 @@ def resolve_document_references(document: Any, references: Any = None) -> None:
         base = base_designation(designation)
         if base:
             return by_designation.get(base) or norm_index.get(normalize(base))
-        return None
+        return amended_etso_target(normalize(designation), norm_index)
 
     if references is not None:
         for ref in references.by_designation.values():
@@ -77,6 +77,29 @@ def resolve_document_references(document: Any, references: Any = None) -> None:
             walk(child)
 
     walk(document)
+
+
+_ETSO_AMENDMENT_KEY = re.compile(r"-A\d{1,2}$")
+
+
+def amended_etso_target(normalized: str, norm_index: dict[str, Any]) -> Any | None:
+    """The amended ETSO a citation of its unamended number means, if exactly one.
+
+    CS-ETSO cites "ETSO-C146e" while the document holds only "ETSO-C146e A1",
+    the same ETSO with its first amendment (Amdt 17, 2026-11-06: 12 such
+    citations of C146e, 10 of C145e). *normalized* and the index keys use the
+    "upper case, spaces as hyphens" form. Exactly one "<number>-A<n>" key must
+    exist; a different revision letter ("ETSO-C113" vs "ETSO-C113b") is a
+    different ETSO and is never matched.
+    """
+    if not normalized.startswith("ETSO-") or _ETSO_AMENDMENT_KEY.search(normalized):
+        return None
+    candidates = [
+        node
+        for key, node in norm_index.items()
+        if key.startswith(normalized + "-A") and _ETSO_AMENDMENT_KEY.fullmatch(key[len(normalized):])
+    ]
+    return candidates[0] if len(candidates) == 1 else None
 
 
 def base_designation(designation: str) -> str:
@@ -316,7 +339,7 @@ class EasaDocumentParser:
             base = base_designation(designation)
             if base:
                 return by_designation.get(base) or norm_index.get(normalize(base))
-            return None
+            return amended_etso_target(normalize(designation), norm_index)
 
         for ref in self.references.by_designation.values():
             if ref.target_designation and not ref.resolved:

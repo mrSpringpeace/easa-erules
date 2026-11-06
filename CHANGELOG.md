@@ -46,6 +46,12 @@ All notable changes to this project will be documented in this file.
   `ETSO C-199 A1`) are kept as printed. Designations in cs-vla, cs-22,
   cs-23 (Amdt 5 and 6), cs-lsa and uas-rules did not change (diffed
   node by node).
+- ETSO citations in running text ("ETSO-C6e", "ETSO-2C521", "ETSO-C44c A1")
+  are references. On CS-ETSO Amdt 17 there are 324 of them and 263 resolve.
+  A citation of an unamended number resolves to the amended item when it is
+  the only one ("ETSO-C146e" -> "ETSO-C146e A1"). A different revision
+  letter is never matched ("ETSO-C113" is not "ETSO-C113b"). References in
+  the other cached publications are unchanged (diffed node by node).
 - `extract` and `rule_context` no longer warn `repeated_in_source` because
   an item's own heading repeats its designation. The old lookup counted that
   heading as a second occurrence: 269 CS-23, 327 CS-22, 10 CS-LSA and 54 UAS
