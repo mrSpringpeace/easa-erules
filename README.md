@@ -53,7 +53,7 @@ uv pip install -e ".[dev]"
 Pinned git tag (if PyPI is unavailable):
 
 ```bash
-pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.3.0"
+pip install "git+https://github.com/mrSpringpeace/easa-erules.git@v0.4.0"
 ```
 
 Optional MCP server (for agent hosts that speak MCP rather than shell):

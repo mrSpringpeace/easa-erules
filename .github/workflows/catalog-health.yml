@@ -15,6 +15,16 @@ name: Catalog health
 # when the catalog's format claim disagrees with the history (CS-ETSO gained
 # XML with Amdt 17 and nothing noticed), or when the landing page's latest XML
 # names a different version than the history's.
+#
+# Drift now reaches a person: scripts/drift_issue.py opens one issue labelled
+# catalog-drift (comments on it while drift persists, closes it when clean).
+#
+# Keepalive: GitHub disables scheduled workflows in a public repository after
+# 60 days without activity. That happened here: "Live EASA smoke" was found
+# disabled_inactivity on 2026-11-06, and catalog health had not run since
+# 2026-10-19. In maintenance mode nobody commits, so the job re-enables both
+# workflows through the API on every run (the method keepalive-workflow v2
+# documents for resetting the inactivity timer without commits).
 
 on:
   workflow_dispatch:
@@ -24,6 +34,8 @@ on:
 
 permissions:
   contents: read
+  issues: write    # drift_issue.py
+  actions: write   # keepalive: re-enable scheduled workflows
 
 jobs:
   check-catalog:
@@ -57,6 +69,23 @@ jobs:
           name: catalog-health
           path: catalog-health.json
           if-no-files-found: warn
+
+      - name: Open, update or close the drift issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          python scripts/drift_issue.py catalog-health.json
+          --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Keep scheduled workflows alive
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for workflow in catalog-health.yml live-smoke.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$workflow/enable"
+          done
 
       - name: Summary
         if: always()

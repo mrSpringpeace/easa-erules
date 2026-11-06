@@ -1,6 +1,6 @@
 # Project status
 
-Development state as of **0.3.0**. This is a working log, not documentation —
+Development state as of **0.4.0** (2026-11-06). The project is in maintenance mode: the weekly catalog-health job opens a `catalog-drift` issue when EASA changes something. This is a working log, not documentation —
 for how to use the tool see the [README](../README.md) and the
 [manual](MANUAL.md).
 

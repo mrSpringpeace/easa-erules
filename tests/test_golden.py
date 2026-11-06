@@ -40,7 +40,8 @@ def test_golden_markdown(case_dir: Path):
     if meta.get("split"):
         expected_root = case_dir / "expected"
         expected_files = {
-            str(p.relative_to(expected_root)): p.read_text(encoding="utf-8")
+            # as_posix: render_markdown names split files with "/" on every OS.
+            p.relative_to(expected_root).as_posix(): p.read_text(encoding="utf-8")
             for p in expected_root.rglob("*")
             if p.is_file()
         }

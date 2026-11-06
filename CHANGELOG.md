@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-06
+
 ### Added
 
 - `sources/history.py`: parser and cache for EASA's
@@ -32,6 +34,16 @@ All notable changes to this project will be documented in this file.
   landing-page comparisons agreed.
 - `tests/test_history.py` ties every catalog entry's `xml_available` and
   `preferred_format` to the committed history snapshot.
+
+- `scripts/drift_issue.py` and two steps in the weekly catalog-health
+  workflow. When it finds drift (or no report, or an unreadable
+  publication-history.xml), the workflow opens one issue labelled
+  `catalog-drift`, or comments on the open one. When the report is clean
+  again, the workflow closes that issue. Before this, drift showed up only
+  in an artifact.
+- The catalog-health workflow re-enables itself and `live-smoke.yml` every
+  run. GitHub disables scheduled workflows after 60 days without repository
+  activity. Live smoke was found `disabled_inactivity` on 2026-11-06.
 
 ### Changed
 
@@ -77,6 +89,9 @@ All notable changes to this project will be documented in this file.
   `shallow_check_not_comparable` instead of comparing URLs. The reason: the
   CS-23 Amdt 5 landing-page ZIP and the history ZIP differ in MD5, but the
   XML inside is byte-identical (checked 2026-11-06). `--deep` decides.
+
+- `tests/test_golden.py` compares split-file names with `/` on every OS, so
+  the golden test also passes on Windows.
 
 ## [0.3.0] - 2026-08-11
 
