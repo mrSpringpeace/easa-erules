@@ -38,8 +38,19 @@ All notable changes to this project will be documented in this file.
 - **`cs-etso` converts.** EASA publishes it as XML from Amendment 17
   (generated 2026-10-15). It was fetched and parsed on 2026-11-06: 294/294
   topics, 0 conflicting ERulesIds, publisher MD5 verified. Earlier amendments
-  remain PDF only. ETSO items carry no designation yet (`ETSO-2C521` is not
-  recognised as one), so extract them by the ERulesId of a `query` hit.
+  remain PDF only.
+- ETSO numbers are designations: `ETSO-C1e`, `ETSO-2C521`, `ETSO-C44c A1`,
+  `Appendix 1 to ETSO-C6e`. 277 of the 284 CS-ETSO Amdt 17 topics carry one;
+  the rest are the two Subpart headings and five "FAA Standard associated
+  with …" texts. Irregular numbers in the source (`ETSO-72c`, `ETSO-C2C512`,
+  `ETSO C-199 A1`) are kept as printed. Designations in cs-vla, cs-22,
+  cs-23 (Amdt 5 and 6), cs-lsa and uas-rules did not change (diffed
+  node by node).
+- `extract` and `rule_context` no longer warn `repeated_in_source` because
+  an item's own heading repeats its designation. The old lookup counted that
+  heading as a second occurrence: 269 CS-23, 327 CS-22, 10 CS-LSA and 54 UAS
+  items were affected. Every dropped match was checked to be a heading inside
+  the kept item. The real repeats (CS-22: 1, UAS: 6) are still reported.
 - The resolver takes versions from `publication-history.xml` for every
   catalog entry with `ear_codes`, and lists all past XML generations instead
   of only the current one. It falls back to the landing page only with a

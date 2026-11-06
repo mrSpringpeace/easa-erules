@@ -114,8 +114,13 @@ convert:
 `cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `cs-etso`, `part-21`, `uas-rules`
 
 `cs-etso` converts from Amendment 17 (generated 2026-10-15); earlier amendments
-exist as PDF only. Its items have no designation yet, so extract them by the
-ERulesId of a `query` hit.
+exist as PDF only. Each ETSO is one item designated by its number as printed
+(`ETSO-C1e`, `ETSO-2C521`, `ETSO-C44c A1`), each appendix as
+`Appendix N to <number>`. Four numbers are printed irregularly in the source and
+are kept that way (`ETSO-72c`, `ETSO-C2C512`, `Appendix 2 to ETSO C-199 A1`;
+`Appendix1 to` becomes `Appendix 1 to`). Subpart A has no numbered paragraphs,
+so there is no `CS-ETSO.1`; the five "FAA Standard associated with …" items
+have no designation and are reached through `query`.
 
 One is catalogued but **PDF-only** — EASA publishes no XML export for it, so it
 cannot be parsed. It stays in the catalog (`xml_available: false`) so `info`

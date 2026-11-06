@@ -111,3 +111,33 @@ def test_part21_repeats_do_not_fail_validation():
     assert report.duplicate_erules_ids == []
     assert report.repeated_erules_ids
     assert report.ok
+
+
+def test_heading_inside_the_item_is_not_a_second_occurrence():
+    """An item whose own heading repeats its designation is found once.
+
+    Every topic of CS-23, CS-22, CS-LSA, UAS and CS-ETSO opens like this. Before
+    2026-11-06 find_rules descended into the match and counted the heading, so
+    extract warned repeated_in_source on 269 CS-23 items, 327 CS-22, 10 CS-LSA
+    and 54 UAS items that EASA prints once. Measured against the old walk: every
+    dropped match was a HeadingNode inside a kept match; the real repeats (CS-22: 1,
+    UAS: 6) are still reported.
+    """
+    from easa_erules.model import HeadingNode
+
+    item = _amc("ERULES-6", "Body.")
+    item.designation = "AMC1 CS-23.2000"
+    heading = HeadingNode()
+    heading.designation = "AMC1 CS-23.2000"
+    item.children.insert(0, heading)
+    doc = _doc(item)
+
+    assert api.find_rules(doc, "AMC1 CS-23.2000") == [item]
+
+
+def test_real_repeats_are_still_all_found_by_designation():
+    first = _amc("ERULES-7", "Shared guidance.")
+    second = _amc("ERULES-7", "Shared guidance.")
+    first.designation = second.designation = "GM1 Article 1"
+    doc = _doc(first, second)
+    assert len(api.find_rules(doc, "GM1 Article 1")) == 2

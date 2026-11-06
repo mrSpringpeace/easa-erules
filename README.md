@@ -222,8 +222,9 @@ landing page is a reported fallback.
 `cs-p` is catalogued but **PDF-only** — EASA publishes no XML export for it,
 so commands fail with an explanation instead of a confusing parse error.
 `cs-etso` converts from Amendment 17 (2026-10-15); earlier amendments are PDF
-only. Its items carry no designation yet (`ETSO-2C521` is not recognised as
-one), so extract them by ERulesId from a `query` hit.
+only. Items are addressed by their ETSO number as printed:
+`extract cs-etso ETSO-2C521`, `extract cs-etso "Appendix 1 to ETSO-C6e"`.
+Subpart A has no numbered paragraphs, so there is no `CS-ETSO.1`.
 
 **FAA — experimental** — `sources/faa.yaml`, served by the public eCFR API:
 

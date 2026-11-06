@@ -218,6 +218,12 @@ def find_rules(node: Any, designation: str) -> list[Any]:
     def walk(n: Any) -> None:
         if matches(n):
             found.append(n)
+            # Not into its own subtree: a heading inside the item that repeats
+            # its designation is the item's title, not a second occurrence.
+            # (CS-ETSO: every ETSO topic opens with a heading "ETSO-C1e"; seen
+            # 2026-11-06, 277 of 277.) Repeats under other rules are siblings
+            # in other subtrees and are still all found.
+            return
         for child in getattr(n, "children", []):
             walk(child)
 

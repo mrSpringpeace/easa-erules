@@ -64,3 +64,44 @@ def test_extract_ed_decision():
     assert extract_ed_decision("ED Decision 2003/18/RM") == "ED Decision 2003/18/RM"
     assert extract_ed_decision("See ED Decision 2017/013/R for details") == "ED Decision 2017/013/R"
     assert extract_ed_decision("No decision here") == ""
+
+
+# --- CS-ETSO --------------------------------------------------------------------
+# Titles as printed in CS-ETSO Amendment 17 (EAR XML generated 2026-10-15,
+# fetched 2026-11-06). Of its 284 requirement topics, 277 carry an ETSO number or
+# "Appendix N to <ETSO number>"; the other 7 are the two Subpart headings and
+# five "FAA Standard associated with ETSO-…" texts, which are not designations.
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("ETSO-C1e", "ETSO-C1e"),
+        ("ETSO-2C521", "ETSO-2C521"),
+        ("ETSO-C44c A1", "ETSO-C44c A1"),  # A1: first amendment of ETSO-C44c
+        ("Appendix 1 to ETSO-C6e – Modification to MPS for Direction Instrument", "Appendix 1 to ETSO-C6e"),
+        ("Appendix 1.2 to ETSO-C153a – Integrated Modular Avionics (IMA)", "Appendix 1.2 to ETSO-C153a"),
+        ("APPENDIX 1 TO ETSO-C100c – MPS FOR AVIATION CHILD SAFETY DEVICE", "Appendix 1 to ETSO-C100c"),
+        # Irregular as published; the number is kept, never "corrected":
+        ("ETSO-72c", "ETSO-72c"),
+        ("ETSO-C2C512", "ETSO-C2C512"),
+        ("Appendix 2 to ETSO C-199 A1 – Test Requirements", "Appendix 2 to ETSO C-199 A1"),
+        ("Appendix1 to ETSO-C76b Minimum Performance Standard (MPS) for Fuel Drain Valves", "Appendix 1 to ETSO-C76b"),
+    ],
+)
+def test_etso_designations(title: str, expected: str):
+    assert extract_designation(title, require_number=True) == expected
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "FAA Standard associated with ETSO-C73",
+        "SUBPART B – LIST OF ETSOs",
+        "ETSO Authorisation",  # no digit: not a number
+        "ETSO-CA",
+        "European Technical Standard Order (ETSO) authorisations",
+    ],
+)
+def test_etso_non_designations(title: str):
+    assert extract_designation(title, require_number=True) == ""

@@ -41,7 +41,7 @@ for how to use the tool see the [README](../README.md) and the
 
 | Area | Status | Notes |
 |------|--------|--------|
-| EASA catalog | **12 entries** | 11 convert; `cs-p` is PDF-only and flagged. `cs-etso` XML since Amdt 17, verified 2026-11-06 (294/294 topics); no ETSO designations yet. `tests/test_history.py` ties each entry's format to publication-history.xml |
+| EASA catalog | **12 entries** | 11 convert; `cs-p` is PDF-only and flagged. `cs-etso` XML since Amdt 17, verified 2026-11-06 (294/294 topics); 277 items designated by ETSO number. `tests/test_history.py` ties each entry's format to publication-history.xml |
 | FAA catalog | **6 entries, experimental** | far-21/23/25/27/43/91 via the public eCFR API |
 | FAA adapter | **Experimental** | Fetch, parse, search, refs. Tables flattened and images skipped — both reported, never silent. Output shape may change. |
 | ASTM | **Out of scope** | Paywalled, cannot be redistributed — adapter removed |

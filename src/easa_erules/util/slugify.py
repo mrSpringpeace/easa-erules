@@ -116,6 +116,37 @@ _DESIGNATION_PATTERNS: list[re.Pattern[str]] = [
     ),
 ]
 
+# European Technical Standard Orders (CS-ETSO, Subpart B). Each ETSO is one
+# topic titled with its number, an appendix is "Appendix N to <number>":
+#
+#   ETSO-C1e, ETSO-2C521, ETSO-C44c A1        (A1 = first amendment of the ETSO)
+#   Appendix 1 to ETSO-C6e — <title>          Appendix 1.2 to ETSO-C153a — …
+#
+# The number is kept as EASA printed it, whitespace aside. CS-ETSO Amdt 17
+# (generated 2026-10-15) prints four irregular ones, kept verbatim rather than
+# guessed at: "ETSO-72c", "ETSO-C2C512", "ETSO C-199 A1" and "Appendix1 to".
+# Only the frame words are normalised ("APPENDIX 1 TO" / "Appendix1 to" ->
+# "Appendix 1 to"). The number token is case-sensitive: an ETSO suffix is a
+# lowercase letter, everything before it is digits, capitals and hyphens, with
+# at least one digit (so "ETSO Authorisation" or "ETSO-CA" is not a number).
+_ETSO_NUMBER = r"ETSO[-\s](?=[0-9A-Z-]*\d)[0-9A-Z](?:[0-9A-Z-]*[0-9A-Z])?[a-z]?(?:\s+A\d+)?"
+_ETSO_DESIGNATION = re.compile(rf"^({_ETSO_NUMBER}){_TOK_END}")
+_ETSO_APPENDIX_DESIGNATION = re.compile(
+    rf"^(?i:appendix)\s*(\d+(?:\.\d+)?)\s+(?i:to)\s+({_ETSO_NUMBER}){_TOK_END}"
+)
+
+
+def _extract_etso_designation(text: str) -> str:
+    """ETSO number or "Appendix N to <ETSO number>" at the start of *text*, else ""."""
+    appendix = _ETSO_APPENDIX_DESIGNATION.match(text)
+    if appendix:
+        return f"Appendix {appendix.group(1)} to {' '.join(appendix.group(2).split())}"
+    number = _ETSO_DESIGNATION.match(text)
+    if number:
+        return " ".join(number.group(1).split())
+    return ""
+
+
 def extract_designation(text: str, *, require_number: bool = False) -> str:
     """Extract a rule designation from the start of title/first-line text.
 
@@ -133,6 +164,10 @@ def extract_designation(text: str, *, require_number: bool = False) -> str:
 
     # Only consider the leading portion of a title line
     head = text[:120]
+
+    etso = _extract_etso_designation(head)
+    if etso:
+        return etso
 
     for pattern in _DESIGNATION_PATTERNS:
         match = pattern.match(head)
