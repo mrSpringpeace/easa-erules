@@ -58,10 +58,12 @@ import httpx
 import yaml
 from lxml import etree
 
+from .. import __version__
 from .cache import default_cache_root
-from .resolver import DEFAULT_USER_AGENT
 
 PUBLICATION_HISTORY_URL = "https://www.easa.europa.eu/gcs/files/publication-history.xml"
+
+DEFAULT_USER_AGENT = f"easa-erules/{__version__} (+https://github.com/mrSpringpeace/easa-erules)"
 
 #: Cache directory name under the cache root. The leading underscore keeps it
 #: out of the document id space (catalog ids never start with one).

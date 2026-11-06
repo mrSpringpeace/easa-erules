@@ -27,6 +27,10 @@ class CachedIntegrityError(ValueError):
     """A cached source differs from the digest stored beside it."""
 
 
+class PublisherChecksumError(ValueError):
+    """A download differs from the MD5 EASA published for it."""
+
+
 @dataclass(slots=True)
 class FetchResult:
     """Result of fetching a document into the local cache."""
@@ -136,9 +140,12 @@ class EasaDownloader:
                 from_cache=True,
             )
 
-        vdir.mkdir(parents=True, exist_ok=True)
         raw_bytes = self._download_bytes(pub.download_url)
+        # Checked before anything is written: a corrupt or swapped download
+        # must not leave a version directory behind.
+        publisher_md5_verified = verify_publisher_md5(raw_bytes, pub)
         xml_bytes, original_name = _extract_xml_payload(raw_bytes, pub)
+        vdir.mkdir(parents=True, exist_ok=True)
 
         # Optionally keep original download for audit
         if original_name and original_name.lower().endswith(".zip"):
@@ -164,7 +171,17 @@ class EasaDownloader:
                 "filename": pub.filename or original_name,
                 "format": pub.format,
                 "reported_size": pub.size,
+                # "publication_history" | "landing_page" (see resolver.py)
+                "inventory": resolved.inventory,
+                # Publisher's MD5 of the downloaded container, and whether the
+                # download matched it. Null when the inventory gives no MD5.
+                "publisher_md5": pub.md5,
+                "publisher_md5_verified": publisher_md5_verified,
+                "generated_at": pub.generated_at,
+                "history_file_name": pub.history_file_name,
+                "notes": pub.notes,
             },
+            "resolver_warnings": list(resolved.warnings),
             "retrieved_at": retrieved_at,
             "integrity": {
                 "sha256": sha,
@@ -249,6 +266,25 @@ class EasaDownloader:
         response = self.client.get(url)
         response.raise_for_status()
         return response.content
+
+
+def verify_publisher_md5(data: bytes, pub: Publication) -> bool:
+    """Check *data* against the MD5 EASA published for *pub*.
+
+    Returns ``True`` when it matches, ``False`` when there is no published MD5
+    (landing-page inventory). Raises :class:`PublisherChecksumError` on a
+    mismatch. MD5 is what EASA publishes; it identifies the file, it is not
+    relied on against tampering (the SHA-256 of the extracted XML still is).
+    """
+    if not pub.md5:
+        return False
+    actual = hashlib.md5(data, usedforsecurity=False).hexdigest()
+    if actual != pub.md5.lower():
+        raise PublisherChecksumError(
+            f"Downloaded {pub.download_url} has MD5 {actual}; "
+            f"publication-history.xml states {pub.md5}"
+        )
+    return True
 
 
 def _extract_xml_payload(data: bytes, pub: Publication) -> tuple[bytes, str | None]:

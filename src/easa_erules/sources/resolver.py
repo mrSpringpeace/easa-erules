@@ -1,4 +1,14 @@
-"""Resolve EASA publication download URLs from stable landing pages."""
+"""Resolve EASA publication download URLs.
+
+Two inventories, in order of preference:
+
+1. EASA's ``publication-history.xml`` (see :mod:`.history`), for catalog entries
+   that carry ``ear_codes``. It lists every generation, not only the current
+   one, with the publisher's MD5 and generation date.
+2. The document's landing page, scraped for download links. Used when the
+   entry has no ``ear_codes`` or the history cannot be read; the fallback is
+   reported in ``ResolveResult.warnings``, never taken silently.
+"""
 
 from __future__ import annotations
 
@@ -10,10 +20,24 @@ from urllib.parse import urljoin, urlparse
 import httpx
 from lxml import html
 
-from .. import __version__
+from .history import (
+    DEFAULT_USER_AGENT,
+    PUBLICATION_HISTORY_URL,
+    HistoryEntry,
+    PublicationHistoryFormatError,
+    entries_for_codes,
+    parse_publication_history,
+)
 from .registry import get_source
 
-DEFAULT_USER_AGENT = f"easa-erules/{__version__} (+https://github.com/mrSpringpeace/easa-erules)"
+__all__ = ["DEFAULT_USER_AGENT", "EasaSourceResolver", "Publication", "ResolveResult"]
+
+INVENTORY_PUBLICATION_HISTORY = "publication_history"
+INVENTORY_LANDING_PAGE = "landing_page"
+
+#: publication-history.xml link type -> Publication.format. "xmlzip" is a ZIP
+#: holding the Flat OPC XML, which this toolkit has always called "xml".
+_HISTORY_LINK_FORMATS = {"xmlzip": "xml", "pdf": "pdf"}
 
 
 @dataclass(slots=True)
@@ -29,6 +53,11 @@ class Publication:
     filename: str | None = None
     size: int | None = None
     link_text: str = ""
+    # Set only for publications read from publication-history.xml.
+    md5: str | None = None  # publisher's MD5 of the downloaded file (ZIP/PDF)
+    generated_at: str | None = None  # ISO 8601 UTC generation date
+    history_file_name: str | None = None  # <fileName>, unique per generation
+    notes: str | None = None  # <notes> as published
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -41,6 +70,10 @@ class Publication:
             "filename": self.filename,
             "size": self.size,
             "link_text": self.link_text,
+            "md5": self.md5,
+            "generated_at": self.generated_at,
+            "history_file_name": self.history_file_name,
+            "notes": self.notes,
         }
 
 
@@ -53,12 +86,17 @@ class ResolveResult:
     landing_page: str
     publications: list[Publication] = field(default_factory=list)
     selected: Publication | None = None
+    #: Where ``publications`` came from: "publication_history" | "landing_page".
+    inventory: str = INVENTORY_LANDING_PAGE
+    warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "document_id": self.document_id,
             "title": self.title,
             "landing_page": self.landing_page,
+            "inventory": self.inventory,
+            "warnings": list(self.warnings),
             "publications": [p.to_dict() for p in self.publications],
             "selected": self.selected.to_dict() if self.selected else None,
         }
@@ -104,7 +142,28 @@ class EasaSourceResolver:
         # CS-ETSO is pdf-only, and a hardcoded "xml" default silently overrode it.
         preferred = preferred_format or source.get("preferred_format") or "xml"
 
-        publications = self.discover_publications(landing)
+        warnings: list[str] = []
+        publications: list[Publication] = []
+        inventory = INVENTORY_LANDING_PAGE
+        ear_codes = [str(code) for code in source.get("ear_codes") or []]
+        if ear_codes:
+            try:
+                publications = self.discover_history_publications(ear_codes)
+            except (httpx.HTTPError, PublicationHistoryFormatError) as exc:
+                warnings.append(
+                    f"publication_history_unavailable: {exc}; fell back to the landing page"
+                )
+            else:
+                if publications:
+                    inventory = INVENTORY_PUBLICATION_HISTORY
+                else:
+                    warnings.append(
+                        f"publication_history_has_no_entries for ear_codes {ear_codes}; "
+                        "fell back to the landing page"
+                    )
+        if inventory == INVENTORY_LANDING_PAGE:
+            publications = self.discover_publications(landing)
+
         selected = self.select_publication(
             publications,
             version=version,
@@ -117,7 +176,16 @@ class EasaSourceResolver:
             landing_page=landing,
             publications=publications,
             selected=selected,
+            inventory=inventory,
+            warnings=warnings,
         )
+
+    def discover_history_publications(self, ear_codes: list[str]) -> list[Publication]:
+        """Fetch publication-history.xml and list the generations of *ear_codes*."""
+        response = self.client.get(PUBLICATION_HISTORY_URL)
+        response.raise_for_status()
+        entries = parse_publication_history(response.content, base_url=str(response.url))
+        return publications_from_history(entries_for_codes(entries, ear_codes))
 
     def discover_publications(self, landing_page: str) -> list[Publication]:
         """Fetch a landing page and extract downloadable publications."""
@@ -150,20 +218,37 @@ class EasaSourceResolver:
 
         if version:
             needle = _slugify_version(version)
-            for pub in candidates:
-                if (
-                    needle == pub.version_slug
-                    or needle in pub.version_slug
-                    or needle in _slugify_version(pub.version_label)
-                    or needle in _slugify_version(pub.title)
-                    or version.lower() in pub.title.lower()
-                    or version.lower() in pub.version_label.lower()
-                ):
-                    return pub
-            raise LookupError(
-                f"No publication matching version '{version}'. "
-                f"Available: {', '.join(sorted({p.version_label for p in publications}))}"
-            )
+            # Narrowest match first. A substring test alone picks "amendment-10"
+            # for "amendment-1" once the history lists both.
+            exact = [
+                p
+                for p in candidates
+                if needle in (p.version_slug, _slugify_version(p.version_label))
+            ]
+            prefix = [p for p in candidates if p.version_slug.startswith(needle + "-")]
+            # Anywhere in slug, label or title, but only on whole "-" tokens.
+            bounded = re.compile(rf"(?:^|-){re.escape(needle)}(?:-|$)")
+            loose = [
+                p
+                for p in candidates
+                if bounded.search(p.version_slug)
+                or bounded.search(_slugify_version(p.version_label))
+                or bounded.search(_slugify_version(p.title))
+            ]
+            matched = exact or prefix or loose
+            if not matched:
+                raise LookupError(
+                    f"No publication matching version '{version}'. "
+                    f"Available: {', '.join(sorted({p.version_label for p in publications}))}"
+                )
+            slugs = sorted({p.version_slug for p in matched})
+            if len(slugs) > 1:
+                raise LookupError(
+                    f"Version '{version}' is ambiguous; it matches {', '.join(slugs)}. "
+                    "Pass one of these exactly."
+                )
+            # Several generations of one version: the newest one.
+            return max(matched, key=_publication_sort_key)
 
         # Latest: prefer XML, then highest sort key (amendment number)
         return max(candidates, key=_publication_sort_key)
@@ -282,8 +367,13 @@ def _slugify_version(text: str) -> str:
     return text or "unknown"
 
 
-def _publication_sort_key(pub: Publication) -> tuple[int, int, int, int, str]:
-    """Higher is newer. Prefer amendment numbers, then initial issue last."""
+def _publication_sort_key(pub: Publication) -> tuple[int, str, int, int, int, str]:
+    """Higher is newer.
+
+    History publications carry their generation date, which orders them
+    exactly. Landing-page publications have none ("" for all), so for them the
+    amendment/issue numbers decide, as before.
+    """
     label = pub.version_label.lower()
     amdt = re.search(r"(?:amendment|amdt)\s*(\d+)", label)
     issue = re.search(r"issue\s*(\d+)", label)
@@ -291,7 +381,7 @@ def _publication_sort_key(pub: Publication) -> tuple[int, int, int, int, str]:
     issue_n = int(issue.group(1)) if issue else -1
     is_initial = 0 if "initial" in label else 1
     fmt_score = 2 if pub.format == "xml" else 1 if pub.format == "zip" else 0
-    return (fmt_score, is_initial, amdt_n, issue_n, pub.title)
+    return (fmt_score, pub.generated_at or "", is_initial, amdt_n, issue_n, pub.title)
 
 
 def _parse_size_from_type(content_type: str | None) -> int | None:
@@ -313,3 +403,44 @@ def _filename_from_url(url: str) -> str | None:
     if "." in name:
         return name
     return None
+
+
+def history_version_label(notes: str) -> str:
+    """Version label for a publication-history ``<notes>`` text.
+
+    - "CS Amendment 6, AMC/GM Issue 5" -> "Amendment 6 / Issue 5". CS-23 has
+      two generations of CS Amendment 6 with different AMC/GM issues (4 and 5);
+      both numbers are needed to tell them apart.
+    - "Amentment 2" (CS-25, as published) -> "Amendment 2".
+    - Amendment / Issue / Initial issue -> as :func:`_extract_version_label`.
+    - Anything else ("Revision from November 2025") is kept verbatim.
+    """
+    text = " ".join(notes.split())
+    combined = re.fullmatch(r"CS Amendment (\d+), AMC/GM Issue (\d+)", text, flags=re.IGNORECASE)
+    if combined:
+        return f"Amendment {combined.group(1)} / Issue {combined.group(2)}"
+    text = re.sub(r"\bAmentment\b", "Amendment", text, flags=re.IGNORECASE)
+    return _extract_version_label(text) or text or "unknown"
+
+
+def publications_from_history(entries: list[HistoryEntry]) -> list[Publication]:
+    """One Publication per link of each history entry, in the given order."""
+    pubs: list[Publication] = []
+    for entry in entries:
+        label = history_version_label(entry.notes)
+        for link in entry.links:
+            pubs.append(
+                Publication(
+                    title=f"{entry.ear_name} ({entry.notes or 'no notes'})",
+                    version_label=label,
+                    version_slug=_slugify_version(label),
+                    format=_HISTORY_LINK_FORMATS.get(link.link_type, "other"),
+                    download_url=link.url,
+                    filename=_filename_from_url(link.url),
+                    md5=link.md5,
+                    generated_at=entry.generated_at,
+                    history_file_name=entry.file_name,
+                    notes=entry.notes,
+                )
+            )
+    return pubs

@@ -14,6 +14,39 @@ All notable changes to this project will be documented in this file.
 - Catalog: `ear_codes` on every EASA entry, the stable key into that file
   (Part-21 has two). `tests/test_history.py` checks each code against a
   committed subset of the 2026-11-06 file.
+- `fetch` checks every download against the MD5 that EASA publishes before it
+  writes anything. On a mismatch it raises `PublisherChecksumError` and
+  returns `integrity_error`. `meta.yaml` now records `inventory`,
+  `publisher_md5`, `publisher_md5_verified`, `generated_at`,
+  `history_file_name`, `notes` and `resolver_warnings`.
+- `versions --remote` rows gain `inventory`, `publisher_md5`, `generated_at`,
+  `history_file_name`, `notes` and `generations` (how many times EASA
+  generated that version). The envelope carries the resolver's warnings.
+- `versions --check` freshness gains `matched_by` (`version_slug`,
+  `publisher_md5` or `version_slug_prefix`) and `remote_version_slug`.
+
+### Changed
+
+- The resolver takes versions from `publication-history.xml` for every
+  catalog entry with `ear_codes`, and lists all past XML generations instead
+  of only the current one. It falls back to the landing page only with a
+  `publication_history_unavailable` / `_has_no_entries` warning.
+- "Latest" now means the newest generation date, not the highest amendment
+  number. They differ for CS-29: Amendment 10 XML (2022-12-19) predates 11.
+- **Slug change:** "CS Amendment N, AMC/GM Issue M" becomes
+  `amendment-N-issue-M`. CS-23 has two generations of Amendment 6, with
+  AMC/GM Issue 4 and Issue 5, which used to share the slug `amendment-6`. A
+  pin of "Amendment 6" is now rejected as ambiguous and the error lists both
+  slugs. Copies cached under the old slug still work offline, and
+  `versions --check` finds them by the MD5 of `original.zip`, or by a
+  one-to-one slug prefix.
+- Version pins match whole tokens only, so "Amendment 1" no longer matches
+  "Amendment 10".
+- A shallow `versions --check` on a copy fetched from the landing page, when
+  the remote listing comes from the history, reports `unknown` with
+  `shallow_check_not_comparable` instead of comparing URLs. The reason: the
+  CS-23 Amdt 5 landing-page ZIP and the history ZIP differ in MD5, but the
+  XML inside is byte-identical (checked 2026-11-06). `--deep` decides.
 
 ## [0.3.0] - 2026-08-11
 

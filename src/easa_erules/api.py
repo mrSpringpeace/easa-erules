@@ -340,35 +340,52 @@ def list_remote_versions(doc_id: str) -> dict[str, Any]:
     except (LookupError, ValueError) as exc:
         raise ToolError(Status.SOURCE_DRIFT, str(exc), source=doc_id) from exc
 
+    inventory = resolved.inventory
     xml_versions = [pub for pub in resolved.publications if pub.format == "xml"]
     if not xml_versions:
+        where = (
+            "publication-history.xml" if inventory == "publication_history" else resolved.landing_page
+        )
         raise ToolError(
             Status.SOURCE_DRIFT,
-            f"No XML publications found on {resolved.landing_page}",
+            f"No XML publications found in {where}",
             source=doc_id,
         )
     xml_versions.sort(key=_publication_sort_key, reverse=True)
     latest_slug = xml_versions[0].version_slug
-    versions = [
-        {
+    # One row per version slug: when a version was generated more than once,
+    # the newest generation is the row and the count says how many exist.
+    rows: dict[str, dict[str, Any]] = {}
+    for pub in xml_versions:
+        row = rows.get(pub.version_slug)
+        if row is not None:
+            row["generations"] += 1
+            continue
+        rows[pub.version_slug] = {
             "version_label": pub.version_label,
             "version_slug": pub.version_slug,
             "format": pub.format,
             "download_url": pub.download_url,
             "filename": pub.filename,
             "reported_size": pub.size,
+            "inventory": inventory,
+            "publisher_md5": pub.md5,
+            "generated_at": pub.generated_at,
+            "history_file_name": pub.history_file_name,
+            "notes": pub.notes,
+            "generations": 1,
             "is_latest": pub.version_slug == latest_slug,
             "checked_at": checked_at,
         }
-        for pub in xml_versions
-    ]
     return envelope(
         Status.OK,
+        warnings=list(resolved.warnings),
         document_id=entry["id"],
         convertible=True,
         landing_page=resolved.landing_page,
+        inventory=inventory,
         checked_at=checked_at,
-        versions=versions,
+        versions=list(rows.values()),
     )
 
 
@@ -380,9 +397,14 @@ def check_regulation_version(
     """Verify one exact local amendment and compare it with EASA's inventory."""
     import httpx
 
-    from .sources.downloader import EasaDownloader, _extract_xml_payload
+    from .sources.downloader import (
+        EasaDownloader,
+        _extract_xml_payload,
+        verify_publisher_md5,
+    )
     from .sources.inventory import resolve_cached_version
     from .sources.registry import resolve_source_id
+    from .sources.resolver import _publication_sort_key
 
     try:
         key = resolve_source_id(doc_id)
@@ -414,6 +436,7 @@ def check_regulation_version(
     warnings: list[str] = []
     latest_slug: str | None = None
     remote_same: dict[str, Any] | None = None
+    matched_by: str | None = None  # "version_slug" | "publisher_md5"
     remote_sha: str | None = None
     state = "unknown"
     try:
@@ -427,26 +450,78 @@ def check_regulation_version(
             (item for item in versions if item["version_slug"] == local.version_slug),
             None,
         )
+        if remote_same is not None:
+            matched_by = "version_slug"
+        # The cached ZIP's MD5 names its generation exactly in
+        # publication-history.xml, also when the slug differs (a copy fetched
+        # through the landing page before 0.4, e.g. CS-23 "amendment-6", which
+        # the history calls "amendment-6-issue-5").
+        local_zip = local.source_path.with_name("original.zip")
+        local_md5 = (
+            hashlib.md5(local_zip.read_bytes(), usedforsecurity=False).hexdigest()
+            if local_zip.is_file()
+            else None
+        )
+        if remote_same is None and local_md5:
+            remote_same = next(
+                (item for item in versions if item.get("publisher_md5") == local_md5), None
+            )
+            if remote_same is not None:
+                matched_by = "publisher_md5"
+        if remote_same is None:
+            # "amendment-5" cached via the landing page vs "amendment-5-issue-3"
+            # in the history: accepted only when exactly one remote slug fits.
+            prefixed = [
+                item for item in versions
+                if str(item["version_slug"]).startswith(local.version_slug + "-")
+            ]
+            if len(prefixed) == 1:
+                remote_same = prefixed[0]
+                matched_by = "version_slug_prefix"
         if remote_same is None:
             state = "remote_version_missing"
         else:
             meta_source = (local.metadata or {}).get("source") or {}
-            shallow_changed = any(
-                expected not in (None, "") and actual not in (None, "") and expected != actual
-                for expected, actual in (
-                    (meta_source.get("download_url"), remote_same.get("download_url")),
-                    (meta_source.get("format"), remote_same.get("format")),
-                    (meta_source.get("reported_size"), remote_same.get("reported_size")),
+            local_inventory = meta_source.get("inventory") or "landing_page"
+            remote_inventory = remote_same.get("inventory") or "landing_page"
+            remote_md5 = remote_same.get("publisher_md5")
+            comparable = True
+            if remote_md5 and local_md5 == remote_md5:
+                # The very file EASA lists: identical, whatever the URL says.
+                shallow_changed = False
+            elif remote_md5 and local_md5 and meta_source.get("publisher_md5"):
+                # Both from the history and the MD5 moved: EASA regenerated it.
+                shallow_changed = True
+            elif local_inventory != remote_inventory:
+                # Landing-page ZIPs can repackage identical XML (CS-23 Amdt 5:
+                # different ZIP MD5, byte-identical XML, checked 2026-11-06), so
+                # neither the MD5 nor the URL says anything here. Deep decides.
+                comparable = False
+                shallow_changed = False
+                warnings.append(
+                    f"shallow_check_not_comparable: local copy came from {local_inventory}, "
+                    f"remote listing from {remote_inventory}; run with deep=True"
                 )
-            )
+            else:
+                shallow_changed = any(
+                    expected not in (None, "") and actual not in (None, "") and expected != actual
+                    for expected, actual in (
+                        (meta_source.get("download_url"), remote_same.get("download_url")),
+                        (meta_source.get("format"), remote_same.get("format")),
+                        (meta_source.get("reported_size"), remote_same.get("reported_size")),
+                    )
+                )
             if deep:
                 with EasaDownloader() as downloader:
                     resolved = downloader.resolver.resolve(key, preferred_format="xml")
                     publication = next(
                         (
                             pub
-                            for pub in resolved.publications
-                            if pub.format == "xml" and pub.version_slug == local.version_slug
+                            for pub in sorted(
+                                resolved.publications, key=_publication_sort_key, reverse=True
+                            )
+                            if pub.format == "xml"
+                            and pub.version_slug == remote_same["version_slug"]
                         ),
                         None,
                     )
@@ -454,14 +529,17 @@ def check_regulation_version(
                         state = "remote_version_missing"
                     else:
                         raw = downloader._download_bytes(publication.download_url)
+                        verify_publisher_md5(raw, publication)
                         xml_bytes, _ = _extract_xml_payload(raw, publication)
                         remote_sha = hashlib.sha256(xml_bytes).hexdigest()
                         shallow_changed = shallow_changed or remote_sha != local.actual_sha256
             if state != "remote_version_missing":
                 if shallow_changed:
                     state = "remote_changed"
-                elif latest_slug and latest_slug != local.version_slug:
+                elif latest_slug and latest_slug != remote_same["version_slug"]:
                     state = "update_available"
+                elif not comparable and remote_sha is None:
+                    state = "unknown"
                 else:
                     state = "current"
     except (ToolError, httpx.HTTPError, LookupError, ValueError) as exc:
@@ -476,6 +554,8 @@ def check_regulation_version(
         freshness={
             "state": state,
             "local_version_slug": local.version_slug,
+            "remote_version_slug": remote_same["version_slug"] if remote_same else None,
+            "matched_by": matched_by,
             "latest_remote_version_slug": latest_slug,
             "same_version_remote_sha256": remote_sha,
             "checked_at": checked_at,
@@ -788,9 +868,9 @@ def fetch_regulation(
         with EasaDownloader() as downloader:
             result = downloader.fetch(doc_id, version=version, force=force)
     except Exception as exc:
-        from .sources.downloader import CachedIntegrityError
+        from .sources.downloader import CachedIntegrityError, PublisherChecksumError
 
-        if isinstance(exc, CachedIntegrityError):
+        if isinstance(exc, (CachedIntegrityError, PublisherChecksumError)):
             raise ToolError(Status.INTEGRITY_ERROR, str(exc), source=doc_id) from exc
         if isinstance(exc, LookupError):
             raise ToolError(Status.SOURCE_DRIFT, str(exc), source=doc_id) from exc
