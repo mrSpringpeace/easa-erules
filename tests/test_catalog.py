@@ -21,7 +21,7 @@ def _pub(fmt: str, label: str = "Amendment 1") -> Publication:
 
 
 def test_no_silent_fallback_to_another_format():
-    """CS-ETSO is PDF-only; selecting the PDF as 'the XML' fails a layer down."""
+    """A PDF selected as 'the XML' fails a layer down (CS-ETSO did, before Amdt 17)."""
     resolver = EasaSourceResolver.__new__(EasaSourceResolver)
     with pytest.raises(LookupError, match="No 'xml' publication"):
         resolver.select_publication([_pub("pdf"), _pub("other")], preferred_format="xml")
@@ -44,14 +44,14 @@ def test_unknown_version_is_reported_not_substituted():
         )
 
 
-@pytest.mark.parametrize("doc_id", ["cs-p", "cs-etso"])
+@pytest.mark.parametrize("doc_id", ["cs-p"])
 def test_pdf_only_entries_are_flagged_in_the_catalog(doc_id: str):
     entry = get_source(doc_id)
     assert entry["xml_available"] is False
     assert entry["preferred_format"] == "pdf"
 
 
-@pytest.mark.parametrize("doc_id", ["cs-p", "cs-etso"])
+@pytest.mark.parametrize("doc_id", ["cs-p"])
 def test_pdf_only_entries_fail_with_an_explanation(doc_id: str):
     """Not a parse error somewhere deep in the OOXML reader."""
     with pytest.raises(ToolError) as excinfo:
@@ -76,3 +76,10 @@ def test_catalogs_share_one_id_space():
     ids = [e["id"] for e in list_sources()]
     assert len(ids) == len(set(ids))
     assert {"cs-vla", "far-23"} <= set(ids)
+
+
+def test_cs_etso_converts_since_amendment_17():
+    """publication-history.xml lists an xmlzip for D77B75 from 2026-10-15 on."""
+    entry = get_source("cs-etso")
+    assert entry.get("xml_available") is not False
+    assert entry["preferred_format"] == "xml"

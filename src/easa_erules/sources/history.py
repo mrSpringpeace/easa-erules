@@ -297,3 +297,40 @@ def load_cached_publication_history(cache_root: Path | None = None) -> HistorySn
     return HistorySnapshot(
         entries, xml_path, actual, str(meta.get("retrieved_at") or ""), str(meta.get("url") or "")
     )
+
+
+def catalog_format_problem(source: dict[str, Any], entries: list[HistoryEntry]) -> str | None:
+    """What is wrong with a catalog entry's format claim, or ``None``.
+
+    ``xml_available`` / ``preferred_format`` are claims about EASA; the history
+    is the evidence:
+
+    - PDF-only (``xml_available: false``) holds only if no generation of the
+      entry's EAR codes ever had an ``xmlzip`` link;
+    - otherwise the entry must prefer XML, and the version (``<notes>``) of its
+      newest generation must exist as XML. The newest generation itself may be
+      a PDF, because EASA regenerates old PDFs (CS-27: Amendment 7-9 PDFs on
+      2023-02-27, after the Amendment 10 XML of 2023-02-23).
+
+    Used by ``tests/test_history.py`` against the committed snapshot and by
+    ``scripts/catalog_health.py`` against the live file.
+    """
+    codes = [str(code) for code in source.get("ear_codes") or []]
+    if not codes:
+        return "no ear_codes"
+    matched = entries_for_codes(entries, codes)
+    if not matched:
+        return f"no history entry for ear_codes {codes}"
+    any_xml = any(entry.link("xmlzip") for entry in matched)
+    if source.get("xml_available") is False:
+        if any_xml:
+            return "catalog says PDF only, history lists XML"
+        if source.get("preferred_format") != "pdf":
+            return "PDF-only entry does not prefer pdf"
+        return None
+    if source.get("preferred_format", "xml") != "xml":
+        return f"preferred_format {source.get('preferred_format')!r} on an XML entry"
+    newest = matched[0]
+    if not any(entry.notes == newest.notes and entry.link("xmlzip") for entry in matched):
+        return f"newest generation {newest.file_name} ({newest.notes!r}) has no XML generation"
+    return None

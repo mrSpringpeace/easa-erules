@@ -24,9 +24,22 @@ All notable changes to this project will be documented in this file.
   generated that version). The envelope carries the resolver's warnings.
 - `versions --check` freshness gains `matched_by` (`version_slug`,
   `publisher_md5` or `version_slug_prefix`) and `remote_version_slug`.
+- `scripts/catalog_health.py` (weekly CI job) reads the history once. It
+  reports drift when an entry fell back to the landing page, when
+  `catalog_format_problem()` disagrees with the live history, or when the
+  landing page's latest XML names another version than the history
+  (`landing_page_agrees()`). On 2026-11-06 it reported 18/18 ok and all 11
+  landing-page comparisons agreed.
+- `tests/test_history.py` ties every catalog entry's `xml_available` and
+  `preferred_format` to the committed history snapshot.
 
 ### Changed
 
+- **`cs-etso` converts.** EASA publishes it as XML from Amendment 17
+  (generated 2026-10-15). It was fetched and parsed on 2026-11-06: 294/294
+  topics, 0 conflicting ERulesIds, publisher MD5 verified. Earlier amendments
+  remain PDF only. ETSO items carry no designation yet (`ETSO-2C521` is not
+  recognised as one), so extract them by the ERulesId of a `query` hit.
 - The resolver takes versions from `publication-history.xml` for every
   catalog entry with `ear_codes`, and lists all past XML generations instead
   of only the current one. It falls back to the landing page only with a

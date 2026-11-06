@@ -14,10 +14,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from easa_erules.sources import list_sources
+from easa_erules.sources import get_source, list_sources
 from easa_erules.sources.history import (
     PUBLICATION_HISTORY_URL,
     PublicationHistoryFormatError,
+    catalog_format_problem,
     entries_for_codes,
     fetch_publication_history,
     history_cache_dir,
@@ -226,3 +227,39 @@ def test_tampered_cache_is_refused(tmp_path: Path):
     fetched.path.write_bytes(fetched.path.read_bytes() + b"\n")
     with pytest.raises(ValueError, match="SHA-256 mismatch"):
         load_cached_publication_history(tmp_path)
+
+
+def test_catalog_format_agrees_with_the_history(entries):
+    """Every catalog entry's xml_available / preferred_format matches the history.
+
+    Fails when EASA starts or stops publishing XML for a catalogued EAR
+    (CS-ETSO switched with Amendment 17, generated 2026-10-15), or publishes a
+    new version as PDF only; refresh the fixture from the live file and fix the
+    catalog entry it names. The rule is catalog_format_problem().
+    """
+    problems = {s["id"]: catalog_format_problem(s, entries) for s in _easa_sources()}
+    assert {k: v for k, v in problems.items() if v} == {}
+
+
+@pytest.mark.parametrize(
+    ("override", "problem"),
+    [
+        # CS-ETSO as catalogued before 2026-11-06:
+        ({"preferred_format": "pdf", "xml_available": False}, "catalog says PDF only, history lists XML"),
+        ({"preferred_format": "pdf"}, "preferred_format 'pdf' on an XML entry"),
+        ({"ear_codes": []}, "no ear_codes"),
+        ({"ear_codes": ["000000"]}, "no history entry"),
+    ],
+)
+def test_catalog_format_problems_are_named(entries, override, problem):
+    source = {**get_source("cs-etso"), **override}
+    message = catalog_format_problem(source, entries)
+    assert message is not None and message.startswith(problem)
+
+
+def test_pdf_only_newest_version_is_a_problem(entries):
+    """A new amendment published as PDF only must not pass as "XML available"."""
+    # CS-P (DF6049) has PDF generations only; claiming XML for it must fail.
+    source = {"id": "x", "ear_codes": ["DF6049"], "preferred_format": "xml"}
+    message = catalog_format_problem(source, entries)
+    assert message is not None and "has no XML generation" in message

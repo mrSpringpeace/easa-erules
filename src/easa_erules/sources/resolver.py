@@ -444,3 +444,25 @@ def publications_from_history(entries: list[HistoryEntry]) -> list[Publication]:
                 )
             )
     return pubs
+
+
+def landing_page_agrees(landing: Publication, history: Publication) -> bool:
+    """Do a landing-page publication and a history publication name the same version?
+
+    Used by scripts/catalog_health.py to cross-check the two inventories. True
+    when any of these holds, checked against the live site on 2026-11-06:
+
+    - same file name (newer landing pages link the history's own files, e.g.
+      CS-23 ``5e178d_2026-05-13_19.03.46_….zip``, UAS ``D0593E_…``);
+    - same version slug (CS-VLA "Amendment 1" on both);
+    - the history slug extends the landing slug by whole tokens (landing
+      "Amendment 6" vs history "Amendment 6 / Issue 5").
+    """
+    landing_name = (landing.filename or "").lower().removesuffix(".zip")
+    if landing_name and history.history_file_name and landing_name == history.history_file_name.lower():
+        return True
+    if landing.version_slug in ("", "unknown"):
+        return False
+    return history.version_slug == landing.version_slug or history.version_slug.startswith(
+        landing.version_slug + "-"
+    )

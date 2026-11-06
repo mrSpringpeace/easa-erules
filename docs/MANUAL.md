@@ -105,17 +105,28 @@ per-document cache location.
 
 ### 3.4 Built-in catalog
 
-**EASA** — `src/easa_erules/sources/easa.yaml`, keyed on stable **landing pages**.
-Ten publications convert:
+**EASA** — `src/easa_erules/sources/easa.yaml`. Each entry carries `ear_codes`,
+its key into EASA's `publication-history.xml`, from which versions, generation
+dates and publisher MD5s are read; the **landing page** is the fallback, used
+only with a `publication_history_unavailable` warning. Eleven publications
+convert:
 
-`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `part-21`, `uas-rules`
+`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `cs-etso`, `part-21`, `uas-rules`
 
-Two are catalogued but **PDF-only** — EASA publishes no XML export for them, so
-they cannot be parsed. They stay in the catalog (`xml_available: false`) so
-`info` can say so and commands fail with an explanation rather than a confusing
-error from the OOXML reader:
+`cs-etso` converts from Amendment 17 (generated 2026-10-15); earlier amendments
+exist as PDF only. Its items have no designation yet, so extract them by the
+ERulesId of a `query` hit.
 
-`cs-p`, `cs-etso`
+One is catalogued but **PDF-only** — EASA publishes no XML export for it, so it
+cannot be parsed. It stays in the catalog (`xml_available: false`) so `info`
+can say so and commands fail with an explanation rather than a confusing error
+from the OOXML reader:
+
+`cs-p`
+
+`tests/test_history.py` checks every entry's format claim against a snapshot of
+`publication-history.xml`, so a switch like CS-ETSO's fails a test instead of
+going unnoticed.
 
 **FAA (experimental)** — `src/easa_erules/sources/faa.yaml`, served by the
 public eCFR API:
@@ -413,7 +424,7 @@ redistributed, so there is nothing an adapter could fetch.
 
 | Symptom | What to try |
 |---------|-------------|
-| "published by EASA as PDF only" | `cs-p` and `cs-etso` have no XML export; use the PDF from the landing page |
+| "published by EASA as PDF only" | `cs-p` has no XML export; use the PDF from the landing page. `cs-etso` has XML from Amendment 17 on |
 | `extract` warns `repeated_in_source` | The item is printed under several rules; `occurrences` says how many. The bodies are identical |
 | `extract` finds nothing | `query` for keywords; check designation form (`CS-VLA.1` vs `CS-VLA 1`) |
 | Stale search hits | `query … --rebuild` |

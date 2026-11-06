@@ -9,6 +9,12 @@ name: Catalog health
 # It runs --deep: resolve, download and parse. A resolver that finds *a*
 # publication proves nothing — CS-ETSO resolved happily for months and handed
 # back a PDF labelled as the XML export. Roughly 70 MB and 10-20 minutes.
+#
+# Since 2026-11-06 it also reads EASA's publication-history.xml once and flags
+# an entry as drift when the resolver had to fall back to the landing page,
+# when the catalog's format claim disagrees with the history (CS-ETSO gained
+# XML with Amdt 17 and nothing noticed), or when the landing page's latest XML
+# names a different version than the history's.
 
 on:
   workflow_dispatch:

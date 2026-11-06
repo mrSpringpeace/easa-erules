@@ -438,3 +438,53 @@ def test_ambiguous_slug_prefix_is_not_matched(tmp_path: Path, monkeypatch: pytes
     freshness = api.check_regulation_version("cs-23", "amendment-6")["freshness"]
     assert freshness["state"] == "remote_version_missing"
     assert freshness["matched_by"] is None
+
+
+# --- landing page vs history (scripts/catalog_health.py) ------------------------
+# Landing-page values below are what the live pages served on 2026-11-06.
+
+
+def _landing(label: str, filename: str) -> Publication:
+    from easa_erules.sources.resolver import _slugify_version
+
+    slug = _slugify_version(label) if label != "unknown" else "unknown"
+    return Publication("t", label, slug, "xml", "https://www.easa.europa.eu/en/downloads/1/en", filename=filename)
+
+
+def _newest_xml(codes: list[str]) -> Publication:
+    return next(p for p in _history_pubs(codes) if p.format == "xml")
+
+
+@pytest.mark.parametrize(
+    ("codes", "label", "filename"),
+    [
+        (["FE9752"], "Amendment 1", "easy_access_rules_for_very_light_aeroplanes_cs-vla_amdt_1.zip"),
+        (["5E178D"], "Amendment 6", "5e178d_2026-05-13_19.03.46_ear-for-normal-category-aeroplanes-cs-23.zip"),
+        (
+            ["450F3E", "313A4D"],
+            "unknown",
+            "313A4D_2025-11-27_11.38.35_EAR-for-Initial-Airworthiness-and-Environmental-Protection-Regulation-EU-No-748-2012.zip",
+        ),
+    ],
+)
+def test_landing_page_agrees_on_live_examples(codes, label, filename):
+    from easa_erules.sources.resolver import landing_page_agrees
+
+    assert landing_page_agrees(_landing(label, filename), _newest_xml(codes))
+
+
+@pytest.mark.parametrize(
+    ("codes", "label", "filename"),
+    [
+        # Landing page still on Amendment 11 while the history has 12:
+        (["7643C9"], "Amendment 11", "easy_access_rules_for_cs-29_amdt_11.zip"),
+        # "Amendment 1" must not pass for "Amendment 12":
+        (["7643C9"], "Amendment 1", "x.zip"),
+        # No label and a file name the history does not know: cannot agree.
+        (["D0593E"], "unknown", "something_else.zip"),
+    ],
+)
+def test_landing_page_disagreement_is_detected(codes, label, filename):
+    from easa_erules.sources.resolver import landing_page_agrees
+
+    assert not landing_page_agrees(_landing(label, filename), _newest_xml(codes))

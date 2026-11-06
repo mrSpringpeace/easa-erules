@@ -212,11 +212,18 @@ Local XML/DOCX ───────────────────┤
 **EASA** — `sources/easa.yaml`, keyed on stable landing pages rather than
 fragile direct URLs:
 
-`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `part-21`, `uas-rules`
+`cs-vla`, `cs-lsa`, `cs-22`, `cs-23`, `cs-25`, `cs-27`, `cs-29`, `cs-e`, `cs-etso`, `part-21`, `uas-rules`
 
-`cs-p` and `cs-etso` are catalogued but **PDF-only** — EASA publishes no XML
-export for them, so commands fail with an explanation instead of a confusing
-parse error.
+Versions come from EASA's
+[`publication-history.xml`](https://www.easa.europa.eu/gcs/files/publication-history.xml),
+which lists every past generation with an MD5 that `fetch` verifies; the
+landing page is a reported fallback.
+
+`cs-p` is catalogued but **PDF-only** — EASA publishes no XML export for it,
+so commands fail with an explanation instead of a confusing parse error.
+`cs-etso` converts from Amendment 17 (2026-10-15); earlier amendments are PDF
+only. Its items carry no designation yet (`ETSO-2C521` is not recognised as
+one), so extract them by ERulesId from a `query` hit.
 
 **FAA — experimental** — `sources/faa.yaml`, served by the public eCFR API:
 

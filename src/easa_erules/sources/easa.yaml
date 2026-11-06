@@ -114,7 +114,9 @@ sources:
       - csp
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-propellers-cs-p"
     ear_codes: ["DF6049"]
-    # PDF only — EASA publishes no XML export for CS-P.
+    # PDF only — no xmlzip link for DF6049 in publication-history.xml
+    # (2026-11-06: Initial issue and Amendment 1, both PDF).
+    # tests/test_history.py fails when that changes.
     preferred_format: pdf
     xml_available: false
 
@@ -128,11 +130,11 @@ sources:
       - etso
     landing_page: "https://www.easa.europa.eu/en/document-library/easy-access-rules/easy-access-rules-european-technical-standard-orders-cs-etso"
     ear_codes: ["D77B75"]
-    # EASA publishes CS-ETSO as PDF only — there is no XML export to convert.
-    # Kept in the catalog so 'info' can say so rather than the tool failing
-    # somewhere deep in the OOXML reader.
-    preferred_format: pdf
-    xml_available: false
+    # PDF only up to Amendment 16. Amendment 17 (generated 2026-10-15) is the
+    # first XML export in publication-history.xml; fetched and parsed
+    # 2026-11-06: 294/294 topics, 0 conflicting ERulesIds, publisher MD5 ok.
+    # Older amendments stay PDF only and cannot be pinned as XML.
+    preferred_format: xml
 
   part-21:
     title: "Initial Airworthiness and Environmental Certification"
